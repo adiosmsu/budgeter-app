@@ -1,5 +1,24 @@
 apply plugin: 'com.android.application'
 
+repositories {
+    mavenLocal()
+}
+android {
+    packagingOptions {
+        exclude 'META-INF/spring.handlers'
+        exclude 'META-INF/spring.schemas'
+        exclude 'META-INF/spring.tooling'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+    }
+}
+
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
@@ -22,4 +41,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.2.1'
+    compile 'ru.adios.budgeter:core-java6:1.0-SNAPSHOT'
+    compile 'ru.adios.budgeter:inmemrepo-api-impl-java6:1.0-SNAPSHOT'
 }

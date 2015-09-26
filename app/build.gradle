@@ -43,4 +43,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'ru.adios.budgeter:core-java6:1.0-SNAPSHOT'
     compile 'ru.adios.budgeter:inmemrepo-api-impl-java6:1.0-SNAPSHOT'
+    compile 'com.noveogroup.android:android-logger:1.3.5'
 }

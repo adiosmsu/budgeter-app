@@ -9,12 +9,22 @@ import ru.adios.budgeter.inmemrepo.Schema;
  */
 public final class Constants {
 
-    public static final CurrenciesExchangeService CURRENCIES_EXCHANGE_SERVICE = new CurrenciesExchangeService(new TransactionalSupport() {
-        @Override
-        public void runWithTransaction(Runnable runnable) {
-            runnable.run();
-        }
-    }, Schema.CURRENCY_RATES, new InnerMemoryAccounter(), Schema.TREASURY, ExchangeRatesLoader.createBtcLoader(Schema.TREASURY), ExchangeRatesLoader.createCbrLoader(Schema.TREASURY));
+    public static final RatesDelegatingBackgroundService CURRENCIES_EXCHANGE_SERVICE =
+            new RatesDelegatingBackgroundService(
+                    new CurrenciesExchangeService(
+                            new TransactionalSupport() {
+                                @Override
+                                public void runWithTransaction(Runnable runnable) {
+                                    runnable.run();
+                                }
+                            },
+                            Schema.CURRENCY_RATES,
+                            new InnerMemoryAccounter(),
+                            Schema.TREASURY,
+                            ExchangeRatesLoader.createBtcLoader(Schema.TREASURY),
+                            ExchangeRatesLoader.createCbrLoader(Schema.TREASURY)
+                    )
+            );
 
     private Constants() {}
 

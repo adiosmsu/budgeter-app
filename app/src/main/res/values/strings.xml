@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">budgeter</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="accounts_list">Account balances list</string>
+    <string name="total">Total:</string>
 </resources>

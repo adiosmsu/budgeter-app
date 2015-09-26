@@ -2,5 +2,6 @@
 <resources>
     <string name="app_name">Бюджетер</string>
     <string name="action_settings">Настройки</string>
-    <string name="hello_world">Привет, мир!</string>
+    <string name="accounts_list">Список балансов аккаутов</string>
+    <string name="total">Всего:</string>
 </resources>

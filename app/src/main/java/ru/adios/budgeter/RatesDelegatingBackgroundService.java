@@ -26,7 +26,7 @@ import ru.adios.budgeter.api.UtcDay;
  * 9/26/15
  */
 @NotThreadSafe
-public class RatesDelegatingBackgroundService implements CurrencyRatesRepository {
+public final class RatesDelegatingBackgroundService implements CurrencyRatesRepository {
 
     public interface Callback {
 

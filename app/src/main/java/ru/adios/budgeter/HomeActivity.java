@@ -1,5 +1,6 @@
 package ru.adios.budgeter;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -16,14 +17,14 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
-import ru.adios.budgeter.api.BudgeterApiException;
 import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.util.CoreUtils;
+import ru.adios.budgeter.util.Formatting;
+import ru.adios.budgeter.util.MenuUtils;
 
 public class HomeActivity extends AppCompatActivity {
-
-    public static final int FUNDS_ID = ElementsIdProvider.getNextId();
 
     private static final Logger logger = LoggerFactory.getLogger(HomeActivity.class);
 
@@ -37,12 +38,7 @@ public class HomeActivity extends AppCompatActivity {
 
     {
         balanceElement.setTotalUnit(Units.RUB);
-        try {
-            totalBalance = balanceElement.getTotalBalance();
-        } catch (BudgeterApiException ex) {
-            logger.error("Error fetching total balance", ex);
-            totalBalance = Money.zero(Units.RUB);
-        }
+        totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
     }
 
     @Override
@@ -57,8 +53,10 @@ public class HomeActivity extends AppCompatActivity {
         // Modify it so it will show balances
         final Integer[] maxLine = new Integer[1];
         final View[] latest = new TextView[1];
+        final Integer[] nextIndex = new Integer[1];
         maxLine[0] = 0;
         latest[0] = home.getChildAt(0);
+        nextIndex[0] = 1;
         balanceElement.streamIndividualBalances().forEach(new Consumer<Money>() {
             @Override
             public void accept(Money money) {
@@ -68,16 +66,23 @@ public class HomeActivity extends AppCompatActivity {
                     maxLine[0] = l;
                 }
                 final TextView newLineView = getNewLineView(str, getLatestNewLineId(latest));
-                home.addView(newLineView);
+                addNewViewAtIndexAndIncrement(newLineView, home, nextIndex);
                 latest[0] = newLineView;
             }
         });
         if (latest[0] != null) {
             final TextView separatorLine = getStrSeparatorLine(maxLine[0], latest[0].getId());
             latest[0] = separatorLine;
-            home.addView(separatorLine);
+            addNewViewAtIndexAndIncrement(separatorLine, home, nextIndex);
         }
-        home.addView(getNewLineView(getResources().getText(R.string.total).toString() + ' ' + Formatting.toStringMoneyUsingText(totalBalance), getLatestNewLineId(latest)));
+        final TextView totalLine =
+                getNewLineView(getResources().getText(R.string.total).toString() + ' ' + Formatting.toStringMoneyUsingText(totalBalance), getLatestNewLineId(latest));
+        home.addView(totalLine, nextIndex[0]);
+    }
+
+    private void addNewViewAtIndexAndIncrement(TextView newLineView, RelativeLayout home, Integer[] nextIndex) {
+        home.addView(newLineView, nextIndex[0]);
+        nextIndex[0] = nextIndex[0] + 1;
     }
 
     @Nullable
@@ -118,12 +123,8 @@ public class HomeActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_home, menu);
 
-        // Add funds info
-        final int settingsOrder = menu.getItem(0).getOrder();
-        final MenuItem fundsInfo = menu.add(Menu.NONE, FUNDS_ID, settingsOrder - 1, Formatting.toStringMoneyUsingText(totalBalance));
-        fundsInfo.setTitle(Formatting.toStringMoneyUsingText(totalBalance));
-        fundsInfo.setTitleCondensed(Formatting.toStringMoneyUsingSign(totalBalance));
-        fundsInfo.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        MenuUtils.fillStandardMenu(menu, totalBalance);
+
         return true;
     }
 
@@ -140,6 +141,11 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /** Called when user clicks on Add Funds button */
+    public void startAddFundsActivity(View view) {
+        startActivity(new Intent(this, AddFundsActivity.class));
     }
 
 }

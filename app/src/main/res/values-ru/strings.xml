@@ -4,4 +4,9 @@
     <string name="action_settings">Настройки</string>
     <string name="accounts_list">Список балансов аккаутов</string>
     <string name="total">Всего:</string>
+    <string name="button_add_funds">Добавить средства</string>
+    <string name="amount_decimal_hint">Сумма</string>
+    <string name="amount_currency_hint">Валюта</string>
+    <string name="title_activity_add_funds">Добавить средства</string>
+    <string name="add_funds_finish_button">Добавить</string>
 </resources>

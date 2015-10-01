@@ -1,4 +1,4 @@
-package ru.adios.budgeter;
+package ru.adios.budgeter.util;
 
 import org.joda.money.Money;
 

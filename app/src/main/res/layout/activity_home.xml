@@ -12,9 +12,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <LinearLayout
+        android:id="@+id/ah_funds_list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/ah_account_balances"
+        android:gravity="end">
+    </LinearLayout>
+
     <Button
+        android:id="@+id/ah_add_funds_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/ah_funds_list"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:text="@string/button_add_funds"
         android:onClick="startAddFundsActivity" />
 

@@ -24,6 +24,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ru.adios.budgeter.HomeActivity" />
         </activity>
+        <activity
+            android:name=".FundsMutationActivity"
+            android:label="@string/title_activity_funds_mutation"
+            android:parentActivityName=".HomeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ru.adios.budgeter.HomeActivity" />
+        </activity>
     </application>
 
 </manifest>

@@ -1,0 +1,59 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="ru.adios.budgeter.FundsMutationActivity">
+
+    <RadioGroup
+        android:id="@+id/direction_radio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_gravity="fill_horizontal">
+
+        <RadioButton
+            android:id="@+id/direction_benefit"
+            android:text="@string/direction_benefit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
+        <RadioButton
+            android:id="@+id/direction_loss"
+            android:text="@string/direction_loss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
+    </RadioGroup>
+    <!--TODO: normal buttons-->
+
+    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/specify_funds_fragment"
+        android:layout_below="@id/direction_radio"
+        tools:layout="@layout/fragment_enter_amount" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text=""
+        android:id="@+id/funds_mutation_info"
+        android:layout_below="@id/specify_funds_fragment"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:visibility="invisible" />
+
+    <Button
+        android:layout_width="96dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_info"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:text="@string/funds_mutation_finish_button"
+        android:onClick="mutate" />
+
+</RelativeLayout>

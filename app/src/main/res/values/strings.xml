@@ -6,8 +6,13 @@
     <string name="total">Total:</string>
     <string name="button_add_funds">Add Funds</string>
     <string name="title_activity_add_funds">Add Funds</string>
+    <string name="title_activity_funds_mutation">Add Funds Operation</string>
 
     <string name="amount_decimal_hint">Amount</string>
     <string name="amount_currency_hint">Currency</string>
     <string name="add_funds_finish_button">Add</string>
+
+    <string name="direction_benefit">Benefit</string>
+    <string name="direction_loss">Loss</string>
+    <string name="funds_mutation_finish_button">Finish</string>
 </resources>

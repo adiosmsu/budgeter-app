@@ -1,16 +1,13 @@
 package ru.adios.budgeter.util;
 
-import android.app.Activity;
 import android.os.Handler;
-import android.support.annotation.IdRes;
 import android.view.View;
 import android.widget.TextView;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 
 import ru.adios.budgeter.Submitter;
 
@@ -19,7 +16,7 @@ import ru.adios.budgeter.Submitter;
  *
  * Created by adios on 01.10.15.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class CoreErrorHighlighter {
 
     public interface ViewWorker {
@@ -30,123 +27,91 @@ public final class CoreErrorHighlighter {
 
     }
 
-    private final ImmutableMap<String, Integer> elementNameToViewId;
-    private final ImmutableMap<Integer, ViewWorker> viewWorkers;
-    @IdRes
-    private final int globalInfoViewId;
+    private final HashMap<String, View> elementNameToView = new HashMap<>();
+    private final HashMap<Integer, ViewWorker> viewWorkers = new HashMap<>();
+    private View globalInfoView;
 
-    public CoreErrorHighlighter(ImmutableMap<String, Integer> elementNameToViewId, ImmutableMap<Integer, ViewWorker> viewWorkers, int globalInfoViewId) {
-        this.elementNameToViewId = elementNameToViewId;
-        this.viewWorkers = viewWorkers;
-        this.globalInfoViewId = globalInfoViewId;
+    public void addElementInfo(@Nonnull String name, @Nonnull View view) {
+        elementNameToView.put(name, view);
     }
 
-    public void processSubmitResultUsingHandler(Handler handler, final Submitter.Result result, final Activity activity) {
+    public void setWorker(@Nonnull View view, @Nonnull ViewWorker worker) {
+        viewWorkers.put(view.getId(), worker);
+    }
+
+    public void setGlobalInfoView(View globalInfoView) {
+        this.globalInfoView = globalInfoView;
+    }
+
+    public void processSubmitResultUsingHandler(Handler handler, final Submitter.Result result) {
         if (result.isSuccessful()) {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    highlightSuccess(activity);
+                    highlightSuccess();
                 }
             });
         } else {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    highlightFailure(result, activity);
+                    highlightFailure(result);
                 }
             });
         }
     }
 
-    public void processSubmitResult(Submitter.Result result, Activity activity) {
+    public void processSubmitResult(Submitter.Result result) {
         if (result.isSuccessful()) {
-            highlightSuccess(activity);
+            highlightSuccess();
         } else {
-            highlightFailure(result, activity);
+            highlightFailure(result);
         }
     }
 
-    private void highlightFailure(Submitter.Result result, Activity activity) {
+    private void highlightFailure(Submitter.Result result) {
         for (final Submitter.FieldError error : result.fieldErrors) {
-            final Integer id = elementNameToViewId.get(error.fieldInFault);
-            if (id != null) {
-                final View viewById = activity.findViewById(id);
-                enrichView(viewById, error.errorText);
-                viewById.setVisibility(View.VISIBLE);
-                final ViewWorker worker = viewWorkers.get(id);
+            final View viewInFault = elementNameToView.get(error.fieldInFault);
+            if (viewInFault != null) {
+                enrichView(viewInFault, error.errorText);
+                viewInFault.setVisibility(View.VISIBLE);
+                final ViewWorker worker = viewWorkers.get(viewInFault.getId());
                 if (worker != null) {
-                    worker.failureWork(viewById);
+                    worker.failureWork(viewInFault);
                 }
             }
         }
         if (result.generalError != null) {
-            final View infoView = getInfoView(activity);
-            final ViewWorker infoWorker = viewWorkers.get(globalInfoViewId);
+            final ViewWorker infoWorker = viewWorkers.get(globalInfoView.getId());
             if (infoWorker != null) {
-                infoWorker.failureWork(infoView);
+                infoWorker.failureWork(globalInfoView);
             }
-            enrichView(infoView, result.generalError);
+            enrichView(globalInfoView, result.generalError);
         }
     }
 
-    private void highlightSuccess(Activity activity) {
-        for (final Integer id : elementNameToViewId.values()) {
-            final View viewById = activity.findViewById(id);
-            if (viewById.getVisibility() == View.VISIBLE) {
-                enrichView(viewById, "");
-                viewById.setVisibility(View.INVISIBLE);
+    private void highlightSuccess() {
+        for (final View viewInFault : elementNameToView.values()) {
+            if (viewInFault.getVisibility() == View.VISIBLE) {
+                enrichView(viewInFault, "");
+                viewInFault.setVisibility(View.INVISIBLE);
             }
         }
 
-        final View infoView = getInfoView(activity);
-        if (infoView.getVisibility() == View.VISIBLE) {
-            enrichView(infoView, "");
-            final ViewWorker infoWorker = viewWorkers.get(globalInfoViewId);
+        if (globalInfoView.getVisibility() == View.VISIBLE) {
+            enrichView(globalInfoView, "");
+            final ViewWorker infoWorker = viewWorkers.get(globalInfoView.getId());
             if (infoWorker != null) {
-                infoWorker.successWork(infoView);
+                infoWorker.successWork(globalInfoView);
             }
-            infoView.setVisibility(View.INVISIBLE);
+            globalInfoView.setVisibility(View.INVISIBLE);
         }
-    }
-
-    private View getInfoView(Activity activity) {
-        return activity.findViewById(globalInfoViewId);
     }
 
     private static void enrichView(View view, String text) {
         if (view instanceof TextView) {
             ((TextView) view).setText(text);
         }
-    }
-
-    @NotThreadSafe
-    public static final class Builder {
-
-        private final ImmutableMap.Builder<String, Integer> viewsMapBuilder = new ImmutableMap.Builder<>();
-        private final ImmutableMap.Builder<Integer, ViewWorker> workersBuilder = new ImmutableMap.Builder<>();
-        @IdRes
-        private int globalInfoViewId;
-
-        public Builder addElementInfo(@Nonnull String name, @Nonnull @IdRes Integer id) {
-            viewsMapBuilder.put(name, id);
-            return this;
-        }
-
-        public Builder setWorker(@Nonnull @IdRes Integer viewId, @Nonnull ViewWorker worker) {
-            workersBuilder.put(viewId, worker);
-            return this;
-        }
-
-        public Builder setGlobalInfoViewId(@IdRes int globalInfoViewId) {
-            this.globalInfoViewId = globalInfoViewId;
-            return this;
-        }
-
-        public CoreErrorHighlighter build() {
-            return new CoreErrorHighlighter(viewsMapBuilder.build(), workersBuilder.build(), globalInfoViewId);
-        }
-
     }
 
 }

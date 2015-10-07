@@ -9,4 +9,8 @@
     <string name="amount_currency_hint">Валюта</string>
     <string name="title_activity_add_funds">Добавить средства</string>
     <string name="add_funds_finish_button">Добавить</string>
+    <string name="direction_benefit">Поступление</string>
+    <string name="direction_loss">Трата</string>
+    <string name="title_activity_funds_mutation">Добавить операцию со средствами</string>
+    <string name="funds_mutation_finish_button">Закончить</string>
 </resources>

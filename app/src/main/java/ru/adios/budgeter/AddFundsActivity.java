@@ -2,11 +2,12 @@ package ru.adios.budgeter;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.IdRes;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.joda.money.CurrencyUnit;
@@ -23,70 +24,92 @@ import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.CoreUtils;
 import ru.adios.budgeter.util.MenuUtils;
 
-public class AddFundsActivity extends AppCompatActivity {
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class AddFundsActivity extends CoreElementActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(AddFundsActivity.class);
 
-    private final FundsAdditionElementCore additionElement;
-    private final CoreErrorHighlighter errorHighlighter;
+    private FundsAdditionElementCore additionElement;
+    private CoreErrorHighlighter errorHighlighter;
     private Money totalBalance;
 
-    {
-        additionElement = new FundsAdditionElementCore(Schema.TREASURY);
-        final BalanceElementCore balanceElement = new BalanceElementCore(Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE);
-        balanceElement.setTotalUnit(Units.RUB);
-        totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_add_funds;
+    }
 
-        final CoreErrorHighlighter.Builder ehBuilder = new CoreErrorHighlighter.Builder();
-        errorHighlighter = ehBuilder.addElementInfo("amountDecimal", R.id.amount_decimal_info)
-                .addElementInfo("amountUnit", R.id.amount_currency_info)
-                .setGlobalInfoViewId(R.id.add_funds_info)
-                .setWorker(R.id.add_funds_info, new CoreErrorHighlighter.ViewWorker() {
-                    @Override
-                    public void successWork(View view) {
-                        final RelativeLayout.LayoutParams pars = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0);
-                        pars.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        pars.addRule(RelativeLayout.BELOW, R.id.amount_decimal_info);
-                        view.setLayoutParams(pars);
-                    }
+    @Override
+    public void addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
+        checkArgument(fragmentId == R.id.add_funds_fragment, "AddFundsActivity only works with add_funds_fragment");
+        checkNotNull(fieldView, "fieldView is null");
+        checkNotNull(fieldInfoView, "fieldInfoView is null");
 
+        switch (fragmentFieldName) {
+            case EnterAmountFragment.FIELD_AMOUNT_DECIMAL:
+                errorHighlighter.addElementInfo("amountDecimal", fieldInfoView);
+                CoreNotifier.addLink(this, fieldView, new CoreNotifier.DecimalLinker() {
                     @Override
-                    public void failureWork(View view) {
-                        final RelativeLayout.LayoutParams pars = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        pars.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        pars.addRule(RelativeLayout.BELOW, R.id.amount_decimal_info);
-                        view.setLayoutParams(pars);
+                    public void link(BigDecimal data) {
+                        additionElement.setAmountDecimal(data);
                     }
-                })
-                .build();
+                });
+                return;
+            case EnterAmountFragment.FIELD_AMOUNT_CURRENCY:
+                errorHighlighter.addElementInfo("amountUnit", fieldInfoView);
+                CoreNotifier.addLink(this, fieldView, new CoreNotifier.CurrencyLinker() {
+                    @Override
+                    public void link(CurrencyUnit data) {
+                        additionElement.setAmountUnit(data);
+                    }
+                });
+                return;
+            default:
+                throw new IllegalArgumentException("AddFundsActivity isn't aware of fieldName: " + fragmentFieldName);
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        errorHighlighter = new CoreErrorHighlighter();
+        additionElement = new FundsAdditionElementCore(Schema.TREASURY);
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_funds);
-        coreFeedback();
-        CoreNotifier.addLink(this, R.id.amount_decimal, new CoreNotifier.DecimalLinker() {
+
+        final BalanceElementCore balanceElement = new BalanceElementCore(Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE);
+        balanceElement.setTotalUnit(Units.RUB);
+        totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
+
+        final View infoView = findViewById(R.id.add_funds_info);
+        errorHighlighter.setGlobalInfoView(infoView);
+        errorHighlighter.setWorker(infoView, new CoreErrorHighlighter.ViewWorker() {
             @Override
-            public void link(BigDecimal data) {
-                additionElement.setAmountDecimal(data);
-                coreFeedback();
+            public void successWork(View view) {
+                setLayoutParams(view, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0));
             }
-        });
-        CoreNotifier.addLink(this, R.id.amount_currency, new CoreNotifier.CurrencyLinker() {
+
             @Override
-            public void link(CurrencyUnit data) {
-                additionElement.setAmountUnit(data);
-                coreFeedback();
+            public void failureWork(View view) {
+                setLayoutParams(view, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+            }
+
+            private void setLayoutParams(View view, RelativeLayout.LayoutParams pars) {
+                pars.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                pars.addRule(RelativeLayout.BELOW, R.id.add_funds_fragment);
+                view.setLayoutParams(pars);
             }
         });
     }
 
-    private void coreFeedback() {
+    @Override
+    protected void coreFeedbackInternal() {
         final BigDecimal decimal = additionElement.getAmountDecimal();
         getAmountDecimalView().setText(decimal.toPlainString());
         final CurrencyUnit amountUnit = additionElement.getAmountUnit();
-        getAmountCurrencyView().setText(amountUnit != null ? amountUnit.getCode() : "");
+        if (amountUnit != null) {
+            getAmountCurrencyView().setSelection(Constants.getCurrencyDropdownPosition(amountUnit), true);
+        }
     }
 
     @Override
@@ -123,13 +146,13 @@ public class AddFundsActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(Submitter.Result result) {
-                errorHighlighter.processSubmitResult(result, AddFundsActivity.this);
+                errorHighlighter.processSubmitResult(result);
             }
         }.doInBackground();
     }
 
-    private TextView getAmountCurrencyView() {
-        return (TextView) findViewById(R.id.amount_currency);
+    private Spinner getAmountCurrencyView() {
+        return (Spinner) findViewById(R.id.amount_currency);
     }
 
     private TextView getAmountDecimalView() {

@@ -6,8 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 import org.joda.money.Money;
@@ -47,16 +47,12 @@ public class HomeActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_home); //draw
 
-        // Retrieve layout
-        final RelativeLayout home = (RelativeLayout) findViewById(R.id.activity_home);
+        // Retrieve funds layout
+        final LinearLayout fundsLayout = (LinearLayout) findViewById(R.id.ah_funds_list);
 
         // Modify it so it will show balances
         final Integer[] maxLine = new Integer[1];
-        final View[] latest = new TextView[1];
-        final Integer[] nextIndex = new Integer[1];
         maxLine[0] = 0;
-        latest[0] = home.getChildAt(0);
-        nextIndex[0] = 1;
         balanceElement.streamIndividualBalances().forEach(new Consumer<Money>() {
             @Override
             public void accept(Money money) {
@@ -65,19 +61,13 @@ public class HomeActivity extends AppCompatActivity {
                 if (l > maxLine[0]) {
                     maxLine[0] = l;
                 }
-                final TextView newLineView = getNewLineView(str, getLatestNewLineId(latest));
-                addNewViewAtIndexAndIncrement(newLineView, home, nextIndex);
-                latest[0] = newLineView;
+                fundsLayout.addView(getNewLineView(str));
             }
         });
-        if (latest[0] != null) {
-            final TextView separatorLine = getStrSeparatorLine(maxLine[0], latest[0].getId());
-            latest[0] = separatorLine;
-            addNewViewAtIndexAndIncrement(separatorLine, home, nextIndex);
+        if (maxLine[0] != 0) {
+            fundsLayout.addView(getStrSeparatorLine(maxLine[0]));
         }
-        final TextView totalLine =
-                getNewLineView(getResources().getText(R.string.total).toString() + ' ' + Formatting.toStringMoneyUsingText(totalBalance), getLatestNewLineId(latest));
-        home.addView(totalLine, nextIndex[0]);
+        fundsLayout.addView(getNewLineView(getResources().getText(R.string.total).toString() + ' ' + Formatting.toStringMoneyUsingText(totalBalance)));
     }
 
     private void addNewViewAtIndexAndIncrement(TextView newLineView, RelativeLayout home, Integer[] nextIndex) {
@@ -85,36 +75,20 @@ public class HomeActivity extends AppCompatActivity {
         nextIndex[0] = nextIndex[0] + 1;
     }
 
-    @Nullable
-    private static Integer getLatestNewLineId(View[] latest) {
-        final View textView = latest[0];
-        return textView == null ? null : textView.getId();
-    }
-
-    private TextView getStrSeparatorLine(int ml, int neighborId) {
+    private TextView getStrSeparatorLine(int ml) {
         final StringBuilder sb = new StringBuilder(ml + 1);
         for (int i = 0; i < ml; i++) {
             sb.append('_');
         }
         final String s = sb.toString();
-        return getNewLineView(s, neighborId);
+        return getNewLineView(s);
     }
 
-    private TextView getNewLineView(String str, @Nullable Integer neighborId) {
+    private TextView getNewLineView(String str) {
         final TextView line = new TextView(HomeActivity.this);
         line.setText(str);
         line.setId(ElementsIdProvider.getNextId());
-        LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-
-        if (neighborId == null) {
-            params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        } else {
-            params.addRule(RelativeLayout.BELOW, neighborId);
-        }
-
-        line.setLayoutParams(params);
+        line.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         return line;
     }
 

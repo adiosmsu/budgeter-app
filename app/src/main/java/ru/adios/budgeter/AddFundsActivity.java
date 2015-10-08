@@ -10,12 +10,16 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+
+import javax.annotation.Nullable;
 
 import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.inmemrepo.Schema;
@@ -24,16 +28,28 @@ import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.CoreUtils;
 import ru.adios.budgeter.util.MenuUtils;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class AddFundsActivity extends CoreElementActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(AddFundsActivity.class);
+    private static final int[] ALLOWED_FRAGMENT = new int[] {R.id.add_funds_fragment};
 
 
-    private FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
-    private CoreErrorHighlighter errorHighlighter = new CoreErrorHighlighter();
+    private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
+    private final CoreErrorHighlighter errorHighlighter = new CoreErrorHighlighter();
+    private final ImmutableMap<String, CoreElementFieldInfo> fieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
+            .put(EnterAmountFragment.FIELD_AMOUNT_DECIMAL, new CoreElementFieldInfo("amountDecimal", new CoreNotifier.DecimalLinker() {
+                @Override
+                public void link(BigDecimal data) {
+                    additionElement.setAmountDecimal(data);
+                }
+            }))
+            .put(EnterAmountFragment.FIELD_AMOUNT_CURRENCY, new CoreElementFieldInfo("amountUnit", new CoreNotifier.CurrencyLinker() {
+                @Override
+                public void link(CurrencyUnit data) {
+                    additionElement.setAmountUnit(data);
+                }
+            }))
+            .build();
 
     private Money totalBalance;
 
@@ -43,33 +59,19 @@ public class AddFundsActivity extends CoreElementActivity {
     }
 
     @Override
-    public final void addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
-        checkArgument(fragmentId == R.id.add_funds_fragment, "AddFundsActivity only works with add_funds_fragment");
-        checkNotNull(fieldView, "fieldView is null");
-        checkNotNull(fieldInfoView, "fieldInfoView is null");
+    protected final CoreErrorHighlighter getErrorHighlighter() {
+        return errorHighlighter;
+    }
 
-        switch (fragmentFieldName) {
-            case EnterAmountFragment.FIELD_AMOUNT_DECIMAL:
-                errorHighlighter.addElementInfo("amountDecimal", fieldInfoView);
-                CoreNotifier.addLink(this, fieldView, new CoreNotifier.DecimalLinker() {
-                    @Override
-                    public void link(BigDecimal data) {
-                        additionElement.setAmountDecimal(data);
-                    }
-                });
-                return;
-            case EnterAmountFragment.FIELD_AMOUNT_CURRENCY:
-                errorHighlighter.addElementInfo("amountUnit", fieldInfoView);
-                CoreNotifier.addLink(this, fieldView, new CoreNotifier.CurrencyLinker() {
-                    @Override
-                    public void link(CurrencyUnit data) {
-                        additionElement.setAmountUnit(data);
-                    }
-                });
-                return;
-            default:
-                throw new IllegalArgumentException("AddFundsActivity isn't aware of fieldName: " + fragmentFieldName);
-        }
+    @Override
+    protected final int[] allowedFragments() {
+        return ALLOWED_FRAGMENT;
+    }
+
+    @Nullable
+    @Override
+    protected final CoreElementFieldInfo getCoreElementFieldInfo(@IdRes int fragmentId, String fragmentFieldName) {
+        return fieldInfoMap.get(fragmentFieldName);
     }
 
     @Override

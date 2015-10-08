@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 
@@ -30,9 +29,7 @@ public class EnterAmountFragment extends Fragment {
 
         // Init currencies choice
         final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
-        final ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, Constants.CURRENCIES_DROPDOWN);
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        currencySpinner.setAdapter(dataAdapter);
+        HintedArrayAdapter.adaptStandardSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
 
         // Register listeners in parent activity
         final int id = getId();

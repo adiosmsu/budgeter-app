@@ -31,17 +31,19 @@ public class AddFundsActivity extends CoreElementActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(AddFundsActivity.class);
 
-    private FundsAdditionElementCore additionElement;
-    private CoreErrorHighlighter errorHighlighter;
+
+    private FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
+    private CoreErrorHighlighter errorHighlighter = new CoreErrorHighlighter();
+
     private Money totalBalance;
 
     @Override
-    protected int getLayoutId() {
+    protected final int getLayoutId() {
         return R.layout.activity_add_funds;
     }
 
     @Override
-    public void addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
+    public final void addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
         checkArgument(fragmentId == R.id.add_funds_fragment, "AddFundsActivity only works with add_funds_fragment");
         checkNotNull(fieldView, "fieldView is null");
         checkNotNull(fieldInfoView, "fieldInfoView is null");
@@ -72,9 +74,6 @@ public class AddFundsActivity extends CoreElementActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        errorHighlighter = new CoreErrorHighlighter();
-        additionElement = new FundsAdditionElementCore(Schema.TREASURY);
-
         super.onCreate(savedInstanceState);
 
         final BalanceElementCore balanceElement = new BalanceElementCore(Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE);
@@ -113,7 +112,7 @@ public class AddFundsActivity extends CoreElementActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public final boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_add_funds, menu);
 

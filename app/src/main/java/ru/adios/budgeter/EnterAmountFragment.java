@@ -1,6 +1,5 @@
 package ru.adios.budgeter;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,8 +17,6 @@ public class EnterAmountFragment extends Fragment {
     public static final String FIELD_AMOUNT_DECIMAL = "amount_decimal";
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";
 
-    private CoreElementActivity activity;
-
     public EnterAmountFragment() {
         // Required empty public constructor
     }
@@ -28,6 +25,8 @@ public class EnterAmountFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         final View inflated = inflater.inflate(R.layout.fragment_enter_amount, container, false);
+
+        final CoreElementActivity activity = (CoreElementActivity) getActivity();
 
         // Init currencies choice
         final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
@@ -41,22 +40,6 @@ public class EnterAmountFragment extends Fragment {
         activity.addFieldFragmentInfo(id, FIELD_AMOUNT_CURRENCY, currencySpinner, inflated.findViewById(R.id.amount_currency_info));
 
         return inflated;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            this.activity = (CoreElementActivity) activity;
-        } catch (ClassCastException e) {
-            throw new RuntimeException(activity.toString() + " must extend CoreElementActivity", e);
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        activity = null;
     }
 
 }

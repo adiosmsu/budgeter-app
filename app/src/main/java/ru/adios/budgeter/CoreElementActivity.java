@@ -14,7 +14,7 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
     private boolean feedbackCommencing = false;
 
-    public boolean isFeedbackCommencing() {
+    public final boolean isFeedbackCommencing() {
         return feedbackCommencing;
     }
 

@@ -29,7 +29,7 @@ public class EnterAmountFragment extends Fragment {
 
         // Init currencies choice
         final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
-        HintedArrayAdapter.adaptStandardSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
+        HintedArrayAdapter.adaptStringSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
 
         // Register listeners in parent activity
         final int id = getId();

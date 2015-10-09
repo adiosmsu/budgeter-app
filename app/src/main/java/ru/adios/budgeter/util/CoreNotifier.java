@@ -41,6 +41,12 @@ public final class CoreNotifier {
 
     }
 
+    public interface ArbitraryLinker extends Linker {
+
+        void link(Object data);
+
+    }
+
     /**
      * For initializing activity.
      * @param activity element activity
@@ -67,7 +73,7 @@ public final class CoreNotifier {
             ((Spinner) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    linkViewValueWithCore(parent.getItemAtPosition(position).toString(), linker, activity);
+                    linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
                 }
 
                 @Override
@@ -76,8 +82,9 @@ public final class CoreNotifier {
         }
     }
 
-    private static void linkViewValueWithCore(String decStr, Linker linker, CoreElementActivity activity) {
+    private static void linkViewValueWithCore(Object o, Linker linker, CoreElementActivity activity) {
         if (linker instanceof DecimalLinker) {
+            final String decStr = getStringFromObject(o);
             if (decStr.length() > 0) {
                 try {
                     ((DecimalLinker) linker).link(new BigDecimal(decStr));
@@ -86,17 +93,28 @@ public final class CoreNotifier {
                 }
             }
         } else if (linker instanceof CurrencyLinker) {
-            if (decStr.length() > 0) {
-                try {
-                    ((CurrencyLinker) linker).link(CurrencyUnit.of(decStr.toUpperCase()));
-                    activity.coreFeedback();
-                } catch (IllegalCurrencyException ignore) {
+            if (o instanceof CurrencyUnit) {
+                ((CurrencyLinker) linker).link((CurrencyUnit) o);
+            } else {
+                final String decStr = getStringFromObject(o);
+                if (decStr.length() > 0) {
+                    try {
+                        ((CurrencyLinker) linker).link(CurrencyUnit.of(decStr.toUpperCase()));
+                        activity.coreFeedback();
+                    } catch (IllegalCurrencyException ignore) {
+                    }
                 }
             }
         } else if (linker instanceof TextLinker) {
-            ((TextLinker) linker).link(decStr);
+            ((TextLinker) linker).link(getStringFromObject(o));
             activity.coreFeedback();
+        } else if (linker instanceof ArbitraryLinker) {
+            ((ArbitraryLinker) linker).link(o);
         }
+    }
+
+    private static String getStringFromObject(Object o) {
+        return o instanceof String ? (String) o : o.toString();
     }
 
     /**

@@ -15,4 +15,10 @@
     <string name="direction_benefit">Benefit</string>
     <string name="direction_loss">Loss</string>
     <string name="funds_mutation_finish_button">Finish</string>
+    <string name="accounts_spinner_prompt">Balance accounts</string>
+    <string name="accounts_add_button">+</string>
+    <string name="account_name_hint">Account name</string>
+    <string name="account_starting_sum_hint">Starting sum</string>
+    <string name="accounts_submit_button">Submit</string>
+    <string name="optional_with_colons">(Optional)</string>
 </resources>

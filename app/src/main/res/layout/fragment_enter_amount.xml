@@ -24,8 +24,6 @@
         android:layout_toEndOf="@id/amount_decimal"
         android:layout_alignTop="@id/amount_decimal"
         android:layout_alignBottom="@id/amount_decimal"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
         android:spinnerMode="dropdown"
         style="@style/Widget.AppCompat.EditText"/>
 
@@ -43,7 +41,8 @@
         android:visibility="invisible" />
 
     <TextView
-        android:layout_width="96dp"
+        android:layout_width="0dp"
+        app:layout_widthPercent="30%"
         android:layout_height="wrap_content"
         android:text=""
         android:id="@+id/amount_currency_info"

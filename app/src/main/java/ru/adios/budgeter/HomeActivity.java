@@ -7,14 +7,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.joda.money.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
 import ru.adios.budgeter.api.Treasury;
@@ -68,11 +65,6 @@ public class HomeActivity extends AppCompatActivity {
             fundsLayout.addView(getStrSeparatorLine(maxLine[0]));
         }
         fundsLayout.addView(getNewLineView(getResources().getText(R.string.total).toString() + ' ' + Formatting.toStringMoneyUsingText(totalBalance)));
-    }
-
-    private void addNewViewAtIndexAndIncrement(TextView newLineView, RelativeLayout home, Integer[] nextIndex) {
-        home.addView(newLineView, nextIndex[0]);
-        nextIndex[0] = nextIndex[0] + 1;
     }
 
     private TextView getStrSeparatorLine(int ml) {

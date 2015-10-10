@@ -15,6 +15,7 @@ import android.widget.TextView;
 import java8.util.function.Function;
 import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.Treasury;
+import ru.adios.budgeter.util.HintedArrayAdapter;
 
 
 /**
@@ -97,6 +98,7 @@ public class AccountStandardFragment extends Fragment {
                 }
             }
         });
+        addButton.invalidate();
 
         // add submit button logic
         activity.addButtonFragmentInfo(id, BUTTON_NEW_ACCOUNT_SUBMIT, submitButton, new Runnable() {

@@ -18,6 +18,7 @@ import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.CoreUtils;
+import ru.adios.budgeter.util.ElementsIdProvider;
 import ru.adios.budgeter.util.Formatting;
 import ru.adios.budgeter.util.MenuUtils;
 

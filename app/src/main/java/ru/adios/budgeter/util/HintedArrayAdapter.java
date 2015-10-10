@@ -1,4 +1,4 @@
-package ru.adios.budgeter;
+package ru.adios.budgeter.util;
 
 import android.content.Context;
 import android.support.annotation.LayoutRes;
@@ -15,7 +15,6 @@ import java.util.List;
 import java8.util.function.Function;
 import java8.util.stream.Collectors;
 import java8.util.stream.Stream;
-import ru.adios.budgeter.util.GeneralUtils;
 
 /**
  * Adapter for Spinner to display a hint.

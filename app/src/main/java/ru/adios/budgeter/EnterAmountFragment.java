@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Spinner;
 
+import ru.adios.budgeter.util.HintedArrayAdapter;
+
 
 /**
  * Common fields for entering monetary value.

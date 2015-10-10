@@ -26,6 +26,7 @@ import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.CoreUtils;
+import ru.adios.budgeter.util.HintedArrayAdapter;
 import ru.adios.budgeter.util.MenuUtils;
 
 public class AddFundsActivity extends CoreElementActivity implements AccountsElementCoreProvider {
@@ -38,13 +39,6 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
     private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
     private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
     private final ImmutableMap<String, CoreElementFieldInfo> addFundsFieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
-            .put(AccountStandardFragment.FIELD_ACCOUNT, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, new CoreNotifier.ArbitraryLinker() {
-                @Override
-                public void link(Object data) {
-                    final Treasury.BalanceAccount account = (Treasury.BalanceAccount) data;
-                    additionElement.setAccount(account);
-                }
-            }))
             .put(EnterAmountFragment.FIELD_AMOUNT_DECIMAL, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
                 @Override
                 public void link(BigDecimal data) {
@@ -63,6 +57,13 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
     private final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
     private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
     private final ImmutableMap<String, CoreElementFieldInfo> accountsFieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
+            .put(AccountStandardFragment.FIELD_ACCOUNT, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, new CoreNotifier.ArbitraryLinker() {
+                @Override
+                public void link(HintedArrayAdapter.ObjectContainer data) {
+                    final Treasury.BalanceAccount account = (Treasury.BalanceAccount) data.getObject();
+                    additionElement.setAccount(account);
+                }
+            }))
             .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_NAME, new CoreElementFieldInfo(AccountsElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
                 @Override
                 public void link(String data) {

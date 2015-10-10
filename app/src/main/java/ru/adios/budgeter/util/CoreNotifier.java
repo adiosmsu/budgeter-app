@@ -43,7 +43,7 @@ public final class CoreNotifier {
 
     public interface ArbitraryLinker extends Linker {
 
-        void link(Object data);
+        void link(HintedArrayAdapter.ObjectContainer data);
 
     }
 
@@ -70,14 +70,18 @@ public final class CoreNotifier {
                 }
             });
         } else if (view instanceof Spinner) {
-            ((Spinner) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            final Spinner sp = (Spinner) view;
+            sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
+                    if (sp.getAdapter().getCount() > position) {
+                        linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
+                    }
                 }
 
                 @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
             });
         }
     }
@@ -108,8 +112,8 @@ public final class CoreNotifier {
         } else if (linker instanceof TextLinker) {
             ((TextLinker) linker).link(getStringFromObject(o));
             activity.coreFeedback();
-        } else if (linker instanceof ArbitraryLinker) {
-            ((ArbitraryLinker) linker).link(o);
+        } else if (linker instanceof ArbitraryLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
+            ((ArbitraryLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
         }
     }
 

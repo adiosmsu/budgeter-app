@@ -3,8 +3,6 @@ package ru.adios.budgeter.util;
 import java.lang.reflect.Array;
 import java.util.List;
 
-import ru.adios.budgeter.HintedArrayAdapter;
-
 /**
  * Created by Michail Kulikov
  * 10/8/15

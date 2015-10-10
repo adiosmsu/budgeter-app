@@ -4,8 +4,6 @@ import android.view.MenuItem;
 
 import org.joda.money.Money;
 
-import ru.adios.budgeter.ElementsIdProvider;
-
 /**
  * Created by Michail Kulikov
  * 9/29/15

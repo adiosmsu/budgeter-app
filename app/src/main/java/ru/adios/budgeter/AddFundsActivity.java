@@ -38,24 +38,25 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
 
     private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
     private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
+
+    private Optional<BigDecimal> newAccountOptionalAmount = Optional.of(BigDecimal.ZERO);
+    private final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
+    private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
+
     private final ImmutableMap<String, CoreElementFieldInfo> addFundsFieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
             .put(EnterAmountFragment.FIELD_AMOUNT_DECIMAL, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
                 @Override
                 public void link(BigDecimal data) {
                     additionElement.setAmountDecimal(data);
                 }
-            }))
+            }, addFundsErrorHighlighter))
             .put(EnterAmountFragment.FIELD_AMOUNT_CURRENCY, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_UNIT, new CoreNotifier.CurrencyLinker() {
                 @Override
                 public void link(CurrencyUnit data) {
                     additionElement.setAmountUnit(data);
                 }
-            }))
+            }, addFundsErrorHighlighter))
             .build();
-
-    private Optional<BigDecimal> newAccountOptionalAmount = Optional.of(BigDecimal.ZERO);
-    private final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
-    private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
     private final ImmutableMap<String, CoreElementFieldInfo> accountsFieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
             .put(AccountStandardFragment.FIELD_ACCOUNT, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, new CoreNotifier.ArbitraryLinker() {
                 @Override
@@ -63,25 +64,25 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
                     final Treasury.BalanceAccount account = (Treasury.BalanceAccount) data.getObject();
                     additionElement.setAccount(account);
                 }
-            }))
+            }, addFundsErrorHighlighter))
             .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_NAME, new CoreElementFieldInfo(AccountsElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
                 @Override
                 public void link(String data) {
                     accountsElement.setName(data);
                 }
-            }))
+            }, accountsErrorHighlighter))
             .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_CURRENCY, new CoreElementFieldInfo(AccountsElementCore.FIELD_UNIT, new CoreNotifier.CurrencyLinker() {
                 @Override
                 public void link(CurrencyUnit data) {
                     accountsElement.setUnit(data);
                 }
-            }))
+            }, accountsErrorHighlighter))
             .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_AMOUNT, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
                 @Override
                 public void link(BigDecimal data) {
                     setNewAccountOptionalAmount(data);
                 }
-            }))
+            }, accountsErrorHighlighter))
             .build();
     private final HybridAccountCore hybridAccountCore = new HybridAccountCore();
 
@@ -102,24 +103,12 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
     }
 
     @Override
-    protected final CoreErrorHighlighter getErrorHighlighter(@IdRes int fragmentId) {
-        switch (fragmentId) {
-            case R.id.add_funds_fragment:
-                return addFundsErrorHighlighter;
-            case R.id.add_funds_account_fragment:
-                return accountsErrorHighlighter;
-            default:
-                throw unsupportedFragmentError(fragmentId);
-        }
-    }
-
-    @Override
     protected CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName) {
         switch (fragmentId) {
             case R.id.add_funds_fragment:
-                return new CoreElementSubmitInfo(additionElement, null);
+                return new CoreElementSubmitInfo(additionElement, null, addFundsErrorHighlighter);
             case R.id.add_funds_account_fragment:
-                return new CoreElementSubmitInfo(hybridAccountCore, null);
+                return new CoreElementSubmitInfo(hybridAccountCore, null, accountsErrorHighlighter);
             default:
                 throw unsupportedFragmentError(fragmentId);
         }
@@ -152,8 +141,13 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
         totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
 
         final View infoView = findViewById(R.id.add_funds_info);
-        addFundsErrorHighlighter.setGlobalInfoView(infoView);
-        addFundsErrorHighlighter.setWorker(infoView, new CoreErrorHighlighter.ViewWorker() {
+        setGlobalViewToHighlighter(accountsErrorHighlighter, infoView);
+        setGlobalViewToHighlighter(addFundsErrorHighlighter, infoView);
+    }
+
+    private static void setGlobalViewToHighlighter(CoreErrorHighlighter highlighter, View infoView) {
+        highlighter.setGlobalInfoView(infoView);
+        highlighter.setWorker(infoView, new CoreErrorHighlighter.ViewWorker() {
             @Override
             public void successWork(View view) {
                 setLayoutParams(view, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0));
@@ -219,7 +213,7 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
                 addFundsErrorHighlighter.processSubmitResult(result);
                 findViewById(R.id.activity_add_funds).invalidate();
             }
-        }.doInBackground();
+        }.execute();
     }
 
     private IllegalArgumentException unsupportedFragmentError(@IdRes int fragmentId) {

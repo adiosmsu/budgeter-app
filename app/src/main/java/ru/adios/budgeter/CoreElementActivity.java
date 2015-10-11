@@ -117,14 +117,14 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
         final CoreElementFieldInfo fieldInfo = getCoreElementFieldInfo(fragmentId, fragmentFieldName);
         if (fieldInfo != null) {
-            getErrorHighlighter(fragmentId).addElementInfo(fieldInfo.coreFieldName, fieldInfoView);
+            fieldInfo.errorHighlighter.addElementInfo(fieldInfo.coreFieldName, fieldInfoView);
             CoreNotifier.addLink(this, fieldView, fieldInfo.linker);
         } else {
             throw new IllegalArgumentException(getClass().getSimpleName() + " isn't aware of fragmentFieldName: " + fragmentFieldName);
         }
     }
 
-    public final void addButtonFragmentInfo(@IdRes final int fragmentId, String buttonName, Button button, @Nullable final Runnable successRunnable) {
+    public final void addButtonFragmentInfo(@IdRes final int fragmentId, final String buttonName, Button button, @Nullable final Runnable successRunnable) {
         checkNotNull(buttonName, "buttonName is null");
         checkNotNull(button, "button is null");
         checkFragmentAllowance(fragmentId);
@@ -141,8 +141,8 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
                     @Override
                     protected void onPostExecute(Submitter.Result result) {
-                        getErrorHighlighter(fragmentId).processSubmitResult(result);
-                        if (!result.isSuccessful()) {
+                        submitInfo.errorHighlighter.processSubmitResult(result);
+                        if (result.isSuccessful()) {
                             if (submitInfo.successRunnable != null) {
                                 submitInfo.successRunnable.run();
                             }
@@ -152,7 +152,7 @@ public abstract class CoreElementActivity extends AppCompatActivity {
                             }
                         }
                     }
-                }.doInBackground();
+                }.execute();
             }
         });
     }
@@ -170,8 +170,6 @@ public abstract class CoreElementActivity extends AppCompatActivity {
         }
     }
 
-    protected abstract CoreErrorHighlighter getErrorHighlighter(@IdRes int fragmentId);
-
     protected abstract CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName);
 
     protected abstract int[] allowedFragments();
@@ -183,10 +181,12 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
         private final String coreFieldName;
         private final CoreNotifier.Linker linker;
+        private final CoreErrorHighlighter errorHighlighter;
 
-        protected CoreElementFieldInfo(String coreFieldName, CoreNotifier.Linker linker) {
+        protected CoreElementFieldInfo(String coreFieldName, CoreNotifier.Linker linker, CoreErrorHighlighter errorHighlighter) {
             this.coreFieldName = coreFieldName;
             this.linker = linker;
+            this.errorHighlighter = errorHighlighter;
         }
 
     }
@@ -196,10 +196,12 @@ public abstract class CoreElementActivity extends AppCompatActivity {
         private final Submitter submitter;
         @Nullable
         private final Runnable successRunnable;
+        private final CoreErrorHighlighter errorHighlighter;
 
-        protected CoreElementSubmitInfo(Submitter submitter, @Nullable Runnable successRunnable) {
+        protected CoreElementSubmitInfo(Submitter submitter, @Nullable Runnable successRunnable, CoreErrorHighlighter errorHighlighter) {
             this.submitter = submitter;
             this.successRunnable = successRunnable;
+            this.errorHighlighter = errorHighlighter;
         }
 
     }

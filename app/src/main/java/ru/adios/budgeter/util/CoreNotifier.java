@@ -99,6 +99,7 @@ public final class CoreNotifier {
         } else if (linker instanceof CurrencyLinker) {
             if (o instanceof CurrencyUnit) {
                 ((CurrencyLinker) linker).link((CurrencyUnit) o);
+                activity.coreFeedback();
             } else {
                 final String decStr = getStringFromObject(o);
                 if (decStr.length() > 0) {
@@ -114,6 +115,7 @@ public final class CoreNotifier {
             activity.coreFeedback();
         } else if (linker instanceof ArbitraryLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
             ((ArbitraryLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
+            activity.coreFeedback();
         }
     }
 

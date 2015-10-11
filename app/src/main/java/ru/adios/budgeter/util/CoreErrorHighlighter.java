@@ -5,6 +5,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -19,6 +21,8 @@ import ru.adios.budgeter.Submitter;
 @NotThreadSafe
 public final class CoreErrorHighlighter {
 
+    private static final String GLOBAL_INFO_VIEW_NAME = "$reserved:globalInfoView";
+
     public interface ViewWorker {
 
         void successWork(View view);
@@ -29,10 +33,15 @@ public final class CoreErrorHighlighter {
 
     private final HashMap<String, View> elementNameToView = new HashMap<>();
     private final HashMap<Integer, ViewWorker> viewWorkers = new HashMap<>();
+    private final HashSet<String> idleViews = new HashSet<>();
     private View globalInfoView;
 
     public void addElementInfo(@Nonnull String name, @Nonnull View view) {
+        if (name.equals(GLOBAL_INFO_VIEW_NAME)) {
+            return;
+        }
         elementNameToView.put(name, view);
+        idleViews.add(name);
     }
 
     public void setWorker(@Nonnull View view, @Nonnull ViewWorker worker) {
@@ -41,6 +50,7 @@ public final class CoreErrorHighlighter {
 
     public void setGlobalInfoView(View globalInfoView) {
         this.globalInfoView = globalInfoView;
+        idleViews.add(GLOBAL_INFO_VIEW_NAME);
     }
 
     public void processSubmitResultUsingHandler(Handler handler, final Submitter.Result result) {
@@ -70,42 +80,88 @@ public final class CoreErrorHighlighter {
     }
 
     private void highlightFailure(Submitter.Result result) {
+        final HashSet<String> toHide = new HashSet<>();
+        for (final String name : elementNameToView.keySet()) {
+            if (!idleViews.contains(name)) {
+                toHide.add(name);
+            }
+        }
+        if (!idleViews.contains(GLOBAL_INFO_VIEW_NAME)) {
+            toHide.add(GLOBAL_INFO_VIEW_NAME);
+        }
+
         for (final Submitter.FieldError error : result.fieldErrors) {
             final View viewInFault = elementNameToView.get(error.fieldInFault);
             if (viewInFault != null) {
                 enrichView(viewInFault, error.errorText);
                 viewInFault.setVisibility(View.VISIBLE);
-                final ViewWorker worker = viewWorkers.get(viewInFault.getId());
+                final int idFault = viewInFault.getId();
+                final ViewWorker worker = viewWorkers.get(idFault);
                 if (worker != null) {
                     worker.failureWork(viewInFault);
+                }
+                viewInFault.invalidate();
+                if (!idleViews.remove(error.fieldInFault)) {
+                    toHide.remove(error.fieldInFault);
                 }
             }
         }
         if (result.generalError != null) {
-            final ViewWorker infoWorker = viewWorkers.get(globalInfoView.getId());
+            final int id = globalInfoView.getId();
+            final ViewWorker infoWorker = viewWorkers.get(id);
             if (infoWorker != null) {
                 infoWorker.failureWork(globalInfoView);
             }
             enrichView(globalInfoView, result.generalError);
+            globalInfoView.invalidate();
+            if (!idleViews.remove(GLOBAL_INFO_VIEW_NAME)) {
+                toHide.remove(GLOBAL_INFO_VIEW_NAME);
+            }
+        }
+
+        for (final String viewName : toHide) {
+            if (viewName.equals(GLOBAL_INFO_VIEW_NAME)) {
+                hideGlobalInfoView();
+            } else {
+                final View view = elementNameToView.get(viewName);
+                if (view != null) {
+                    hideView(viewName, view);
+                }
+            }
         }
     }
 
     private void highlightSuccess() {
-        for (final View viewInFault : elementNameToView.values()) {
-            if (viewInFault.getVisibility() == View.VISIBLE) {
-                enrichView(viewInFault, "");
-                viewInFault.setVisibility(View.INVISIBLE);
+        for (final Map.Entry<String, View> entry : elementNameToView.entrySet()) {
+            final View viewInFault = entry.getValue();
+            final String name = entry.getKey();
+            if (!idleViews.contains(name)) {
+                hideView(name, viewInFault);
             }
         }
 
-        if (globalInfoView.getVisibility() == View.VISIBLE) {
-            enrichView(globalInfoView, "");
-            final ViewWorker infoWorker = viewWorkers.get(globalInfoView.getId());
-            if (infoWorker != null) {
-                infoWorker.successWork(globalInfoView);
-            }
-            globalInfoView.setVisibility(View.INVISIBLE);
+        if (!idleViews.contains(GLOBAL_INFO_VIEW_NAME)) {
+            hideGlobalInfoView();
         }
+    }
+
+    private void hideView(String name, View view) {
+        enrichView(view, "");
+        view.setVisibility(View.INVISIBLE);
+        view.invalidate();
+        idleViews.add(name);
+    }
+
+    private void hideGlobalInfoView() {
+        enrichView(globalInfoView, "");
+        final int id = globalInfoView.getId();
+        final ViewWorker infoWorker = viewWorkers.get(id);
+        if (infoWorker != null) {
+            infoWorker.successWork(globalInfoView);
+        }
+        globalInfoView.setVisibility(View.INVISIBLE);
+        globalInfoView.invalidate();
+        idleViews.add(GLOBAL_INFO_VIEW_NAME);
     }
 
     private static void enrichView(View view, String text) {

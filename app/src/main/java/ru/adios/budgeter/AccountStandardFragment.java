@@ -77,10 +77,19 @@ public class AccountStandardFragment extends Fragment {
 
         // button roundness and listener to show hidden interface
         final Button addButton = (Button) inflated.findViewById(R.id.accounts_add_button);
-        final int diameter = addButton.getLayoutParams().height;
-        final RelativeLayout.LayoutParams abParams = new RelativeLayout.LayoutParams(diameter, diameter);
-        abParams.addRule(RelativeLayout.RIGHT_OF, R.id.accounts_spinner);
-        addButton.setLayoutParams(abParams);
+        addButton.post(new Runnable() {
+            @Override
+            public void run() {
+                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) addButton.getLayoutParams();
+                params.width = addButton.getHeight();
+                addButton.setLayoutParams(params);
+                addButton.invalidate();
+            }
+        });
+        //final int diameter = addButton.getLayoutParams().height;
+        //final RelativeLayout.LayoutParams abParams = new RelativeLayout.LayoutParams(diameter, diameter);
+        //abParams.addRule(RelativeLayout.RIGHT_OF, R.id.accounts_spinner);
+        //addButton.setLayoutParams(abParams);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,7 +125,7 @@ public class AccountStandardFragment extends Fragment {
                 @SuppressWarnings("unchecked")
                 final HintedArrayAdapter<Treasury.BalanceAccount> adapter = (HintedArrayAdapter<Treasury.BalanceAccount>) accountsSpinner.getAdapter();
                 //noinspection ConstantConditions
-                adapter.add(new HintedArrayAdapter.ToStringObjectContainer<>(new Treasury.BalanceAccount(accountsCore.getName(), accountsCore.getUnit())));
+                adapter.add(new AccountContainer(new Treasury.BalanceAccount(accountsCore.getName(), accountsCore.getUnit())));
                 accountsSpinner.setSelection(adapter.getCount(), true);
                 inflated.invalidate();
             }
@@ -140,7 +149,7 @@ public class AccountStandardFragment extends Fragment {
 
         @Override
         public String toString() {
-            return account.name;
+            return account.name + '(' + account.getUnit().toString() + ')';
         }
 
     }

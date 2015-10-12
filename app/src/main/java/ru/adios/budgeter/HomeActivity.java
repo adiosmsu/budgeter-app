@@ -20,7 +20,7 @@ import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.CoreUtils;
 import ru.adios.budgeter.util.ElementsIdProvider;
 import ru.adios.budgeter.util.Formatting;
-import ru.adios.budgeter.util.MenuUtils;
+import ru.adios.budgeter.util.UiUtils;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -90,7 +90,7 @@ public class HomeActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_home, menu);
 
-        MenuUtils.fillStandardMenu(menu, totalBalance);
+        UiUtils.fillStandardMenu(menu, totalBalance);
 
         return true;
     }

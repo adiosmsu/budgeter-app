@@ -53,7 +53,7 @@ public final class CoreErrorHighlighter {
         idleViews.add(GLOBAL_INFO_VIEW_NAME);
     }
 
-    public void processSubmitResultUsingHandler(Handler handler, final Submitter.Result result) {
+    public <T> void processSubmitResultUsingHandler(Handler handler, final Submitter.Result<T> result) {
         if (result.isSuccessful()) {
             handler.post(new Runnable() {
                 @Override
@@ -71,7 +71,7 @@ public final class CoreErrorHighlighter {
         }
     }
 
-    public void processSubmitResult(Submitter.Result result) {
+    public <T> void processSubmitResult(Submitter.Result<T> result) {
         if (result.isSuccessful()) {
             highlightSuccess();
         } else {
@@ -79,7 +79,7 @@ public final class CoreErrorHighlighter {
         }
     }
 
-    private void highlightFailure(Submitter.Result result) {
+    private <T> void highlightFailure(Submitter.Result<T> result) {
         final HashSet<String> toHide = new HashSet<>();
         for (final String name : elementNameToView.keySet()) {
             if (!idleViews.contains(name)) {

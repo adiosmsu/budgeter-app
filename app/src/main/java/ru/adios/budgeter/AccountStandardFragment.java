@@ -12,10 +12,13 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.Treasury;
+import ru.adios.budgeter.util.BalanceAccountContainer;
 import ru.adios.budgeter.util.HintedArrayAdapter;
+import ru.adios.budgeter.util.UiUtils;
 
 
 /**
@@ -39,7 +42,8 @@ public class AccountStandardFragment extends Fragment {
         // Inflate the layout for this fragment
         final View inflated = inflater.inflate(R.layout.fragment_account_standard, container, false);
 
-        final CoreElementActivity activity = (CoreElementActivity) getActivity();
+        @SuppressWarnings("unchecked")
+        final CoreElementActivity<Treasury.BalanceAccount> activity = (CoreElementActivity<Treasury.BalanceAccount>) getActivity();
         final AccountsElementCore accountsCore = ((AccountsElementCoreProvider) activity).getAccountsElementCore();
         final int id = getId();
 
@@ -53,7 +57,7 @@ public class AccountStandardFragment extends Fragment {
                         .map(new Function<Treasury.BalanceAccount, HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount>>() {
                             @Override
                             public HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> apply(Treasury.BalanceAccount balanceAccount) {
-                                return new AccountContainer(balanceAccount);
+                                return new BalanceAccountContainer(balanceAccount);
                             }
                         })
                         .collect(Collectors.<HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount>>toList())
@@ -110,9 +114,9 @@ public class AccountStandardFragment extends Fragment {
         addButton.invalidate();
 
         // add submit button logic
-        activity.addButtonFragmentInfo(id, BUTTON_NEW_ACCOUNT_SUBMIT, submitButton, new Runnable() {
+        activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_ACCOUNT_SUBMIT, new Consumer<Treasury.BalanceAccount>() {
             @Override
-            public void run() {
+            public void accept(Treasury.BalanceAccount account) {
                 nameInput.setVisibility(View.GONE);
                 nameInputInfo.setVisibility(View.GONE);
                 currencyInput.setVisibility(View.GONE);
@@ -122,36 +126,12 @@ public class AccountStandardFragment extends Fragment {
                 amountInputInfo.setVisibility(View.GONE);
                 submitButton.setVisibility(View.GONE);
                 addButton.setVisibility(View.VISIBLE);
-                @SuppressWarnings("unchecked")
-                final HintedArrayAdapter<Treasury.BalanceAccount> adapter = (HintedArrayAdapter<Treasury.BalanceAccount>) accountsSpinner.getAdapter();
-                //noinspection ConstantConditions
-                adapter.add(new AccountContainer(new Treasury.BalanceAccount(accountsCore.getName(), accountsCore.getUnit())));
-                accountsSpinner.setSelection(adapter.getCount(), true);
+                UiUtils.addAccountToSpinner(account, accountsSpinner);
                 inflated.invalidate();
             }
         });
 
         return inflated;
-    }
-
-    private static final class AccountContainer implements HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> {
-
-        private final Treasury.BalanceAccount account;
-
-        private AccountContainer(Treasury.BalanceAccount account) {
-            this.account = account;
-        }
-
-        @Override
-        public Treasury.BalanceAccount getObject() {
-            return account;
-        }
-
-        @Override
-        public String toString() {
-            return account.name + '(' + account.getUnit().toString() + ')';
-        }
-
     }
 
 }

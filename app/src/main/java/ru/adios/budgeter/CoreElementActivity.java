@@ -17,9 +17,11 @@ import java.math.BigDecimal;
 
 import javax.annotation.Nullable;
 
+import java8.util.function.Consumer;
 import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
+import ru.adios.budgeter.util.HintedArrayAdapter;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -27,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by Michail Kulikov
  * 10/7/15
  */
-public abstract class CoreElementActivity extends AppCompatActivity {
+public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
     private boolean feedbackCommencing = false;
 
@@ -93,19 +95,32 @@ public abstract class CoreElementActivity extends AppCompatActivity {
     protected final void accountSpinnerFeedback(Treasury.BalanceAccount account, @IdRes int spinnerId) {
         if (account != null) {
             final Spinner spinnerView = (Spinner) findViewById(spinnerId);
-            if (!spinnerView.getSelectedItem().equals(account)) {
-                int pos = -1;
-                final SpinnerAdapter adapter = spinnerView.getAdapter();
+            final SpinnerAdapter adapter = spinnerView.getAdapter();
+
+            int pos = -1;
+            if (adapter instanceof HintedArrayAdapter) {
+                if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(account)) {
+                    @SuppressWarnings("unchecked")
+                    HintedArrayAdapter<Treasury.BalanceAccount> hintedArrayAdapter = (HintedArrayAdapter<Treasury.BalanceAccount>) adapter;
+                    for (int i = 0; i < adapter.getCount(); i++) {
+                        if (hintedArrayAdapter.getItem(i).getObject().equals(account)) {
+                            pos = i;
+                            break;
+                        }
+                    }
+                }
+            } else if (!spinnerView.getSelectedItem().equals(account)) {
                 for (int i = 0; i < adapter.getCount(); i++) {
                     if (adapter.getItem(i).equals(account)) {
                         pos = i;
                         break;
                     }
                 }
-                if (pos >= 0) {
-                    spinnerView.setSelection(pos, true);
-                    spinnerView.invalidate();
-                }
+            }
+
+            if (pos >= 0) {
+                spinnerView.setSelection(pos, true);
+                spinnerView.invalidate();
             }
         }
     }
@@ -124,31 +139,31 @@ public abstract class CoreElementActivity extends AppCompatActivity {
         }
     }
 
-    public final void addButtonFragmentInfo(@IdRes final int fragmentId, final String buttonName, Button button, @Nullable final Runnable successRunnable) {
+    public final void addSubmitFragmentInfo(@IdRes final int fragmentId, Button submitButton, final String buttonName, @Nullable final Consumer<T> successRunnable) {
+        checkNotNull(submitButton, "button is null");
         checkNotNull(buttonName, "buttonName is null");
-        checkNotNull(button, "button is null");
         checkFragmentAllowance(fragmentId);
 
-        final CoreElementSubmitInfo submitInfo = getSubmitInfo(fragmentId, buttonName);
-        button.setOnClickListener(new View.OnClickListener() {
+        final CoreElementSubmitInfo<T> submitInfo = getSubmitInfo(fragmentId, buttonName);
+        submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AsyncTask<Void, Void, Submitter.Result>() {
+                new AsyncTask<Void, Void, Submitter.Result<T>>() {
                     @Override
-                    protected Submitter.Result doInBackground(Void... params) {
+                    protected Submitter.Result<T> doInBackground(Void... params) {
                         return submitInfo.submitter.submit();
                     }
 
                     @Override
-                    protected void onPostExecute(Submitter.Result result) {
+                    protected void onPostExecute(Submitter.Result<T> result) {
                         submitInfo.errorHighlighter.processSubmitResult(result);
                         if (result.isSuccessful()) {
                             if (submitInfo.successRunnable != null) {
-                                submitInfo.successRunnable.run();
+                                submitInfo.successRunnable.accept(result.submitResult);
                             }
 
                             if (successRunnable != null) {
-                                successRunnable.run();
+                                successRunnable.accept(result.submitResult);
                             }
                         }
                     }
@@ -170,7 +185,7 @@ public abstract class CoreElementActivity extends AppCompatActivity {
         }
     }
 
-    protected abstract CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName);
+    protected abstract CoreElementSubmitInfo<T> getSubmitInfo(@IdRes int fragmentId, String buttonName);
 
     protected abstract int[] allowedFragments();
 
@@ -191,14 +206,14 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
     }
 
-    protected static final class CoreElementSubmitInfo {
+    protected static final class CoreElementSubmitInfo<T> {
 
-        private final Submitter submitter;
+        private final Submitter<T> submitter;
         @Nullable
-        private final Runnable successRunnable;
+        private final Consumer<T> successRunnable;
         private final CoreErrorHighlighter errorHighlighter;
 
-        protected CoreElementSubmitInfo(Submitter submitter, @Nullable Runnable successRunnable, CoreErrorHighlighter errorHighlighter) {
+        protected CoreElementSubmitInfo(Submitter<T> submitter, @Nullable Consumer<T> successRunnable, CoreErrorHighlighter errorHighlighter) {
             this.submitter = submitter;
             this.successRunnable = successRunnable;
             this.errorHighlighter = errorHighlighter;

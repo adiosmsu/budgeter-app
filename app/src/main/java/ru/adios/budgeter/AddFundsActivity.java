@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -27,9 +28,9 @@ import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.CoreUtils;
 import ru.adios.budgeter.util.HintedArrayAdapter;
-import ru.adios.budgeter.util.MenuUtils;
+import ru.adios.budgeter.util.UiUtils;
 
-public class AddFundsActivity extends CoreElementActivity implements AccountsElementCoreProvider {
+public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccount> implements AccountsElementCoreProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AddFundsActivity.class);
 
@@ -103,12 +104,12 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
     }
 
     @Override
-    protected CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName) {
+    protected CoreElementSubmitInfo<Treasury.BalanceAccount> getSubmitInfo(@IdRes int fragmentId, String buttonName) {
         switch (fragmentId) {
             case R.id.add_funds_fragment:
-                return new CoreElementSubmitInfo(additionElement, null, addFundsErrorHighlighter);
+                return new CoreElementSubmitInfo<>(additionElement, null, addFundsErrorHighlighter);
             case R.id.add_funds_account_fragment:
-                return new CoreElementSubmitInfo(hybridAccountCore, null, accountsErrorHighlighter);
+                return new CoreElementSubmitInfo<>(hybridAccountCore, null, accountsErrorHighlighter);
             default:
                 throw unsupportedFragmentError(fragmentId);
         }
@@ -181,7 +182,7 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_add_funds, menu);
 
-        MenuUtils.fillStandardMenu(menu, totalBalance);
+        UiUtils.fillStandardMenu(menu, totalBalance);
 
         return true;
     }
@@ -202,15 +203,19 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
     }
 
     public void addFunds(View view) {
-        new AsyncTask<Void, Void, Submitter.Result>() {
+        new AsyncTask<Void, Void, Submitter.Result<Treasury.BalanceAccount>>() {
             @Override
-            protected Submitter.Result doInBackground(Void... params) {
+            protected Submitter.Result<Treasury.BalanceAccount> doInBackground(Void... params) {
                 return additionElement.submit();
             }
 
             @Override
-            protected void onPostExecute(Submitter.Result result) {
+            protected void onPostExecute(Submitter.Result<Treasury.BalanceAccount> result) {
                 addFundsErrorHighlighter.processSubmitResult(result);
+                if (result.isSuccessful()) {
+                    final Spinner accountsSpinner = (Spinner) findViewById(R.id.accounts_spinner);
+                    UiUtils.replaceAccountInSpinner(result.submitResult, accountsSpinner);
+                }
                 findViewById(R.id.activity_add_funds).invalidate();
             }
         }.execute();
@@ -220,11 +225,11 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
         return new IllegalArgumentException("Unsupported fragment: " + getResources().getResourceName(fragmentId));
     }
 
-    private final class HybridAccountCore implements Submitter {
+    private final class HybridAccountCore implements Submitter<Treasury.BalanceAccount> {
 
         @Override
-        public Result submit() {
-            final Result accountResult = accountsElement.submit();
+        public Result<Treasury.BalanceAccount> submit() {
+            final Result<Treasury.BalanceAccount> accountResult = accountsElement.submit();
 
             if (!accountResult.isSuccessful()) {
                 return accountResult;
@@ -239,7 +244,7 @@ public class AddFundsActivity extends CoreElementActivity implements AccountsEle
                 return core.submit();
             }
 
-            return Result.SUCCESS;
+            return accountResult;
         }
 
     }

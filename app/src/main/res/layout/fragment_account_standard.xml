@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     tools:context="ru.adios.budgeter.AccountStandardFragment">
 
-    <Spinner
+    <ru.adios.budgeter.util.FlexibleNotifyingSpinner
         android:id="@+id/accounts_spinner"
         android:layout_width="0dp"
         app:layout_widthPercent="50%"

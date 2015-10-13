@@ -27,8 +27,25 @@ public final class UiUtils {
     public static void addAccountToSpinner(Treasury.BalanceAccount account, Spinner accountsSpinner) {
         @SuppressWarnings("unchecked")
         final HintedArrayAdapter<Treasury.BalanceAccount> adapter = (HintedArrayAdapter<Treasury.BalanceAccount>) accountsSpinner.getAdapter();
+
+        boolean hintSelected = adapter.getCount() == accountsSpinner.getSelectedItemPosition();
+        Boolean backup = null;
+
         adapter.add(new BalanceAccountContainer(account));
-        accountsSpinner.setSelection(adapter.getCount(), true);
+
+        // repair situation when what selected is a hint and we add something to the end of a real items list hence position will not change and no event will fire
+        if (accountsSpinner instanceof FlexibleNotifyingSpinner && hintSelected) {
+            final FlexibleNotifyingSpinner as = (FlexibleNotifyingSpinner) accountsSpinner;
+            backup = as.willNotifyEvenIfSameSelection();
+            as.setNotifyEvenIfSameSelection(true);
+        }
+
+        accountsSpinner.setSelection(adapter.getCount() - 1, true);
+
+        // change back
+        if (backup != null && backup == Boolean.FALSE) {
+            ((FlexibleNotifyingSpinner) accountsSpinner).setNotifyEvenIfSameSelection(false);
+        }
     }
 
     public static void replaceAccountInSpinner(Treasury.BalanceAccount account, Spinner accountsSpinner) {

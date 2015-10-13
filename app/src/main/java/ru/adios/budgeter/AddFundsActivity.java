@@ -2,135 +2,52 @@ package ru.adios.budgeter;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
-import com.google.common.collect.ImmutableMap;
-
-import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-
-import javax.annotation.Nullable;
-
-import java8.util.Optional;
 import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
-import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.CoreUtils;
-import ru.adios.budgeter.util.HintedArrayAdapter;
 import ru.adios.budgeter.util.UiUtils;
 
 public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccount> implements AccountsElementCoreProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AddFundsActivity.class);
 
-    private static final int[] ALLOWED_FRAGMENT = new int[] {R.id.add_funds_fragment, R.id.add_funds_account_fragment};
-
-
     private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
     private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
+    private final AccountStandardFragment.InfoProvider accountsInfoProvider = AccountStandardFragment.getInfoProvider(R.id.add_funds_account_fragment, additionElement, addFundsErrorHighlighter);
 
-    private Optional<BigDecimal> newAccountOptionalAmount = Optional.of(BigDecimal.ZERO);
-    private final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
-    private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
-
-    private final ImmutableMap<String, CoreElementFieldInfo> addFundsFieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
-            .put(EnterAmountFragment.FIELD_AMOUNT_DECIMAL, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
-                @Override
-                public void link(BigDecimal data) {
-                    additionElement.setAmountDecimal(data);
-                }
-            }, addFundsErrorHighlighter))
-            .put(EnterAmountFragment.FIELD_AMOUNT_CURRENCY, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_UNIT, new CoreNotifier.CurrencyLinker() {
-                @Override
-                public void link(CurrencyUnit data) {
-                    additionElement.setAmountUnit(data);
-                }
-            }, addFundsErrorHighlighter))
-            .build();
-    private final ImmutableMap<String, CoreElementFieldInfo> accountsFieldInfoMap = ImmutableMap.<String, CoreElementFieldInfo>builder()
-            .put(AccountStandardFragment.FIELD_ACCOUNT, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, new CoreNotifier.ArbitraryLinker() {
-                @Override
-                public void link(HintedArrayAdapter.ObjectContainer data) {
-                    final Treasury.BalanceAccount account = (Treasury.BalanceAccount) data.getObject();
-                    additionElement.setAccount(account);
-                }
-            }, addFundsErrorHighlighter))
-            .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_NAME, new CoreElementFieldInfo(AccountsElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
-                @Override
-                public void link(String data) {
-                    accountsElement.setName(data);
-                }
-            }, accountsErrorHighlighter))
-            .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_CURRENCY, new CoreElementFieldInfo(AccountsElementCore.FIELD_UNIT, new CoreNotifier.CurrencyLinker() {
-                @Override
-                public void link(CurrencyUnit data) {
-                    accountsElement.setUnit(data);
-                }
-            }, accountsErrorHighlighter))
-            .put(AccountStandardFragment.FIELD_NEW_ACCOUNT_AMOUNT, new CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
-                @Override
-                public void link(BigDecimal data) {
-                    setNewAccountOptionalAmount(data);
-                }
-            }, accountsErrorHighlighter))
-            .build();
-    private final HybridAccountCore hybridAccountCore = new HybridAccountCore();
+    private final CollectedFragmentsInfoProvider<Treasury.BalanceAccount> infoProvider =
+            new CollectedFragmentsInfoProvider.Builder<>(this)
+                    .addProvider(EnterAmountFragment.getInfoProvider(R.id.add_funds_amount_fragment, additionElement, addFundsErrorHighlighter))
+                    .addProvider(accountsInfoProvider)
+                    .build();
 
     private Money totalBalance;
 
-    private void setNewAccountOptionalAmount(BigDecimal amount) {
-        newAccountOptionalAmount = Optional.of(amount);
+    @Override
+    public AccountsElementCore getAccountsElementCore() {
+        return accountsInfoProvider.accountsElement;
     }
 
     @Override
-    public AccountsElementCore getAccountsElementCore() {
-        return accountsElement;
+    protected FragmentsInfoProvider<Treasury.BalanceAccount> getInfoProvider() {
+        return infoProvider;
     }
 
     @Override
     protected final int getLayoutId() {
         return R.layout.activity_add_funds;
-    }
-
-    @Override
-    protected CoreElementSubmitInfo<Treasury.BalanceAccount> getSubmitInfo(@IdRes int fragmentId, String buttonName) {
-        switch (fragmentId) {
-            case R.id.add_funds_fragment:
-                return new CoreElementSubmitInfo<>(additionElement, null, addFundsErrorHighlighter);
-            case R.id.add_funds_account_fragment:
-                return new CoreElementSubmitInfo<>(hybridAccountCore, null, accountsErrorHighlighter);
-            default:
-                throw unsupportedFragmentError(fragmentId);
-        }
-    }
-
-    @Override
-    protected final int[] allowedFragments() {
-        return ALLOWED_FRAGMENT;
-    }
-
-    @Nullable
-    @Override
-    protected final CoreElementFieldInfo getCoreElementFieldInfo(@IdRes int fragmentId, String fragmentFieldName) {
-        switch (fragmentId) {
-            case R.id.add_funds_fragment:
-                return addFundsFieldInfoMap.get(fragmentFieldName);
-            case R.id.add_funds_account_fragment:
-                return accountsFieldInfoMap.get(fragmentFieldName);
-            default:
-                throw unsupportedFragmentError(fragmentId);
-        }
     }
 
     @Override
@@ -142,7 +59,7 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
         totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
 
         final View infoView = findViewById(R.id.add_funds_info);
-        setGlobalViewToHighlighter(accountsErrorHighlighter, infoView);
+        setGlobalViewToHighlighter(accountsInfoProvider.accountsErrorHighlighter, infoView);
         setGlobalViewToHighlighter(addFundsErrorHighlighter, infoView);
     }
 
@@ -161,20 +78,10 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
 
             private void setLayoutParams(View view, RelativeLayout.LayoutParams pars) {
                 pars.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                pars.addRule(RelativeLayout.BELOW, R.id.add_funds_fragment);
+                pars.addRule(RelativeLayout.BELOW, R.id.add_funds_amount_fragment);
                 view.setLayoutParams(pars);
             }
         });
-    }
-
-    @Override
-    protected void coreFeedbackInternal() {
-        accountSpinnerFeedback(additionElement.getAccount(), R.id.accounts_spinner);
-        decimalTextViewFeedback(additionElement.getAmountDecimal(), R.id.amount_decimal);
-        currenciesSpinnerFeedback(additionElement.getAmountUnit(), R.id.amount_currency);
-        textViewFeedback(accountsElement.getName(), R.id.accounts_name_input);
-        currenciesSpinnerFeedback(accountsElement.getUnit(), R.id.accounts_currency_input);
-        decimalTextViewFeedback(newAccountOptionalAmount.get(), R.id.accounts_amount_optional_input);
     }
 
     @Override
@@ -221,32 +128,5 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
         }.execute();
     }
 
-    private IllegalArgumentException unsupportedFragmentError(@IdRes int fragmentId) {
-        return new IllegalArgumentException("Unsupported fragment: " + getResources().getResourceName(fragmentId));
-    }
-
-    private final class HybridAccountCore implements Submitter<Treasury.BalanceAccount> {
-
-        @Override
-        public Result<Treasury.BalanceAccount> submit() {
-            final Result<Treasury.BalanceAccount> accountResult = accountsElement.submit();
-
-            if (!accountResult.isSuccessful()) {
-                return accountResult;
-            }
-
-            if (!newAccountOptionalAmount.get().equals(BigDecimal.ZERO)) {
-                final FundsAdditionElementCore core = new FundsAdditionElementCore(Schema.TREASURY);
-                core.setAccount(accountsElement.getName());
-                core.setAmountDecimal(newAccountOptionalAmount.get());
-                //noinspection ConstantConditions
-                core.setAmountUnit(accountsElement.getUnit());
-                return core.submit();
-            }
-
-            return accountResult;
-        }
-
-    }
 
 }

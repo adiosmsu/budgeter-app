@@ -11,6 +11,8 @@ import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
+import com.google.common.collect.ImmutableCollection;
+
 import org.joda.money.CurrencyUnit;
 
 import java.math.BigDecimal;
@@ -44,6 +46,8 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         coreFeedback();
     }
 
+    protected abstract FragmentsInfoProvider<T> getInfoProvider();
+
     @LayoutRes
     protected abstract int getLayoutId();
 
@@ -53,13 +57,11 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
         feedbackCommencing = true;
         try {
-            coreFeedbackInternal();
+            getInfoProvider().performFeedback();
         } finally {
             feedbackCommencing = false;
         }
     }
-
-    protected abstract void coreFeedbackInternal();
 
     protected final void textViewFeedback(String text, @IdRes int textViewId) {
         if (text != null) {
@@ -130,7 +132,7 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         checkNotNull(fieldInfoView, "fieldInfoView is null");
         checkFragmentAllowance(fragmentId);
 
-        final CoreElementFieldInfo fieldInfo = getCoreElementFieldInfo(fragmentId, fragmentFieldName);
+        final CoreElementFieldInfo fieldInfo = getInfoProvider().getCoreElementFieldInfo(fragmentId, fragmentFieldName);
         if (fieldInfo != null) {
             fieldInfo.errorHighlighter.addElementInfo(fieldInfo.coreFieldName, fieldInfoView);
             CoreNotifier.addLink(this, fieldView, fieldInfo.linker);
@@ -144,7 +146,7 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         checkNotNull(buttonName, "buttonName is null");
         checkFragmentAllowance(fragmentId);
 
-        final CoreElementSubmitInfo<T> submitInfo = getSubmitInfo(fragmentId, buttonName);
+        final CoreElementSubmitInfo<T> submitInfo = getInfoProvider().getSubmitInfo(fragmentId, buttonName);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -174,7 +176,7 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
     private void checkFragmentAllowance(@IdRes int fragmentId) {
         boolean coincide = false;
-        for (final int fid : allowedFragments()) {
+        for (final int fid : getInfoProvider().allowedFragments()) {
             if (fragmentId == fid) {
                 coincide = true;
                 break;
@@ -185,18 +187,23 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         }
     }
 
-    protected abstract CoreElementSubmitInfo<T> getSubmitInfo(@IdRes int fragmentId, String buttonName);
+    protected interface FragmentsInfoProvider<T> {
 
-    protected abstract int[] allowedFragments();
+        CoreElementSubmitInfo<T> getSubmitInfo(@IdRes int fragmentId, String buttonName);
 
-    @Nullable
-    protected abstract CoreElementFieldInfo getCoreElementFieldInfo(@IdRes int fragmentId, String fragmentFieldName);
+        ImmutableCollection<Integer> allowedFragments();
+
+        CoreElementFieldInfo getCoreElementFieldInfo(@IdRes int fragmentId, String fragmentFieldName);
+
+        void performFeedback();
+
+    }
 
     protected static final class CoreElementFieldInfo {
 
-        private final String coreFieldName;
-        private final CoreNotifier.Linker linker;
-        private final CoreErrorHighlighter errorHighlighter;
+        protected final String coreFieldName;
+        protected final CoreNotifier.Linker linker;
+        protected final CoreErrorHighlighter errorHighlighter;
 
         protected CoreElementFieldInfo(String coreFieldName, CoreNotifier.Linker linker, CoreErrorHighlighter errorHighlighter) {
             this.coreFieldName = coreFieldName;
@@ -208,10 +215,10 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
     protected static final class CoreElementSubmitInfo<T> {
 
-        private final Submitter<T> submitter;
+        protected final Submitter<T> submitter;
         @Nullable
-        private final Consumer<T> successRunnable;
-        private final CoreErrorHighlighter errorHighlighter;
+        protected final Consumer<T> successRunnable;
+        protected final CoreErrorHighlighter errorHighlighter;
 
         protected CoreElementSubmitInfo(Submitter<T> submitter, @Nullable Consumer<T> successRunnable, CoreErrorHighlighter errorHighlighter) {
             this.submitter = submitter;

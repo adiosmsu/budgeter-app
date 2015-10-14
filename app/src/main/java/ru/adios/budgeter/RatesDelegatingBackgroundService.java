@@ -59,6 +59,10 @@ public final class RatesDelegatingBackgroundService implements CurrencyRatesRepo
         exchangeService = delegate;
     }
 
+    public CurrenciesExchangeService getExchangeService() {
+        return exchangeService;
+    }
+
     public void addCallback(Callback callback) {
         callbacksSet.add(callback);
     }
@@ -251,7 +255,7 @@ public final class RatesDelegatingBackgroundService implements CurrencyRatesRepo
             return getLatestOptionalConversionMultiplierTask(from, to, false).execute().get();
         } catch (InterruptedException | ExecutionException e) {
             logger.error("getLatestOptionalConversionMultiplier task exception", e);
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -288,8 +292,12 @@ public final class RatesDelegatingBackgroundService implements CurrencyRatesRepo
             return getConversionMultiplierTask(day, from, to, false).execute().get();
         } catch (InterruptedException | ExecutionException e) {
             logger.error("getConversionMultiplier task exception", e);
-            return null;
+            return Optional.empty();
         }
+    }
+
+    public Optional<BigDecimal> getConversionMultiplierInThisThread(UtcDay day, CurrencyUnit from, CurrencyUnit to) {
+        return exchangeService.getConversionMultiplier(day, from, to);
     }
 
     public void doGetConversionMultiplier(UtcDay day, CurrencyUnit from, CurrencyUnit to) {
@@ -320,7 +328,7 @@ public final class RatesDelegatingBackgroundService implements CurrencyRatesRepo
             return getConversionMultiplierStraightTask(day, from, to, false).execute().get();
         } catch (InterruptedException | ExecutionException e) {
             logger.error("getConversionMultiplierStraight task exception", e);
-            return null;
+            return Optional.empty();
         }
     }
 

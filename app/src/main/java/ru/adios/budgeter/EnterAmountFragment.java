@@ -27,28 +27,29 @@ public class EnterAmountFragment extends Fragment {
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";
 
     public static CollectibleFragmentInfoProvider<Treasury.BalanceAccount> getInfoProvider(@IdRes int fragmentId,
-                                                                                           final FundsAdditionElementCore additionElement,
-                                                                                           final CoreErrorHighlighter addFundsErrorHighlighter) {
+                                                                                           final MoneySettable moneySettable,
+                                                                                           final CoreErrorHighlighter highlighter,
+                                                                                           String amountDecimalCoreName,
+                                                                                           String amountUnitCoreName) {
         return new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker<Treasury.BalanceAccount>() {
             @Override
             public void performFeedback(CoreElementActivity<Treasury.BalanceAccount> activity) {
-                activity.accountSpinnerFeedback(additionElement.getAccount(), R.id.accounts_spinner);
-                activity.decimalTextViewFeedback(additionElement.getAmountDecimal(), R.id.amount_decimal);
-                activity.currenciesSpinnerFeedback(additionElement.getAmountUnit(), R.id.amount_currency);
+                activity.decimalTextViewFeedback(moneySettable.getAmountDecimal(), R.id.amount_decimal);
+                activity.currenciesSpinnerFeedback(moneySettable.getAmountUnit(), R.id.amount_currency);
             }
         })
-                .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
+                .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(amountDecimalCoreName, new CoreNotifier.DecimalLinker() {
                     @Override
                     public void link(BigDecimal data) {
-                        additionElement.setAmountDecimal(data);
+                        moneySettable.setAmountDecimal(data);
                     }
-                }, addFundsErrorHighlighter))
-                .addFieldInfo(EnterAmountFragment.FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_UNIT, new CoreNotifier.CurrencyLinker() {
+                }, highlighter))
+                .addFieldInfo(EnterAmountFragment.FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(amountUnitCoreName, new CoreNotifier.CurrencyLinker() {
                     @Override
                     public void link(CurrencyUnit data) {
-                        additionElement.setAmountUnit(data);
+                        moneySettable.setAmountUnit(data);
                     }
-                }, addFundsErrorHighlighter))
+                }, highlighter))
                 .build();
     }
 

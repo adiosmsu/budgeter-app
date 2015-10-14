@@ -1,7 +1,9 @@
 package ru.adios.budgeter;
 
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -14,20 +16,27 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 
 import java.math.BigDecimal;
+
+import javax.annotation.Nullable;
 
 import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
+import java8.util.function.Supplier;
 import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.BalanceAccountContainer;
+import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.HintedArrayAdapter;
 import ru.adios.budgeter.util.UiUtils;
+
+import static com.google.common.base.Preconditions.checkState;
 
 
 /**
@@ -41,73 +50,86 @@ public class AccountStandardFragment extends Fragment {
     public static final String FIELD_NEW_ACCOUNT_AMOUNT = "new_account_amount";
     public static final String BUTTON_NEW_ACCOUNT_SUBMIT = "new_account_submit";
 
-    public static InfoProvider getInfoProvider(@IdRes int fragmentId, final FundsAdditionElementCore additionElement, final CoreErrorHighlighter addFundsErrorHighlighter) {
-        final Mutable<Optional<BigDecimal>> newAccountOptionalAmount = new Mutable<>(Optional.of(BigDecimal.ZERO));
-        final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
-        final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
-        final Submitter<Treasury.BalanceAccount> hybridAccountCore = new Submitter<Treasury.BalanceAccount>() {
-            @Override
-            public Result<Treasury.BalanceAccount> submit() {
-                final Result<Treasury.BalanceAccount> accountResult = accountsElement.submit();
-
-                if (!accountResult.isSuccessful()) {
-                    return accountResult;
-                }
-
-                final BigDecimal dec = newAccountOptionalAmount.object.get();
-                if (!dec.equals(BigDecimal.ZERO)) {
-                    final FundsAdditionElementCore core = new FundsAdditionElementCore(Schema.TREASURY);
-                    core.setAccount(accountsElement.getName());
-                    core.setAmountDecimal(dec);
-                    //noinspection ConstantConditions
-                    core.setAmountUnit(accountsElement.getUnit());
-                    return core.submit();
-                }
-
-                return accountResult;
-            }
-        };
-
-        CollectibleFragmentInfoProvider<Treasury.BalanceAccount> delegate = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker<Treasury.BalanceAccount>() {
-            @Override
-            public void performFeedback(CoreElementActivity<Treasury.BalanceAccount> activity) {
-                activity.textViewFeedback(accountsElement.getName(), R.id.accounts_name_input);
-                activity.currenciesSpinnerFeedback(accountsElement.getUnit(), R.id.accounts_currency_input);
-                activity.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), R.id.accounts_amount_optional_input);
-            }
-        })
-                .addButtonInfo(BUTTON_NEW_ACCOUNT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(hybridAccountCore, null, accountsErrorHighlighter))
-                .addFieldInfo(AccountStandardFragment.FIELD_ACCOUNT, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, new CoreNotifier.ArbitraryLinker() {
-                    @Override
-                    public void link(HintedArrayAdapter.ObjectContainer data) {
-                        final Treasury.BalanceAccount account = (Treasury.BalanceAccount) data.getObject();
-                        additionElement.setAccount(account);
-                    }
-                }, addFundsErrorHighlighter))
-                .addFieldInfo(FIELD_NEW_ACCOUNT_NAME, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
-                    @Override
-                    public void link(String data) {
-                        accountsElement.setName(data);
-                    }
-                }, accountsErrorHighlighter))
-                .addFieldInfo(AccountStandardFragment.FIELD_NEW_ACCOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_UNIT, new CoreNotifier.CurrencyLinker() {
-                    @Override
-                    public void link(CurrencyUnit data) {
-                        accountsElement.setUnit(data);
-                    }
-                }, accountsErrorHighlighter))
-                .addFieldInfo(AccountStandardFragment.FIELD_NEW_ACCOUNT_AMOUNT, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
-                    @Override
-                    public void link(BigDecimal data) {
-                        newAccountOptionalAmount.object = Optional.of(data);
-                    }
-                }, accountsErrorHighlighter))
-                .build();
-
-        return new InfoProvider(delegate, accountsElement, accountsErrorHighlighter);
+    public static InfoProvider.Builder getInfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<Treasury.BalanceAccount> accountSupplier) {
+        return new InfoProvider.Builder(fragmentId, context, accountSupplier);
     }
 
     public static final class InfoProvider implements CollectedFragmentsInfoProvider.InfoProvider<Treasury.BalanceAccount> {
+
+        public static final class Builder {
+
+            private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount = new Mutable<>(Optional.of(BigDecimal.ZERO));
+            private final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
+            private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
+            private final HybridAccountCore hybridAccountCore = new HybridAccountCore(accountsElement, newAccountOptionalAmount);
+
+            private final Context context;
+            private final CollectibleFragmentInfoProvider.Builder<Treasury.BalanceAccount> mainBuilder;
+
+            @Nullable
+            private Consumer<Treasury.BalanceAccount> callback;
+            private CoreElementActivity.CoreElementFieldInfo accountFieldInfo;
+
+            public Builder(@IdRes int fragmentId, Context context, Supplier<Treasury.BalanceAccount> accountSupplier) {
+                this.context = context;
+                mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new Feedbacker(accountsElement, newAccountOptionalAmount, accountSupplier));
+            }
+
+            public Builder setNewAccountSubmitButtonCallback(@Nullable Consumer<Treasury.BalanceAccount> callback) {
+                this.callback = callback;
+                return this;
+            }
+
+            public Builder provideAccountFieldInfo(String coreFieldName, CoreErrorHighlighter highlighter, CoreNotifier.ArbitraryLinker linker) {
+                accountFieldInfo = new CoreElementActivity.CoreElementFieldInfo(coreFieldName, linker, highlighter);
+                return this;
+            }
+
+            public InfoProvider build() {
+                checkState(accountFieldInfo != null, "Account field info not provided");
+
+                return new InfoProvider(
+                        mainBuilder
+                                .addButtonInfo(BUTTON_NEW_ACCOUNT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(hybridAccountCore, new Consumer<Treasury.BalanceAccount>() {
+                                    @Override
+                                    public void accept(Treasury.BalanceAccount account) {
+                                        final Money balance = account.getBalance();
+
+                                        if (balance != null && balance.isPositive()) {
+                                            BalancesUiThreadState.addMoney(balance, context);
+                                        }
+
+                                        if (callback != null) {
+                                            callback.accept(account);
+                                        }
+                                    }
+                                }, accountsErrorHighlighter))
+                                .addFieldInfo(FIELD_ACCOUNT, accountFieldInfo)
+                                .addFieldInfo(FIELD_NEW_ACCOUNT_NAME, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
+                                    @Override
+                                    public void link(String data) {
+                                        accountsElement.setName(data);
+                                    }
+                                }, accountsErrorHighlighter))
+                                .addFieldInfo(FIELD_NEW_ACCOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_UNIT, new CoreNotifier.CurrencyLinker() {
+                                    @Override
+                                    public void link(CurrencyUnit data) {
+                                        accountsElement.setUnit(data);
+                                    }
+                                }, accountsErrorHighlighter))
+                                .addFieldInfo(FIELD_NEW_ACCOUNT_AMOUNT, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
+                                    @Override
+                                    public void link(BigDecimal data) {
+                                        newAccountOptionalAmount.object = Optional.of(data);
+                                    }
+                                }, accountsErrorHighlighter))
+                                .build(),
+                        accountsElement,
+                        accountsErrorHighlighter
+                );
+            }
+
+        }
 
         private final CollectibleFragmentInfoProvider<Treasury.BalanceAccount> delegate;
 
@@ -142,8 +164,76 @@ public class AccountStandardFragment extends Fragment {
 
     }
 
+    public static final class Feedbacker implements CollectibleFragmentInfoProvider.Feedbacker<Treasury.BalanceAccount> {
+
+        private final AccountsElementCore accountsElement;
+        private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
+        private final Supplier<Treasury.BalanceAccount> accountSupplier;
+
+        public Feedbacker(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<Treasury.BalanceAccount> accountSupplier) {
+            this.accountsElement = accountsElement;
+            this.newAccountOptionalAmount = newAccountOptionalAmount;
+            this.accountSupplier = accountSupplier;
+        }
+
+        @Override
+        public void performFeedback(CoreElementActivity<Treasury.BalanceAccount> activity) {
+            activity.textViewFeedback(accountsElement.getName(), R.id.accounts_name_input);
+            activity.currenciesSpinnerFeedback(accountsElement.getUnit(), R.id.accounts_currency_input);
+            activity.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), R.id.accounts_amount_optional_input);
+            activity.accountSpinnerFeedback(accountSupplier.get(), R.id.accounts_spinner);
+        }
+
+    }
+
+    public static final class HybridAccountCore implements Submitter<Treasury.BalanceAccount> {
+
+        private final AccountsElementCore accountsElement;
+        private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
+
+        public HybridAccountCore(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount) {
+            this.accountsElement = accountsElement;
+            this.newAccountOptionalAmount = newAccountOptionalAmount;
+        }
+
+        @Override
+        public Result<Treasury.BalanceAccount> submit() {
+            final Result<Treasury.BalanceAccount> accountResult = accountsElement.submit();
+
+            if (!accountResult.isSuccessful()) {
+                return accountResult;
+            }
+
+            final BigDecimal dec = newAccountOptionalAmount.object.get();
+            if (!dec.equals(BigDecimal.ZERO)) {
+                final FundsAdditionElementCore core = new FundsAdditionElementCore(Schema.TREASURY);
+                core.setAccount(accountsElement.getName());
+                core.setAmountDecimal(dec);
+                //noinspection ConstantConditions
+                core.setAmountUnit(accountsElement.getUnit());
+                return core.submit();
+            }
+
+            return accountResult;
+        }
+
+    }
+
+
     public AccountStandardFragment() {
         // Required empty public constructor
+    }
+
+    /**
+     * Overridden to fail early.
+     * @param activity activity of CoreElementActivity<Treasury.BalanceAccount> type.
+     */
+    @Override
+    public void onAttach(Activity activity) {
+        checkState(activity instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", activity);
+        checkState(activity instanceof AccountsElementCoreProvider, "Activity must implement AccountsElementCoreProvider: %s", activity);
+        checkState(((CoreElementActivity) activity).provideClassForChecking() == Treasury.BalanceAccount.class, "CoreElementActivity must be of the Treasury.BalanceAccount type");
+        super.onAttach(activity);
     }
 
     @Override

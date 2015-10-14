@@ -1,5 +1,7 @@
 package ru.adios.budgeter;
 
+import android.os.Handler;
+
 import com.google.common.collect.ImmutableMap;
 
 import org.joda.money.CurrencyUnit;
@@ -13,6 +15,8 @@ import ru.adios.budgeter.inmemrepo.Schema;
  * 9/24/15
  */
 public final class Constants {
+
+    public static final Handler MAIN_HANDLER = new Handler();
 
     public static final RatesDelegatingBackgroundService CURRENCIES_EXCHANGE_SERVICE =
             new RatesDelegatingBackgroundService(

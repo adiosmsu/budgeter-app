@@ -4,7 +4,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.MenuRes;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -21,6 +23,7 @@ import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
 import ru.adios.budgeter.api.Treasury;
+import ru.adios.budgeter.util.BalancedMenuHandler;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.HintedArrayAdapter;
@@ -33,6 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
+    private BalancedMenuHandler menuHandler;
     private boolean feedbackCommencing = false;
 
     public final boolean isFeedbackCommencing() {
@@ -42,14 +46,54 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(getLayoutId());
+        initMenuHandler();
         coreFeedback();
     }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        initMenuHandler();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initMenuHandler();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        menuHandler.destroy();
+        menuHandler = null;
+    }
+
+    private void initMenuHandler() {
+        if (menuHandler == null) {
+            menuHandler = new BalancedMenuHandler();
+            menuHandler.init(this);
+        }
+    }
+
+    @Override
+    public final boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(getMenuId(), menu);
+        menuHandler.onCreateMenu(menu);
+        return true;
+    }
+
+    public abstract Class<T> provideClassForChecking();
 
     protected abstract FragmentsInfoProvider<T> getInfoProvider();
 
     @LayoutRes
     protected abstract int getLayoutId();
+
+    @MenuRes
+    protected abstract int getMenuId();
 
     public final void coreFeedback() {
         if (feedbackCommencing)
@@ -148,12 +192,13 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
         final CoreElementSubmitInfo<T> submitInfo = getInfoProvider().getSubmitInfo(fragmentId, buttonName);
         submitButton.setOnClickListener(new View.OnClickListener() {
+            @SuppressWarnings("unchecked")
             @Override
             public void onClick(View v) {
-                new AsyncTask<Void, Void, Submitter.Result<T>>() {
+                new AsyncTask<CoreElementSubmitInfo<T>, Void, Submitter.Result<T>>() {
                     @Override
-                    protected Submitter.Result<T> doInBackground(Void... params) {
-                        return submitInfo.submitter.submit();
+                    protected Submitter.Result<T> doInBackground(CoreElementSubmitInfo<T>[] params) {
+                        return params[0].submitter.submit();
                     }
 
                     @Override
@@ -169,7 +214,7 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
                             }
                         }
                     }
-                }.execute();
+                }.execute(submitInfo);
             }
         });
     }

@@ -13,7 +13,7 @@ public final class Formatting {
     }
 
     public static String toStringMoneyUsingSign(Money money) {
-        return money.getAmount().toString();
+        return money.getAmount().toPlainString();
     }
 
     private Formatting() {}

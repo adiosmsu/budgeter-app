@@ -2,61 +2,87 @@ package ru.adios.budgeter;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.Menu;
+import android.support.annotation.LayoutRes;
+import android.support.annotation.MenuRes;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+
+import java8.util.function.Supplier;
 import ru.adios.budgeter.api.Treasury;
-import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
-import ru.adios.budgeter.util.CoreUtils;
+import ru.adios.budgeter.util.CoreNotifier;
+import ru.adios.budgeter.util.HintedArrayAdapter;
 import ru.adios.budgeter.util.UiUtils;
 
 public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccount> implements AccountsElementCoreProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(AddFundsActivity.class);
-
     private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
     private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
-    private final AccountStandardFragment.InfoProvider accountsInfoProvider = AccountStandardFragment.getInfoProvider(R.id.add_funds_account_fragment, additionElement, addFundsErrorHighlighter);
+    private final AccountStandardFragment.InfoProvider accountsInfoProvider =
+            AccountStandardFragment.getInfoProviderBuilder(R.id.add_funds_account_fragment, this, new Supplier<Treasury.BalanceAccount>() {
+                @Override
+                public Treasury.BalanceAccount get() {
+                    return additionElement.getAccount();
+                }
+            })
+                    .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.ArbitraryLinker() {
+                        @Override
+                        public void link(HintedArrayAdapter.ObjectContainer data) {
+                            additionElement.setAccount((Treasury.BalanceAccount) data.getObject());
+                        }
+                    })
+                    .build();
 
     private final CollectedFragmentsInfoProvider<Treasury.BalanceAccount> infoProvider =
             new CollectedFragmentsInfoProvider.Builder<>(this)
-                    .addProvider(EnterAmountFragment.getInfoProvider(R.id.add_funds_amount_fragment, additionElement, addFundsErrorHighlighter))
+                    .addProvider(EnterAmountFragment.getInfoProvider(
+                            R.id.add_funds_amount_fragment,
+                            additionElement,
+                            addFundsErrorHighlighter,
+                            FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL,
+                            FundsAdditionElementCore.FIELD_AMOUNT_UNIT))
                     .addProvider(accountsInfoProvider)
                     .build();
 
-    private Money totalBalance;
-
     @Override
-    public AccountsElementCore getAccountsElementCore() {
+    public final AccountsElementCore getAccountsElementCore() {
         return accountsInfoProvider.accountsElement;
     }
 
     @Override
-    protected FragmentsInfoProvider<Treasury.BalanceAccount> getInfoProvider() {
+    public final Class<Treasury.BalanceAccount> provideClassForChecking() {
+        return Treasury.BalanceAccount.class;
+    }
+
+    @Override
+    protected final FragmentsInfoProvider<Treasury.BalanceAccount> getInfoProvider() {
         return infoProvider;
     }
 
     @Override
+    @LayoutRes
     protected final int getLayoutId() {
         return R.layout.activity_add_funds;
     }
 
     @Override
+    @MenuRes
+    protected final int getMenuId() {
+        return R.menu.menu_add_funds;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        final BalanceElementCore balanceElement = new BalanceElementCore(Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE);
-        balanceElement.setTotalUnit(Units.RUB);
-        totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
 
         final View infoView = findViewById(R.id.add_funds_info);
         setGlobalViewToHighlighter(accountsInfoProvider.accountsErrorHighlighter, infoView);
@@ -85,35 +111,23 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
     }
 
     @Override
-    public final boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_add_funds, menu);
-
-        UiUtils.fillStandardMenu(menu, totalBalance);
-
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     public void addFunds(View view) {
-        new AsyncTask<Void, Void, Submitter.Result<Treasury.BalanceAccount>>() {
+        final BigDecimal decimal = additionElement.getAmountDecimal();
+        final CurrencyUnit amountUnit = additionElement.getAmountUnit();
+
+        new AsyncTask<FundsAdditionElementCore, Void, Submitter.Result<Treasury.BalanceAccount>>() {
             @Override
-            protected Submitter.Result<Treasury.BalanceAccount> doInBackground(Void... params) {
-                return additionElement.submit();
+            protected Submitter.Result<Treasury.BalanceAccount> doInBackground(FundsAdditionElementCore[] params) {
+                return params[0].submit();
             }
 
             @Override
@@ -122,11 +136,12 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
                 if (result.isSuccessful()) {
                     final Spinner accountsSpinner = (Spinner) findViewById(R.id.accounts_spinner);
                     UiUtils.replaceAccountInSpinner(result.submitResult, accountsSpinner);
+                    //noinspection ConstantConditions
+                    BalancesUiThreadState.addMoney(Money.of(amountUnit, decimal), AddFundsActivity.this);
                 }
                 findViewById(R.id.activity_add_funds).invalidate();
             }
-        }.execute();
+        }.execute(additionElement);
     }
-
 
 }

@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -80,7 +79,7 @@ public class AccountStandardFragment extends Fragment {
                 return this;
             }
 
-            public Builder provideAccountFieldInfo(String coreFieldName, CoreErrorHighlighter highlighter, CoreNotifier.ArbitraryLinker linker) {
+            public Builder provideAccountFieldInfo(String coreFieldName, CoreErrorHighlighter highlighter, CoreNotifier.HintedLinker linker) {
                 accountFieldInfo = new CoreElementActivity.CoreElementFieldInfo(coreFieldName, linker, highlighter);
                 return this;
             }
@@ -170,7 +169,7 @@ public class AccountStandardFragment extends Fragment {
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
         private final Supplier<Treasury.BalanceAccount> accountSupplier;
 
-        public Feedbacker(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<Treasury.BalanceAccount> accountSupplier) {
+        private Feedbacker(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<Treasury.BalanceAccount> accountSupplier) {
             this.accountsElement = accountsElement;
             this.newAccountOptionalAmount = newAccountOptionalAmount;
             this.accountSupplier = accountSupplier;
@@ -181,7 +180,7 @@ public class AccountStandardFragment extends Fragment {
             activity.textViewFeedback(accountsElement.getName(), R.id.accounts_name_input);
             activity.currenciesSpinnerFeedback(accountsElement.getUnit(), R.id.accounts_currency_input);
             activity.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), R.id.accounts_amount_optional_input);
-            activity.accountSpinnerFeedback(accountSupplier.get(), R.id.accounts_spinner);
+            activity.hintedArraySpinnerFeedback(accountSupplier.get(), R.id.accounts_spinner);
         }
 
     }
@@ -280,19 +279,7 @@ public class AccountStandardFragment extends Fragment {
 
         // button roundness and listener to show hidden interface
         final Button addButton = (Button) inflated.findViewById(R.id.accounts_add_button);
-        addButton.post(new Runnable() {
-            @Override
-            public void run() {
-                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) addButton.getLayoutParams();
-                params.width = addButton.getHeight();
-                addButton.setLayoutParams(params);
-                addButton.invalidate();
-            }
-        });
-        //final int diameter = addButton.getLayoutParams().height;
-        //final RelativeLayout.LayoutParams abParams = new RelativeLayout.LayoutParams(diameter, diameter);
-        //abParams.addRule(RelativeLayout.RIGHT_OF, R.id.accounts_spinner);
-        //addButton.setLayoutParams(abParams);
+        UiUtils.makeButtonSquaredByHeight(addButton);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -325,7 +312,7 @@ public class AccountStandardFragment extends Fragment {
                 amountInputInfo.setVisibility(View.GONE);
                 submitButton.setVisibility(View.GONE);
                 addButton.setVisibility(View.VISIBLE);
-                UiUtils.addAccountToSpinner(account, accountsSpinner);
+                UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.FACTORY);
                 inflated.invalidate();
             }
         });

@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
@@ -22,7 +23,6 @@ import java.math.BigDecimal;
 import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
-import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.util.BalancedMenuHandler;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
@@ -138,26 +138,26 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         }
     }
 
-    protected final void accountSpinnerFeedback(Treasury.BalanceAccount account, @IdRes int spinnerId) {
-        if (account != null) {
+    protected final void hintedArraySpinnerFeedback(T object, @IdRes int spinnerId) {
+        if (object != null) {
             final Spinner spinnerView = (Spinner) findViewById(spinnerId);
             final SpinnerAdapter adapter = spinnerView.getAdapter();
 
             int pos = -1;
             if (adapter instanceof HintedArrayAdapter) {
-                if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(account)) {
+                if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(object)) {
                     @SuppressWarnings("unchecked")
-                    HintedArrayAdapter<Treasury.BalanceAccount> hintedArrayAdapter = (HintedArrayAdapter<Treasury.BalanceAccount>) adapter;
+                    final HintedArrayAdapter<T> hintedArrayAdapter = (HintedArrayAdapter) adapter;
                     for (int i = 0; i < adapter.getCount(); i++) {
-                        if (hintedArrayAdapter.getItem(i).getObject().equals(account)) {
+                        if (hintedArrayAdapter.getItem(i).getObject().equals(object)) {
                             pos = i;
                             break;
                         }
                     }
                 }
-            } else if (!spinnerView.getSelectedItem().equals(account)) {
+            } else if (!spinnerView.getSelectedItem().equals(object)) {
                 for (int i = 0; i < adapter.getCount(); i++) {
-                    if (adapter.getItem(i).equals(account)) {
+                    if (adapter.getItem(i).equals(object)) {
                         pos = i;
                         break;
                     }
@@ -167,6 +167,30 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
             if (pos >= 0) {
                 spinnerView.setSelection(pos, true);
                 spinnerView.invalidate();
+            }
+        }
+    }
+
+    protected final void radioGroupFeedback(Enum e, @IdRes int radioId) {
+        if (e != null) {
+            final RadioGroup radioGroup = (RadioGroup) findViewById(radioId);
+            final int ord = e.ordinal();
+
+            @IdRes
+            final int checked = radioGroup.getCheckedRadioButtonId();
+            for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                @IdRes
+                final int id = radioGroup.getChildAt(i).getId();
+
+                if (id == checked && i == ord) {
+                    return;
+                }
+
+                if (i == ord) {
+                    radioGroup.check(id);
+                    radioGroup.invalidate();
+                    return;
+                }
             }
         }
     }

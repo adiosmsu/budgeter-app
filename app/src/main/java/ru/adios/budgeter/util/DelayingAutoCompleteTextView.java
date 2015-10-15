@@ -1,0 +1,75 @@
+package ru.adios.budgeter.util;
+
+import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
+import android.util.AttributeSet;
+import android.view.View;
+import android.widget.AutoCompleteTextView;
+import android.widget.ProgressBar;
+
+/**
+ * AutoCompleteTextView with delay after user's last input.
+ * Designed for adapters that do remote or otherwise heavy requesting.
+ *
+ * Created by Michail Kulikov
+ * 10/15/15
+ */
+public class DelayingAutoCompleteTextView extends AutoCompleteTextView {
+
+    private static final int MESSAGE_TEXT_CHANGED_MILLIS = 100;
+    private static final int DEFAULT_AUTOCOMPLETE_DELAY_MILLIS = 750;
+
+
+    private int autoCompleteDelayMillis = DEFAULT_AUTOCOMPLETE_DELAY_MILLIS;
+    private ProgressBar loadingIndicator;
+
+    private final Handler mHandler = new InnerHandler(this);
+
+    public DelayingAutoCompleteTextView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public void setLoadingIndicator(ProgressBar loadingIndicator) {
+        this.loadingIndicator = loadingIndicator;
+    }
+
+    public void setAutoCompleteDelayMillis(int autoCompleteDelayMillis) {
+        this.autoCompleteDelayMillis = autoCompleteDelayMillis;
+    }
+
+    @Override
+    protected void performFiltering(CharSequence text, int keyCode) {
+        if (loadingIndicator != null) {
+            loadingIndicator.setVisibility(View.VISIBLE);
+        }
+
+        mHandler.removeMessages(MESSAGE_TEXT_CHANGED_MILLIS);
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MESSAGE_TEXT_CHANGED_MILLIS, text), autoCompleteDelayMillis);
+    }
+
+    @Override
+    public void onFilterComplete(int count) {
+        if (loadingIndicator != null) {
+            loadingIndicator.setVisibility(View.GONE);
+        }
+
+        super.onFilterComplete(count);
+    }
+
+    private static class InnerHandler extends Handler {
+
+        private final DelayingAutoCompleteTextView parent;
+
+        public InnerHandler(DelayingAutoCompleteTextView parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            parent.performFiltering((CharSequence) msg.obj, msg.arg1);
+        }
+
+    }
+
+}

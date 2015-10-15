@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/funds_mutation_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -9,13 +10,13 @@
     tools:context="ru.adios.budgeter.FundsMutationActivity">
 
     <RadioGroup
-        android:id="@+id/direction_radio"
+        android:id="@+id/funds_mutation_direction_radio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_gravity="fill_horizontal">
+        android:orientation="horizontal">
 
         <RadioButton
             android:id="@+id/direction_benefit"
@@ -28,21 +29,62 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
     </RadioGroup>
-    <!--TODO: normal buttons-->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text=""
+        android:id="@+id/funds_mutation_direction_radio_info"
+        android:layout_below="@id/funds_mutation_direction_radio"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:visibility="invisible" />
 
-    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+    <TextView
+        android:id="@+id/funds_mutation_our_amount_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/specify_funds_fragment"
-        android:layout_below="@id/direction_radio"
+        android:layout_below="@id/funds_mutation_direction_radio_info"
+        android:text="@string/funds_mutation_our_amount_text"
+        />
+    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+        android:id="@+id/funds_mutation_our_amount_fragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_our_amount_text"
         tools:layout="@layout/fragment_enter_amount" />
+
+    <TextView
+        android:id="@+id/funds_mutation_party_amount_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_our_amount_fragment"
+        android:text="@string/funds_mutation_party_amount_text"/>
+    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+        android:id="@+id/funds_mutation_party_amount_fragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_party_amount_text"
+        tools:layout="@layout/fragment_enter_amount" />
+
+    <TextView
+        android:id="@+id/funds_mutation_subject_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_party_amount_fragment"
+        android:text="@string/funds_mutation_subject_text"/>
+    <fragment android:name="ru.adios.budgeter.FundsSubjectFragment"
+        android:id="@+id/funds_mutation_subject_fragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_subject_text"
+        tools:layout="@layout/fragment_funds_subject"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text=""
         android:id="@+id/funds_mutation_info"
-        android:layout_below="@id/specify_funds_fragment"
+        android:layout_below="@id/funds_mutation_subject_fragment"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:visibility="invisible" />

@@ -10,36 +10,31 @@ import ru.adios.budgeter.api.Treasury;
  * Created by Michail Kulikov
  * 10/13/15
  */
-public final class BalanceAccountContainer implements HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> {
+public final class BalanceAccountContainer extends CachingHintedContainer<Treasury.BalanceAccount> {
 
-    private final Treasury.BalanceAccount account;
-
-    private String cache;
+    public static final Factory FACTORY = new Factory();
 
     public BalanceAccountContainer(Treasury.BalanceAccount account) {
-        this.account = account;
-    }
-
-    @Override
-    public Treasury.BalanceAccount getObject() {
-        return account;
-    }
-
-    @Override
-    public String toString() {
-        if (cache == null) {
-            cache = calculateToString();
-        }
-        return cache;
+        super(account);
     }
 
     @Nonnull
-    private String calculateToString() {
+    protected String calculateToString() {
+        final Treasury.BalanceAccount account = getObject();
         final Money balance = account.getBalance();
         return account.name
                 + " ("
                 + (balance != null ? Formatting.toStringMoneyUsingSign(balance) : account.getUnit().toString())
                 + ')';
+    }
+
+    public static final class Factory implements HintedArrayAdapter.ContainerFactory<Treasury.BalanceAccount> {
+
+        @Override
+        public HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> create(Treasury.BalanceAccount account) {
+            return new BalanceAccountContainer(account);
+        }
+
     }
 
 }

@@ -73,6 +73,12 @@ public final class HintedArrayAdapter<T> extends ArrayAdapter<HintedArrayAdapter
         spinner.setSelection(adapter.getCount());
     }
 
+    public interface ContainerFactory<Obj> {
+
+        ObjectContainer<Obj> create(Obj obj);
+
+    }
+
     public interface ObjectContainer<Obj> {
 
         Obj getObject();

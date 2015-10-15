@@ -3,7 +3,9 @@ package ru.adios.budgeter.util;
 import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -80,14 +82,14 @@ public final class UiUtils {
         return fundsInfo;
     }
 
-    public static void addAccountToSpinner(Treasury.BalanceAccount account, Spinner accountsSpinner) {
+    public static <T> void addToHintedSpinner(T obj, Spinner accountsSpinner, HintedArrayAdapter.ContainerFactory<T> factory) {
         @SuppressWarnings("unchecked")
-        final HintedArrayAdapter<Treasury.BalanceAccount> adapter = (HintedArrayAdapter<Treasury.BalanceAccount>) accountsSpinner.getAdapter();
+        final HintedArrayAdapter<T> adapter = (HintedArrayAdapter<T>) accountsSpinner.getAdapter();
 
         boolean hintSelected = adapter.getCount() == accountsSpinner.getSelectedItemPosition();
         Boolean backup = null;
 
-        adapter.add(new BalanceAccountContainer(account));
+        adapter.add(factory.create(obj));
 
         // repair situation when what selected is a hint and we add something to the end of a real items list hence position will not change and no event will fire
         if (accountsSpinner instanceof FlexibleNotifyingSpinner && hintSelected) {
@@ -118,6 +120,18 @@ public final class UiUtils {
                 return;
             }
         }
+    }
+
+    public static void makeButtonSquaredByHeight(final Button button) {
+        button.post(new Runnable() {
+            @Override
+            public void run() {
+                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) button.getLayoutParams();
+                params.width = button.getHeight();
+                button.setLayoutParams(params);
+                button.invalidate();
+            }
+        });
     }
 
     private UiUtils() {}

@@ -21,4 +21,15 @@
     <string name="account_starting_sum_hint">Starting sum</string>
     <string name="accounts_submit_button">Submit</string>
     <string name="optional_with_colons">(Optional)</string>
+    <string name="funds_mutation_our_amount_text">Our account\'s amount:</string>
+    <string name="funds_mutation_party_amount_text">Other party account\'s amount:</string>
+    <string name="subjects_add_button">+</string>
+    <string name="subject_name_hint">Subject name</string>
+    <string name="subjects_spinner_prompt">Available subjects</string>
+    <string name="subject_parent_hint">Subject parent name (if any)</string>
+    <string name="type_product">Product</string>
+    <string name="type_service">Service</string>
+    <string name="type_occasion">Occasion</string>
+    <string name="funds_mutation_subject_text">Funds operation subject:</string>
+
 </resources>

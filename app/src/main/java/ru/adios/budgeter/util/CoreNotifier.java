@@ -4,6 +4,7 @@ import android.support.annotation.IdRes;
 import android.text.Editable;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -41,9 +42,21 @@ public final class CoreNotifier {
 
     }
 
-    public interface ArbitraryLinker extends Linker {
+    public interface HintedLinker extends Linker {
 
         void link(HintedArrayAdapter.ObjectContainer data);
+
+    }
+
+    public interface NumberLinker extends Linker {
+
+        void link(Number data);
+
+    }
+
+    public interface ArbitraryLinker extends Linker {
+
+        void link(Object data);
 
     }
 
@@ -74,6 +87,9 @@ public final class CoreNotifier {
             sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (activity.isFeedbackCommencing())
+                        return;
+
                     if (sp.getAdapter().getCount() > position) {
                         linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
                     }
@@ -81,6 +97,22 @@ public final class CoreNotifier {
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
+        } else if (view instanceof RadioGroup) {
+            final RadioGroup radioGroup = (RadioGroup) view;
+            radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+                    if (activity.isFeedbackCommencing())
+                        return;
+
+                    for (int i = 0; i < group.getChildCount(); i++) {
+                        if (group.getChildAt(i).getId() == checkedId) {
+                            linkViewValueWithCore(i, linker, activity);
+                            return;
+                        }
+                    }
                 }
             });
         }
@@ -113,9 +145,13 @@ public final class CoreNotifier {
         } else if (linker instanceof TextLinker) {
             ((TextLinker) linker).link(getStringFromObject(o));
             activity.coreFeedback();
-        } else if (linker instanceof ArbitraryLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
-            ((ArbitraryLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
+        } else if (linker instanceof HintedLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
+            ((HintedLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
             activity.coreFeedback();
+        } else if (linker instanceof NumberLinker && o instanceof Number) {
+            ((NumberLinker) linker).link((Number) o);
+        } else if (linker instanceof ArbitraryLinker) {
+            ((ArbitraryLinker) linker).link(o);
         }
     }
 

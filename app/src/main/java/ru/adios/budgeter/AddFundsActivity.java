@@ -34,7 +34,7 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
                     return additionElement.getAccount();
                 }
             })
-                    .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.ArbitraryLinker() {
+                    .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.HintedLinker() {
                         @Override
                         public void link(HintedArrayAdapter.ObjectContainer data) {
                             additionElement.setAccount((Treasury.BalanceAccount) data.getObject());

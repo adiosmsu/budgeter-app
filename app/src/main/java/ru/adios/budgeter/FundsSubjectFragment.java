@@ -8,12 +8,16 @@ import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -28,6 +32,8 @@ import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.DelayingAutoCompleteTextView;
 import ru.adios.budgeter.util.FundsMutationSubjectContainer;
 import ru.adios.budgeter.util.HintedArrayAdapter;
+import ru.adios.budgeter.util.ModedRequestingAutoCompleteAdapter;
+import ru.adios.budgeter.util.RequestingAutoCompleteAdapter;
 import ru.adios.budgeter.util.UiUtils;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -213,6 +219,31 @@ public class FundsSubjectFragment extends Fragment {
         activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_NAME, nameInput, nameInputInfo);
         final FrameLayout parentNameLayout = (FrameLayout) inflated.findViewById(R.id.subjects_parent_name_input_layout);
         final DelayingAutoCompleteTextView parentNameInput = (DelayingAutoCompleteTextView) inflated.findViewById(R.id.subjects_parent_name_input);
+        parentNameInput.setThreshold(4);
+        parentNameInput.setAdapter(new ModedRequestingAutoCompleteAdapter<>(
+                activity,
+                new ModedRequestingAutoCompleteAdapter.Requester<FundsMutationSubject>() {
+                    @Override
+                    public List<FundsMutationSubject> doActualRequest(String constraint) {
+                        return Schema.FUNDS_MUTATION_SUBJECTS.nameLikeSearch(constraint);
+                    }
+                },
+                new RequestingAutoCompleteAdapter.StringPresenter<FundsMutationSubject>() {
+                    @Override
+                    public String getStringPresentation(FundsMutationSubject item) {
+                        return item.name;
+                    }
+                },
+                ModedRequestingAutoCompleteAdapter.SQL_ILIKE_DECORATOR
+        ));
+        parentNameInput.setLoadingIndicator((ProgressBar) inflated.findViewById(R.id.subjects_parent_name_input_progress));
+        parentNameInput.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                final FundsMutationSubject subject = (FundsMutationSubject) adapterView.getItemAtPosition(position);
+                parentNameInput.setText(subject.name);
+            }
+        });
         final TextView parentNameInputInfo = (TextView) inflated.findViewById(R.id.subjects_parent_name_input_info);
         activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_PARENT_NAME, parentNameInput, parentNameInputInfo);
         final RadioGroup typeRadio = (RadioGroup) inflated.findViewById(R.id.subjects_type_radio);

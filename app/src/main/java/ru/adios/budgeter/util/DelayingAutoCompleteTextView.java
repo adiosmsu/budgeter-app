@@ -17,7 +17,7 @@ import android.widget.ProgressBar;
  */
 public class DelayingAutoCompleteTextView extends AutoCompleteTextView {
 
-    private static final int MESSAGE_TEXT_CHANGED_MILLIS = 100;
+    private static final int MESSAGE_TEXT_CHANGED = 100;
     private static final int DEFAULT_AUTOCOMPLETE_DELAY_MILLIS = 750;
 
 
@@ -42,16 +42,22 @@ public class DelayingAutoCompleteTextView extends AutoCompleteTextView {
     protected void performFiltering(CharSequence text, int keyCode) {
         if (loadingIndicator != null) {
             loadingIndicator.setVisibility(View.VISIBLE);
+            loadingIndicator.invalidate();
         }
 
-        mHandler.removeMessages(MESSAGE_TEXT_CHANGED_MILLIS);
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(MESSAGE_TEXT_CHANGED_MILLIS, text), autoCompleteDelayMillis);
+        mHandler.removeMessages(MESSAGE_TEXT_CHANGED);
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MESSAGE_TEXT_CHANGED, text), autoCompleteDelayMillis);
+    }
+
+    private void performSuperFiltering(CharSequence text, int keyCode) {
+        super.performFiltering(text, keyCode);
     }
 
     @Override
     public void onFilterComplete(int count) {
         if (loadingIndicator != null) {
             loadingIndicator.setVisibility(View.GONE);
+            loadingIndicator.invalidate();
         }
 
         super.onFilterComplete(count);
@@ -67,7 +73,7 @@ public class DelayingAutoCompleteTextView extends AutoCompleteTextView {
 
         @Override
         public void handleMessage(Message msg) {
-            parent.performFiltering((CharSequence) msg.obj, msg.arg1);
+            parent.performSuperFiltering((CharSequence) msg.obj, msg.arg1);
         }
 
     }

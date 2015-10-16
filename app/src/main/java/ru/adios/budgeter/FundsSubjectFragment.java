@@ -50,127 +50,35 @@ public class FundsSubjectFragment extends Fragment {
     public static final String FIELD_NEW_SUBJECT_TYPE = "new_subject_type";
     public static final String BUTTON_NEW_SUBJECT_SUBMIT = "new_subject_submit";
 
-    public static InfoProvider.Builder getInfoProviderBuilder(@IdRes int fragmentId, Supplier<FundsMutationSubject> accountSupplier) {
-        return new InfoProvider.Builder(fragmentId, accountSupplier);
-    }
+    public static CollectedFragmentsInfoProvider.InfoProvider<FundsMutationSubject, SubjectAdditionElementCore> getInfoProvider(@IdRes int fragmentId,
+                                                                                                                                @Nullable Consumer<FundsMutationSubject> subjectSubmitSuccessCallback,
+                                                                                                                                CoreElementActivity.CoreElementFieldInfo subjectFieldInfo,
+                                                                                                                                Supplier<FundsMutationSubject> feedbackAccountSupplier) {
+        final SubjectAdditionElementCore subjectsElement = new SubjectAdditionElementCore(Schema.FUNDS_MUTATION_SUBJECTS);
+        final CoreErrorHighlighter subjectsErrorHighlighter = new CoreErrorHighlighter();
 
-    public static final class InfoProvider implements CollectedFragmentsInfoProvider.InfoProvider<FundsMutationSubject> {
-
-        public static final class Builder {
-
-            private final SubjectAdditionElementCore subjectsElement = new SubjectAdditionElementCore(Schema.FUNDS_MUTATION_SUBJECTS);
-            private final CoreErrorHighlighter subjectsErrorHighlighter = new CoreErrorHighlighter();
-
-            private final CollectibleFragmentInfoProvider.Builder<FundsMutationSubject> mainBuilder;
-
-            @Nullable
-            private Consumer<FundsMutationSubject> callback;
-            private CoreElementActivity.CoreElementFieldInfo subjectFieldInfo;
-
-            public Builder(@IdRes int fragmentId, Supplier<FundsMutationSubject> accountSupplier) {
-                mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new Feedbacker(subjectsElement, accountSupplier));
-            }
-
-            public Builder setNewAccountSubmitButtonCallback(@Nullable Consumer<FundsMutationSubject> callback) {
-                this.callback = callback;
-                return this;
-            }
-
-            public Builder provideSubjectFieldInfo(String coreFieldName, CoreErrorHighlighter highlighter, CoreNotifier.HintedLinker linker) {
-                subjectFieldInfo = new CoreElementActivity.CoreElementFieldInfo(coreFieldName, linker, highlighter);
-                return this;
-            }
-
-            public InfoProvider build() {
-                checkState(subjectFieldInfo != null, "Subject field info not provided");
-
-                return new InfoProvider(
-                        mainBuilder
-                                .addButtonInfo(BUTTON_NEW_SUBJECT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(subjectsElement, new Consumer<FundsMutationSubject>() {
-                                    @Override
-                                    public void accept(FundsMutationSubject subject) {
-                                        if (callback != null) {
-                                            callback.accept(subject);
-                                        }
-                                    }
-                                }, subjectsErrorHighlighter))
-                                .addFieldInfo(FIELD_SUBJECTS, subjectFieldInfo)
-                                .addFieldInfo(FIELD_NEW_SUBJECT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
-                                    @Override
-                                    public void link(String data) {
-                                        subjectsElement.setName(data);
-                                    }
-                                }, subjectsErrorHighlighter))
-                                .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
-                                    @Override
-                                    public void link(String data) {
-                                        subjectsElement.setParentName(data);
-                                    }
-                                }, subjectsErrorHighlighter))
-                                .addFieldInfo(FIELD_NEW_SUBJECT_TYPE, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_TYPE, new CoreNotifier.NumberLinker() {
-                                    @Override
-                                    public void link(Number data) {
-                                        subjectsElement.setType(data.intValue());
-                                    }
-                                }, subjectsErrorHighlighter))
-                                .build(),
-                        subjectsElement,
-                        subjectsErrorHighlighter
-                );
-            }
-        }
-
-        private final CollectibleFragmentInfoProvider<FundsMutationSubject> delegate;
-
-        public final SubjectAdditionElementCore subjectsElement;
-        public final CoreErrorHighlighter subjectsErrorHighlighter;
-
-        private InfoProvider(CollectibleFragmentInfoProvider<FundsMutationSubject> delegate, SubjectAdditionElementCore subjectsElement, CoreErrorHighlighter subjectsErrorHighlighter) {
-            this.delegate = delegate;
-            this.subjectsElement = subjectsElement;
-            this.subjectsErrorHighlighter = subjectsErrorHighlighter;
-        }
-
-        @Override
-        public int getFragmentId() {
-            return delegate.getFragmentId();
-        }
-
-        @Override
-        public CoreElementActivity.CoreElementSubmitInfo<FundsMutationSubject> getSubmitInfo(String buttonName) {
-            return delegate.getSubmitInfo(buttonName);
-        }
-
-        @Override
-        public CoreElementActivity.CoreElementFieldInfo getCoreElementFieldInfo(String fragmentFieldName) {
-            return delegate.getCoreElementFieldInfo(fragmentFieldName);
-        }
-
-        @Override
-        public void performFeedback(CoreElementActivity<FundsMutationSubject> activity) {
-            delegate.performFeedback(activity);
-        }
-
-    }
-
-    public static final class Feedbacker implements CollectibleFragmentInfoProvider.Feedbacker<FundsMutationSubject> {
-
-        private final SubjectAdditionElementCore subjectsElement;
-        private final Supplier<FundsMutationSubject> subjectSupplier;
-
-        private Feedbacker(SubjectAdditionElementCore subjectsElement, Supplier<FundsMutationSubject> subjectSupplier) {
-            this.subjectsElement = subjectsElement;
-            this.subjectSupplier = subjectSupplier;
-        }
-
-        @Override
-        public void performFeedback(CoreElementActivity<FundsMutationSubject> activity) {
-            activity.textViewFeedback(subjectsElement.getName(), R.id.subjects_name_input);
-            activity.textViewFeedback(subjectsElement.getParentName(), R.id.subjects_parent_name_input);
-            activity.radioGroupFeedback(subjectsElement.getType(), R.id.subjects_type_radio);
-            activity.hintedArraySpinnerFeedback(subjectSupplier.get(), R.id.subjects_spinner);
-        }
-
+        return new CollectibleFragmentInfoProvider.Builder<FundsMutationSubject, SubjectAdditionElementCore>(fragmentId, new Feedbacker(subjectsElement, feedbackAccountSupplier))
+                .addButtonInfo(BUTTON_NEW_SUBJECT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(subjectsElement, subjectSubmitSuccessCallback, subjectsErrorHighlighter))
+                .addFieldInfo(FIELD_SUBJECTS, subjectFieldInfo)
+                .addFieldInfo(FIELD_NEW_SUBJECT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
+                    @Override
+                    public void link(String data) {
+                        subjectsElement.setName(data);
+                    }
+                }, subjectsErrorHighlighter))
+                .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
+                    @Override
+                    public void link(String data) {
+                        subjectsElement.setParentName(data);
+                    }
+                }, subjectsErrorHighlighter))
+                .addFieldInfo(FIELD_NEW_SUBJECT_TYPE, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_TYPE, new CoreNotifier.NumberLinker() {
+                    @Override
+                    public void link(Number data) {
+                        subjectsElement.setType(data.intValue());
+                    }
+                }, subjectsErrorHighlighter))
+                .build();
     }
 
 
@@ -180,12 +88,11 @@ public class FundsSubjectFragment extends Fragment {
 
     /**
      * Overridden to fail early.
-     * @param activity activity of CoreElementActivity<FundsMutationSubject> type.
+     * @param activity activity of CoreElementActivity type.
      */
     @Override
     public void onAttach(Activity activity) {
         checkState(activity instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", activity);
-        checkState(((CoreElementActivity) activity).provideClassForChecking() == FundsMutationSubject.class, "CoreElementActivity must be of the FundsMutationSubject type");
         super.onAttach(activity);
     }
 
@@ -195,8 +102,7 @@ public class FundsSubjectFragment extends Fragment {
         // Inflate the layout for this fragment
         final View inflated = inflater.inflate(R.layout.fragment_funds_subject, container, false);
 
-        @SuppressWarnings("unchecked")
-        final CoreElementActivity<FundsMutationSubject> activity = (CoreElementActivity<FundsMutationSubject>) getActivity();
+        final CoreElementActivity activity = (CoreElementActivity) getActivity();
         final int id = getId();
 
         // main spinner init
@@ -291,6 +197,26 @@ public class FundsSubjectFragment extends Fragment {
         });
 
         return inflated;
+    }
+
+    private static final class Feedbacker implements CollectibleFragmentInfoProvider.Feedbacker {
+
+        private final SubjectAdditionElementCore subjectsElement;
+        private final Supplier<FundsMutationSubject> subjectSupplier;
+
+        private Feedbacker(SubjectAdditionElementCore subjectsElement, Supplier<FundsMutationSubject> subjectSupplier) {
+            this.subjectsElement = subjectsElement;
+            this.subjectSupplier = subjectSupplier;
+        }
+
+        @Override
+        public void performFeedback(CoreElementActivity activity) {
+            activity.textViewFeedback(subjectsElement.getName(), R.id.subjects_name_input);
+            activity.textViewFeedback(subjectsElement.getParentName(), R.id.subjects_parent_name_input);
+            activity.radioGroupFeedback(subjectsElement.getType(), R.id.subjects_type_radio);
+            activity.hintedArraySpinnerFeedback(subjectSupplier.get(), R.id.subjects_spinner);
+        }
+
     }
 
 }

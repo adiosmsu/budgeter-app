@@ -1,137 +1,214 @@
-<android.support.percent.PercentRelativeLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/funds_mutation_activity"
+    android:id="@+id/activity_funds_mutation"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="ru.adios.budgeter.FundsMutationActivity">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/funds_mutation_subject_text"
+    <android.support.percent.PercentRelativeLayout
+        android:id="@+id/funds_mutation_activity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="@string/funds_mutation_subject_text"/>
-    <fragment android:name="ru.adios.budgeter.FundsSubjectFragment"
-        android:id="@+id/funds_mutation_subject_fragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_subject_text"
-        tools:layout="@layout/fragment_funds_subject"/>
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context="ru.adios.budgeter.FundsMutationActivity">
 
-    <RadioGroup
-        android:id="@+id/funds_mutation_direction_radio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/funds_mutation_subject_fragment"
-        android:orientation="horizontal">
-
-        <RadioButton
-            android:id="@+id/direction_benefit"
-            android:text="@string/direction_benefit"
+        <TextView
+            android:id="@+id/funds_mutation_subject_text"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
-        <RadioButton
-            android:id="@+id/direction_loss"
-            android:text="@string/direction_loss"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:text="@string/funds_mutation_subject_text"/>
+        <fragment android:name="ru.adios.budgeter.FundsSubjectFragment"
+            android:id="@+id/funds_mutation_subject_fragment"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
-    </RadioGroup>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:text=""
-        android:id="@+id/funds_mutation_direction_radio_info"
-        android:layout_below="@id/funds_mutation_direction_radio"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:visibility="invisible" />
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_subject_text"
+            tools:layout="@layout/fragment_funds_subject"/>
 
-    <TextView
-        android:id="@+id/funds_mutation_subject_cost_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_direction_radio_info"
-        android:text="@string/funds_mutation_subject_cost_text"
-        />
-    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
-        android:id="@+id/funds_mutation_subject_cost_fragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_subject_cost_text"
-        tools:layout="@layout/fragment_enter_amount" />
+        <EditText
+            android:id="@+id/funds_mutation_quantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_subject_fragment"
+            android:hint="@string/funds_mutation_quantity_text"
+            android:inputType="number"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text=""
+            android:id="@+id/funds_mutation_quantity_info"
+            android:layout_below="@id/funds_mutation_quantity"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="invisible" />
 
-    <TextView
-        android:id="@+id/funds_mutation_paid_amount_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_subject_cost_fragment"
-        android:text="@string/funds_mutation_payed_amount_text"/>
-    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
-        android:id="@+id/funds_mutation_paid_amount_fragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_paid_amount_text"
-        tools:layout="@layout/fragment_enter_amount" />
+        <RadioGroup
+            android:id="@+id/funds_mutation_direction_radio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/funds_mutation_quantity_info"
+            android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/funds_mutation_natural_rate_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_widthPercent="50%"
-        android:layout_below="@id/funds_mutation_paid_amount_fragment"
-        android:text="@string/optional_with_colons"/>
-    <TextView
-        android:id="@+id/funds_mutation_custom_rate_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/funds_mutation_natural_rate_text"
-        android:layout_toEndOf="@+id/funds_mutation_natural_rate_text"
-        app:layout_widthPercent="50%"
-        android:layout_below="@id/funds_mutation_paid_amount_fragment"
-        android:text="@string/optional_with_colons"/>
-    <EditText
-        android:id="@+id/funds_mutation_natural_rate"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_widthPercent="50%"
-        android:layout_below="@id/funds_mutation_natural_rate_text"
-        android:hint="@string/funds_mutation_natural_rate_text"
-        android:inputType="numberDecimal"/>
-    <EditText
-        android:id="@+id/funds_mutation_custom_rate"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_widthPercent="50%"
-        android:layout_below="@id/funds_mutation_custom_rate_text"
-        android:layout_toRightOf="@+id/funds_mutation_natural_rate"
-        android:layout_toEndOf="@+id/funds_mutation_natural_rate"
-        android:hint="@string/funds_mutation_custom_rate_text"
-        android:inputType="numberDecimal"/>
+            <RadioButton
+                android:id="@+id/direction_benefit"
+                android:text="@string/direction_benefit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
+            <RadioButton
+                android:id="@+id/direction_loss"
+                android:text="@string/direction_loss"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
+        </RadioGroup>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text=""
+            android:id="@+id/funds_mutation_direction_radio_info"
+            android:layout_below="@id/funds_mutation_direction_radio"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="invisible" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:text=""
-        android:id="@+id/funds_mutation_info"
-        android:layout_below="@id/funds_mutation_custom_rate"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:visibility="invisible" />
-    <Button
-        android:layout_width="96dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_info"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:text="@string/funds_mutation_finish_button"
-        android:onClick="mutate" />
+        <TextView
+            android:id="@+id/funds_mutation_subject_cost_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_direction_radio_info"
+            android:text="@string/funds_mutation_subject_cost_text"/>
+        <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+            android:id="@+id/funds_mutation_subject_cost_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_subject_cost_text"
+            tools:layout="@layout/fragment_enter_amount" />
 
-</android.support.percent.PercentRelativeLayout>
+        <TextView
+            android:id="@+id/funds_mutation_paid_amount_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_subject_cost_fragment"
+            android:text="@string/funds_mutation_payed_amount_text"/>
+        <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+            android:id="@+id/funds_mutation_paid_amount_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_paid_amount_text"
+            tools:layout="@layout/fragment_enter_amount" />
+
+        <TextView
+            android:id="@+id/funds_mutation_natural_rate_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_widthPercent="50%"
+            android:layout_below="@id/funds_mutation_paid_amount_fragment"
+            android:text="@string/optional_with_colons"/>
+        <TextView
+            android:id="@+id/funds_mutation_custom_rate_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/funds_mutation_natural_rate_text"
+            android:layout_toEndOf="@+id/funds_mutation_natural_rate_text"
+            app:layout_widthPercent="50%"
+            android:layout_below="@id/funds_mutation_paid_amount_fragment"
+            android:text="@string/optional_with_colons"/>
+        <EditText
+            android:id="@+id/funds_mutation_natural_rate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_widthPercent="50%"
+            android:layout_below="@id/funds_mutation_natural_rate_text"
+            android:hint="@string/funds_mutation_natural_rate_text"
+            android:inputType="numberDecimal"/>
+        <EditText
+            android:id="@+id/funds_mutation_custom_rate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_widthPercent="50%"
+            android:layout_below="@id/funds_mutation_custom_rate_text"
+            android:layout_toRightOf="@+id/funds_mutation_natural_rate"
+            android:layout_toEndOf="@+id/funds_mutation_natural_rate"
+            android:hint="@string/funds_mutation_custom_rate_text"
+            android:inputType="numberDecimal"/>
+
+        <TextView
+            android:id="@+id/funds_mutation_relevant_balance_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_custom_rate"
+            android:text="@string/funds_mutation_relevant_balance_text"/>
+        <fragment
+            android:id="@+id/funds_mutation_relevant_balance_fragment"
+            android:name="ru.adios.budgeter.AccountStandardFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_relevant_balance_text"
+            tools:layout="@layout/fragment_account_standard"/>
+
+        <TextView
+            android:id="@+id/funds_mutation_agent_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_relevant_balance_fragment"
+            android:text="@string/funds_mutation_agent_text"/>
+        <fragment
+            android:id="@+id/funds_mutation_agent_fragment"
+            android:name="ru.adios.budgeter.FundsAgentFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_agent_text"
+            tools:layout="@layout/fragment_funds_agent"/>
+
+        <TextView
+            android:id="@+id/funds_mutation_datetime_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_agent_fragment"
+            android:text="@string/funds_mutation_datetime_text"/>
+        <ru.adios.budgeter.util.DateEditView
+            android:id="@+id/funds_mutation_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_widthPercent="70%"
+            android:layout_below="@id/funds_mutation_datetime_text"
+            tools:ignore="TextFields"
+            style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
+        <ru.adios.budgeter.util.TimeEditView
+            android:id="@+id/funds_mutation_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_widthPercent="30%"
+            android:layout_below="@id/funds_mutation_datetime_text"
+            android:layout_toRightOf="@id/funds_mutation_date"
+            android:layout_toEndOf="@id/funds_mutation_date"
+            tools:ignore="TextFields"
+            style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text=""
+            android:id="@+id/funds_mutation_info"
+            android:layout_below="@id/funds_mutation_date"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="invisible" />
+        <Button
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/funds_mutation_info"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:text="@string/funds_mutation_finish_button"
+            android:onClick="mutate" />
+
+    </android.support.percent.PercentRelativeLayout>
+
+</ScrollView>

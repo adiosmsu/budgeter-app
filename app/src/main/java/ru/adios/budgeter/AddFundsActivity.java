@@ -23,11 +23,11 @@ import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.HintedArrayAdapter;
 import ru.adios.budgeter.util.UiUtils;
 
-public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccount> implements AccountsElementCoreProvider {
+public class AddFundsActivity extends CoreElementActivity {
 
     private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
     private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
-    private final AccountStandardFragment.InfoProvider accountsInfoProvider =
+    private final CollectibleFragmentInfoProvider<Treasury.BalanceAccount, AccountStandardFragment.HybridAccountCore> accountsInfoProvider =
             AccountStandardFragment.getInfoProviderBuilder(R.id.add_funds_account_fragment, this, new Supplier<Treasury.BalanceAccount>() {
                 @Override
                 public Treasury.BalanceAccount get() {
@@ -42,8 +42,8 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
                     })
                     .build();
 
-    private final CollectedFragmentsInfoProvider<Treasury.BalanceAccount> infoProvider =
-            new CollectedFragmentsInfoProvider.Builder<>(this)
+    private final CollectedFragmentsInfoProvider infoProvider =
+            new CollectedFragmentsInfoProvider.Builder(this)
                     .addProvider(EnterAmountFragment.getInfoProvider(
                             R.id.add_funds_amount_fragment,
                             additionElement,
@@ -54,17 +54,7 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
                     .build();
 
     @Override
-    public final AccountsElementCore getAccountsElementCore() {
-        return accountsInfoProvider.accountsElement;
-    }
-
-    @Override
-    public final Class<Treasury.BalanceAccount> provideClassForChecking() {
-        return Treasury.BalanceAccount.class;
-    }
-
-    @Override
-    protected final FragmentsInfoProvider<Treasury.BalanceAccount> getInfoProvider() {
+    protected final FragmentsInfoProvider getInfoProvider() {
         return infoProvider;
     }
 
@@ -85,7 +75,7 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
         super.onCreate(savedInstanceState);
 
         final View infoView = findViewById(R.id.add_funds_info);
-        setGlobalViewToHighlighter(accountsInfoProvider.accountsErrorHighlighter, infoView);
+        setGlobalViewToHighlighter(accountsInfoProvider.getSubmitInfo(AccountStandardFragment.BUTTON_NEW_ACCOUNT_SUBMIT).errorHighlighter, infoView);
         setGlobalViewToHighlighter(addFundsErrorHighlighter, infoView);
     }
 
@@ -109,6 +99,9 @@ public class AddFundsActivity extends CoreElementActivity<Treasury.BalanceAccoun
             }
         });
     }
+
+    @Override
+    protected final void activityInnerFeedback() {}
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -17,6 +17,8 @@ import android.widget.TextView;
 import com.google.common.collect.ImmutableCollection;
 
 import org.joda.money.CurrencyUnit;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.OffsetTime;
 
 import java.math.BigDecimal;
 
@@ -26,7 +28,9 @@ import java8.util.function.Consumer;
 import ru.adios.budgeter.util.BalancedMenuHandler;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
+import ru.adios.budgeter.util.DateEditView;
 import ru.adios.budgeter.util.HintedArrayAdapter;
+import ru.adios.budgeter.util.TimeEditView;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,7 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by Michail Kulikov
  * 10/7/15
  */
-public abstract class CoreElementActivity<T> extends AppCompatActivity {
+public abstract class CoreElementActivity extends AppCompatActivity {
 
     private BalancedMenuHandler menuHandler;
     private boolean feedbackCommencing = false;
@@ -85,9 +89,7 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         return true;
     }
 
-    public abstract Class<T> provideClassForChecking();
-
-    protected abstract FragmentsInfoProvider<T> getInfoProvider();
+    protected abstract FragmentsInfoProvider getInfoProvider();
 
     @LayoutRes
     protected abstract int getLayoutId();
@@ -102,10 +104,13 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         feedbackCommencing = true;
         try {
             getInfoProvider().performFeedback();
+            activityInnerFeedback();
         } finally {
             feedbackCommencing = false;
         }
     }
+
+    protected abstract void activityInnerFeedback();
 
     protected final void textViewFeedback(String text, @IdRes int textViewId) {
         if (text != null) {
@@ -138,7 +143,7 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         }
     }
 
-    protected final void hintedArraySpinnerFeedback(T object, @IdRes int spinnerId) {
+    protected final <T> void hintedArraySpinnerFeedback(T object, @IdRes int spinnerId) {
         if (object != null) {
             final Spinner spinnerView = (Spinner) findViewById(spinnerId);
             final SpinnerAdapter adapter = spinnerView.getAdapter();
@@ -195,6 +200,25 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         }
     }
 
+    protected final void dateTimeFeedback(OffsetDateTime dateTime, @IdRes int dateId, @IdRes int timeId) {
+        if (dateTime != null) {
+            final DateEditView dateEditView = (DateEditView) findViewById(dateId);
+            final TimeEditView timeEditView = (TimeEditView) findViewById(timeId);
+
+            final OffsetDateTime date = DateTimeUtils.cutTime(dateTime);
+            final OffsetTime time = dateTime.toOffsetTime();
+
+            if (!date.equals(dateEditView.getDate())) {
+                dateEditView.setDate(date);
+                dateEditView.invalidate();
+            }
+            if (!time.equals(timeEditView.getTime())) {
+                timeEditView.setTime(time);
+                timeEditView.invalidate();
+            }
+        }
+    }
+
     public final void addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
         checkNotNull(fieldView, "fieldView is null");
         checkNotNull(fieldInfoView, "fieldInfoView is null");
@@ -209,19 +233,20 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         }
     }
 
-    public final void addSubmitFragmentInfo(@IdRes final int fragmentId, Button submitButton, final String buttonName, @Nullable final Consumer<T> successRunnable) {
+    public final <T> void addSubmitFragmentInfo(@IdRes final int fragmentId, Button submitButton, final String buttonName, @Nullable final Consumer<T> successRunnable) {
         checkNotNull(submitButton, "button is null");
         checkNotNull(buttonName, "buttonName is null");
         checkFragmentAllowance(fragmentId);
 
-        final CoreElementSubmitInfo<T> submitInfo = getInfoProvider().getSubmitInfo(fragmentId, buttonName);
+        @SuppressWarnings("unchecked")
+        final CoreElementSubmitInfo<T, Submitter<T>> submitInfo = (CoreElementSubmitInfo<T, Submitter<T>>) getInfoProvider().getSubmitInfo(fragmentId, buttonName);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @SuppressWarnings("unchecked")
             @Override
             public void onClick(View v) {
-                new AsyncTask<CoreElementSubmitInfo<T>, Void, Submitter.Result<T>>() {
+                new AsyncTask<CoreElementSubmitInfo<T, Submitter<T>>, Void, Submitter.Result<T>>() {
                     @Override
-                    protected Submitter.Result<T> doInBackground(CoreElementSubmitInfo<T>[] params) {
+                    protected Submitter.Result<T> doInBackground(CoreElementSubmitInfo<T, Submitter<T>>[] params) {
                         return params[0].submitter.submit();
                     }
 
@@ -256,9 +281,9 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
         }
     }
 
-    protected interface FragmentsInfoProvider<T> {
+    protected interface FragmentsInfoProvider {
 
-        CoreElementSubmitInfo<T> getSubmitInfo(@IdRes int fragmentId, String buttonName);
+        CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName);
 
         ImmutableCollection<Integer> allowedFragments();
 
@@ -282,14 +307,14 @@ public abstract class CoreElementActivity<T> extends AppCompatActivity {
 
     }
 
-    protected static final class CoreElementSubmitInfo<T> {
+    protected static final class CoreElementSubmitInfo<T, Sub extends Submitter<T>> {
 
-        protected final Submitter<T> submitter;
+        protected final Sub submitter;
         @Nullable
         protected final Consumer<T> successRunnable;
         protected final CoreErrorHighlighter errorHighlighter;
 
-        protected CoreElementSubmitInfo(Submitter<T> submitter, @Nullable Consumer<T> successRunnable, CoreErrorHighlighter errorHighlighter) {
+        protected CoreElementSubmitInfo(Sub submitter, @Nullable Consumer<T> successRunnable, CoreErrorHighlighter errorHighlighter) {
             this.submitter = submitter;
             this.successRunnable = successRunnable;
             this.errorHighlighter = errorHighlighter;

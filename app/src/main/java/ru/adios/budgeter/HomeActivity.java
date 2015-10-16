@@ -83,6 +83,11 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(new Intent(this, AddFundsActivity.class));
     }
 
+    /** Called when user clicks on Mutate Funds button */
+    public void startFundsMutationActivity(View view) {
+        startActivity(new Intent(this, FundsMutationActivity.class));
+    }
+
     private boolean initMenuHandler(final LinearLayout fundsLayout) {
         if (menuHandler == null) {
             menuHandler = new BalancedMenuHandler(new Consumer<BalancesUiThreadState.Pair>() {

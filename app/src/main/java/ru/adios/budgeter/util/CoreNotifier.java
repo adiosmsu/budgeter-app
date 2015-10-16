@@ -125,8 +125,7 @@ public final class CoreNotifier {
                 try {
                     ((DecimalLinker) linker).link(new BigDecimal(decStr));
                     activity.coreFeedback();
-                } catch (NumberFormatException ignore) {
-                }
+                } catch (NumberFormatException ignore) {}
             }
         } else if (linker instanceof CurrencyLinker) {
             if (o instanceof CurrencyUnit) {
@@ -148,8 +147,20 @@ public final class CoreNotifier {
         } else if (linker instanceof HintedLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
             ((HintedLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
             activity.coreFeedback();
-        } else if (linker instanceof NumberLinker && o instanceof Number) {
-            ((NumberLinker) linker).link((Number) o);
+        } else if (linker instanceof NumberLinker) {
+            final NumberLinker nl = (NumberLinker) linker;
+            if (o instanceof Number) {
+                nl.link((Number) o);
+                activity.coreFeedback();
+            } else {
+                final String str = getStringFromObject(o);
+                if (str.length() > 0) {
+                    try {
+                        nl.link(Long.valueOf(str));
+                        activity.coreFeedback();
+                    } catch (NumberFormatException ignore) {}
+                }
+            }
         } else if (linker instanceof ArbitraryLinker) {
             ((ArbitraryLinker) linker).link(o);
         }

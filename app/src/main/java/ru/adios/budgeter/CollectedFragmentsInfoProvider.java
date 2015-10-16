@@ -11,38 +11,38 @@ import javax.annotation.Nonnull;
  * Created by Michail Kulikov
  * 10/13/15
  */
-final class CollectedFragmentsInfoProvider<T> implements CoreElementActivity.FragmentsInfoProvider<T> {
+final class CollectedFragmentsInfoProvider implements CoreElementActivity.FragmentsInfoProvider {
 
-    public static final class Builder<T> {
+    public static final class Builder {
 
-        private final ImmutableMap.Builder<Integer, InfoProvider<T>> dataMapBuilder = ImmutableMap.builder();
-        private final CoreElementActivity<T> activity;
+        private final ImmutableMap.Builder<Integer, InfoProvider> dataMapBuilder = ImmutableMap.builder();
+        private final CoreElementActivity activity;
 
-        public Builder(CoreElementActivity<T> activity) {
+        public Builder(CoreElementActivity activity) {
             this.activity = activity;
         }
 
-        public Builder<T> addProvider(InfoProvider<T> infoProvider) {
+        public Builder addProvider(InfoProvider infoProvider) {
             dataMapBuilder.put(infoProvider.getFragmentId(), infoProvider);
             return this;
         }
 
-        public CollectedFragmentsInfoProvider<T> build() {
-            return new CollectedFragmentsInfoProvider<>(dataMapBuilder.build(), activity);
+        public CollectedFragmentsInfoProvider build() {
+            return new CollectedFragmentsInfoProvider(dataMapBuilder.build(), activity);
         }
 
     }
 
-    private final ImmutableMap<Integer, InfoProvider<T>> dataMap;
-    private final CoreElementActivity<T> activity;
+    private final ImmutableMap<Integer, InfoProvider> dataMap;
+    private final CoreElementActivity activity;
 
-    private CollectedFragmentsInfoProvider(ImmutableMap<Integer, InfoProvider<T>> dataMap, CoreElementActivity<T> activity) {
+    private CollectedFragmentsInfoProvider(ImmutableMap<Integer, InfoProvider> dataMap, CoreElementActivity activity) {
         this.dataMap = dataMap;
         this.activity = activity;
     }
 
     @Override
-    public CoreElementActivity.CoreElementSubmitInfo<T> getSubmitInfo(@IdRes int fragmentId, String buttonName) {
+    public CoreElementActivity.CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName) {
         return getProvider(fragmentId).getSubmitInfo(buttonName);
     }
 
@@ -58,30 +58,31 @@ final class CollectedFragmentsInfoProvider<T> implements CoreElementActivity.Fra
 
     @Override
     public void performFeedback() {
-        for (final InfoProvider<T> infoProvider : dataMap.values()) {
+        for (final InfoProvider infoProvider : dataMap.values()) {
             infoProvider.performFeedback(activity);
         }
     }
 
     @Nonnull
-    private InfoProvider<T> getProvider(@IdRes int fragmentId) {
-        final InfoProvider<T> infoProvider = dataMap.get(fragmentId);
+    private <T, Sub extends Submitter<T>> InfoProvider<T, Sub> getProvider(@IdRes int fragmentId) {
+        @SuppressWarnings("unchecked")
+        final InfoProvider<T, Sub> infoProvider = (InfoProvider<T, Sub>) dataMap.get(fragmentId);
         if (infoProvider == null) {
             throw new IllegalArgumentException("Unsupported fragment: " + activity.getResources().getResourceName(fragmentId));
         }
         return infoProvider;
     }
 
-    protected interface InfoProvider<T> {
+    protected interface InfoProvider<T, Sub extends Submitter<T>> {
 
         @IdRes
         int getFragmentId();
 
-        CoreElementActivity.CoreElementSubmitInfo<T> getSubmitInfo(String buttonName);
+        CoreElementActivity.CoreElementSubmitInfo<T, Sub> getSubmitInfo(String buttonName);
 
         CoreElementActivity.CoreElementFieldInfo getCoreElementFieldInfo(String fragmentFieldName);
 
-        void performFeedback(CoreElementActivity<T> activity);
+        void performFeedback(CoreElementActivity activity);
 
     }
 

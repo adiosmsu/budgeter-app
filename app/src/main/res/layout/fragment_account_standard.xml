@@ -22,7 +22,7 @@
         android:layout_alignTop="@id/accounts_spinner"
         android:layout_alignBottom="@id/accounts_spinner"
         android:background="@drawable/round_button"
-        android:text="@string/accounts_add_button"
+        android:text="@string/add_button_general"
         android:textColor="#fff"
         android:textSize="24sp"/>
     <TextView

@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 
 import org.joda.money.CurrencyUnit;
 
+import ru.adios.budgeter.api.Accounter;
 import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.inmemrepo.InnerMemoryAccounter;
 import ru.adios.budgeter.inmemrepo.Schema;
@@ -34,6 +35,8 @@ public final class Constants {
                             ExchangeRatesLoader.createCbrLoader(Schema.TREASURY)
                     )
             );
+
+    public static final Accounter ACCOUNTER = new InnerMemoryAccounter();
 
     public static final String[] CURRENCIES_DROPDOWN = new String[] {
             Units.RUB.getCode(),

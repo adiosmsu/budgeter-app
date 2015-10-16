@@ -26,14 +26,14 @@ public class EnterAmountFragment extends Fragment {
     public static final String FIELD_AMOUNT_DECIMAL = "amount_decimal";
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";
 
-    public static CollectibleFragmentInfoProvider<Treasury.BalanceAccount> getInfoProvider(@IdRes int fragmentId,
+    public static CollectibleFragmentInfoProvider<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>> getInfoProvider(@IdRes int fragmentId,
                                                                                            final MoneySettable moneySettable,
                                                                                            final CoreErrorHighlighter highlighter,
                                                                                            String amountDecimalCoreName,
                                                                                            String amountUnitCoreName) {
-        return new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker<Treasury.BalanceAccount>() {
+        return new CollectibleFragmentInfoProvider.Builder<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>>(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker() {
             @Override
-            public void performFeedback(CoreElementActivity<Treasury.BalanceAccount> activity) {
+            public void performFeedback(CoreElementActivity activity) {
                 activity.decimalTextViewFeedback(moneySettable.getAmountDecimal(), R.id.amount_decimal);
                 activity.currenciesSpinnerFeedback(moneySettable.getAmountUnit(), R.id.amount_currency);
             }
@@ -50,7 +50,7 @@ public class EnterAmountFragment extends Fragment {
                         moneySettable.setAmountUnit(data);
                     }
                 }, highlighter))
-                .build();
+                .<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>>build();
     }
 
     public EnterAmountFragment() {

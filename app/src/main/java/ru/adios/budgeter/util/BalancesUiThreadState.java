@@ -8,7 +8,6 @@ import org.joda.money.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +28,7 @@ import ru.adios.budgeter.inmemrepo.Schema;
  * 10/14/15
  */
 @NotThreadSafe
-public final class BalancesUiThreadState implements Serializable {
+public final class BalancesUiThreadState {
 
     private static final ArrayList<Money> balances = new ArrayList<>(10);
     public static Money totalBalance = Money.zero(Units.RUB);

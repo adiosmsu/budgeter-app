@@ -9,13 +9,26 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="ru.adios.budgeter.FundsMutationActivity">
 
+    <TextView
+        android:id="@+id/funds_mutation_subject_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:text="@string/funds_mutation_subject_text"/>
+    <fragment android:name="ru.adios.budgeter.FundsSubjectFragment"
+        android:id="@+id/funds_mutation_subject_fragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/funds_mutation_subject_text"
+        tools:layout="@layout/fragment_funds_subject"/>
+
     <RadioGroup
         android:id="@+id/funds_mutation_direction_radio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
+        android:layout_below="@id/funds_mutation_subject_fragment"
         android:orientation="horizontal">
 
         <RadioButton
@@ -66,29 +79,16 @@
         android:layout_below="@id/funds_mutation_party_amount_text"
         tools:layout="@layout/fragment_enter_amount" />
 
-    <TextView
-        android:id="@+id/funds_mutation_subject_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_party_amount_fragment"
-        android:text="@string/funds_mutation_subject_text"/>
-    <fragment android:name="ru.adios.budgeter.FundsSubjectFragment"
-        android:id="@+id/funds_mutation_subject_fragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/funds_mutation_subject_text"
-        tools:layout="@layout/fragment_funds_subject"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text=""
         android:id="@+id/funds_mutation_info"
-        android:layout_below="@id/funds_mutation_subject_fragment"
+        android:layout_below="@id/funds_mutation_party_amount_fragment"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:visibility="invisible" />
-
     <Button
         android:layout_width="96dp"
         android:layout_height="wrap_content"

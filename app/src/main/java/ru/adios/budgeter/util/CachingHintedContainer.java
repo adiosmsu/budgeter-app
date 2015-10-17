@@ -29,4 +29,8 @@ public abstract class CachingHintedContainer<T> implements HintedArrayAdapter.Ob
 
     protected abstract String calculateToString();
 
+    protected final void invalidateCache() {
+        cache = null;
+    }
+
 }

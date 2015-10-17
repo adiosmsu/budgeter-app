@@ -69,7 +69,7 @@ public class AccountStandardFragment extends Fragment {
 
         public InfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<Treasury.BalanceAccount> accountSupplier) {
             this.context = context;
-            mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new Feedbacker(accountsElement, newAccountOptionalAmount, accountSupplier));
+            mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new Feedbacker(fragmentId, accountsElement, newAccountOptionalAmount, accountSupplier));
         }
 
         public InfoProviderBuilder setNewAccountSubmitButtonCallback(@Nullable Consumer<Treasury.BalanceAccount> callback) {
@@ -116,7 +116,9 @@ public class AccountStandardFragment extends Fragment {
                     .addFieldInfo(FIELD_NEW_ACCOUNT_AMOUNT, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
                         @Override
                         public void link(BigDecimal data) {
-                            newAccountOptionalAmount.object = Optional.of(data);
+                            if (!newAccountOptionalAmount.lockOn) {
+                                newAccountOptionalAmount.object = Optional.of(data);
+                            }
                         }
                     }, accountsErrorHighlighter))
                     .build();
@@ -125,11 +127,14 @@ public class AccountStandardFragment extends Fragment {
 
     public static final class Feedbacker implements CollectibleFragmentInfoProvider.Feedbacker {
 
+        @IdRes
+        private final int fragmentId;
         private final AccountsElementCore accountsElement;
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
         private final Supplier<Treasury.BalanceAccount> accountSupplier;
 
-        private Feedbacker(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<Treasury.BalanceAccount> accountSupplier) {
+        private Feedbacker(int fragmentId, AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<Treasury.BalanceAccount> accountSupplier) {
+            this.fragmentId = fragmentId;
             this.accountsElement = accountsElement;
             this.newAccountOptionalAmount = newAccountOptionalAmount;
             this.accountSupplier = accountSupplier;
@@ -137,10 +142,10 @@ public class AccountStandardFragment extends Fragment {
 
         @Override
         public void performFeedback(CoreElementActivity activity) {
-            activity.textViewFeedback(accountsElement.getName(), R.id.accounts_name_input);
-            activity.currenciesSpinnerFeedback(accountsElement.getUnit(), R.id.accounts_currency_input);
-            activity.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), R.id.accounts_amount_optional_input);
-            activity.hintedArraySpinnerFeedback(accountSupplier.get(), R.id.accounts_spinner);
+            activity.textViewFeedback(accountsElement.getName(), fragmentId, R.id.accounts_name_input);
+            activity.currenciesSpinnerFeedback(accountsElement.getUnit(), fragmentId, R.id.accounts_currency_input);
+            activity.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), fragmentId, R.id.accounts_amount_optional_input);
+            activity.hintedArraySpinnerFeedback(accountSupplier.get(), fragmentId, R.id.accounts_spinner);
         }
 
     }
@@ -149,6 +154,7 @@ public class AccountStandardFragment extends Fragment {
 
         public final AccountsElementCore accountsElement;
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
+        private Result<Treasury.BalanceAccount> storedResult;
 
         public HybridAccountCore(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount) {
             this.accountsElement = accountsElement;
@@ -174,6 +180,28 @@ public class AccountStandardFragment extends Fragment {
             }
 
             return accountResult;
+        }
+
+        @Override
+        public void lock() {
+            accountsElement.lock();
+            newAccountOptionalAmount.lockOn = true;
+        }
+
+        @Override
+        public void unlock() {
+            accountsElement.unlock();
+            newAccountOptionalAmount.lockOn = false;
+        }
+
+        @Override
+        public Result<Treasury.BalanceAccount> getStoredResult() {
+            return storedResult;
+        }
+
+        @Override
+        public void submitAndStoreResult() {
+            storedResult = submit();
         }
 
     }
@@ -279,6 +307,8 @@ public class AccountStandardFragment extends Fragment {
     private static final class Mutable<T> {
 
         private T object;
+
+        private boolean lockOn = false;
 
         private Mutable(T object) {
             this.object = object;

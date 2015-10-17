@@ -66,19 +66,59 @@ public final class CoreNotifier {
      * @param view field view
      * @param linker linker callback
      */
-    public static void addLink(final CoreElementActivity activity, View view, final Linker linker) {
-        if (view instanceof TextView) {
+    public static void addLink(final CoreElementActivity activity, final View view, final Linker linker) {
+        if (view instanceof DateEditView) {
+            final DateEditView dateEditView = (DateEditView) view;
+
+            dateEditView.addTextChangedListener(new EmptyTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (activity.isFeedbackCommencing()) {
+                        return;
+                    }
+
+                    if (s != null && s.length() > 0) {
+                        if (linker instanceof ArbitraryLinker) {
+                            ((ArbitraryLinker) linker).link(dateEditView.formatText(s));
+                            activity.coreFeedback();
+                        } else {
+                            linkViewValueWithCore(s.toString(), linker, activity);
+                        }
+                        dateEditView.invalidate();
+                    }
+                }
+            });
+        } else if (view instanceof TimeEditView) {
+            final TimeEditView timeEditView = (TimeEditView) view;
+
+            timeEditView.addTextChangedListener(new EmptyTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (activity.isFeedbackCommencing()) {
+                        return;
+                    }
+
+                    if (s != null && s.length() > 0) {
+                        if (linker instanceof ArbitraryLinker) {
+                            ((ArbitraryLinker) linker).link(timeEditView.formatText(s));
+                            activity.coreFeedback();
+                        } else {
+                            linkViewValueWithCore(s.toString(), linker, activity);
+                        }
+                        timeEditView.invalidate();
+                    }
+                }
+            });
+        } else if (view instanceof TextView) {
             ((TextView) view).addTextChangedListener(new EmptyTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
                     if (activity.isFeedbackCommencing())
                         return;
 
-                    final int l = s.length();
-                    if (l > 0) {
-                        final char[] dest = new char[l];
-                        s.getChars(0, l, dest, 0);
-                        linkViewValueWithCore(new String(dest), linker, activity);
+                    if (s != null && s.length() > 0) {
+                        linkViewValueWithCore(s.toString(), linker, activity);
+                        view.invalidate();
                     }
                 }
             });
@@ -92,6 +132,7 @@ public final class CoreNotifier {
 
                     if (sp.getAdapter().getCount() > position) {
                         linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
+                        sp.invalidate();
                     }
                 }
 
@@ -110,6 +151,7 @@ public final class CoreNotifier {
                     for (int i = 0; i < group.getChildCount(); i++) {
                         if (group.getChildAt(i).getId() == checkedId) {
                             linkViewValueWithCore(i, linker, activity);
+                            radioGroup.invalidate();
                             return;
                         }
                     }

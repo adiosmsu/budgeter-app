@@ -53,17 +53,28 @@ public class DateEditView extends TextView {
         });
     }
 
+    public final String formatDate(OffsetDateTime date) {
+        return date.format(formatter);
+    }
+
+    @Nullable
+    public final OffsetDateTime formatText(CharSequence text) {
+        try {
+            return OffsetDateTime.parse(text, formatter);
+        } catch (DateTimeException ignore) {
+            return null;
+        }
+    }
+
     public final void setDate(OffsetDateTime date) {
-        setText(date.format(formatter));
+        setText(formatDate(date));
     }
 
     @Nullable
     public final OffsetDateTime getDate() {
         final CharSequence text = getText();
         if (text != null && text.length() > 0) {
-            try {
-                return OffsetDateTime.parse(text, formatter);
-            } catch (DateTimeException ignore) {}
+            return formatText(text);
         }
 
         return null;
@@ -94,7 +105,7 @@ public class DateEditView extends TextView {
                 dateEditView.setDate(date);
             }
 
-            return new DatePickerDialog(getActivity(), dateSetListener, date.getYear(), date.getDayOfYear(), date.getDayOfMonth());
+            return new DatePickerDialog(getActivity(), dateSetListener, date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
         }
 
     }

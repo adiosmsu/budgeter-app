@@ -28,7 +28,6 @@ public class TimeEditView extends TextView {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm").withLocale(getResources().getConfiguration().locale);
 
-
     public TimeEditView(Context context) {
         super(context);
     }
@@ -41,13 +40,9 @@ public class TimeEditView extends TextView {
         super(context, attrs, defStyleAttr);
     }
 
-    public final void setTime(OffsetTime time) {
-        setText(time.format(formatter));
-    }
-
     public final void init(final Activity activity) {
         setTime(OffsetTime.now());
-        setOnClickListener(new OnClickListener() {
+        super.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 final FragmentTransaction ft = activity.getFragmentManager().beginTransaction();
@@ -58,16 +53,31 @@ public class TimeEditView extends TextView {
         });
     }
 
+    public final String formatTime(OffsetTime time) {
+        return time.format(formatter);
+    }
+
+    @Nullable
+    public final OffsetTime formatText(CharSequence text) {
+        try {
+            return OffsetTime.parse(text, formatter);
+        } catch (DateTimeException ignore) {
+            return null;
+        }
+    }
+
     @Nullable
     public final OffsetTime getTime() {
         final CharSequence text = getText();
         if (text != null && text.length() > 0) {
-            try {
-                return OffsetTime.parse(text, formatter);
-            } catch (DateTimeException ignore) {}
+            return formatText(text);
         }
 
         return null;
+    }
+
+    public final void setTime(OffsetTime time) {
+        setText(formatTime(time));
     }
 
     public final static class TimePickerDialogFragment extends DialogFragment {

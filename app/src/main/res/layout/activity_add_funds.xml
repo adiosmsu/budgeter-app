@@ -26,6 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text=""
+        android:textColor="#af0b0b"
         android:id="@+id/add_funds_info"
         android:layout_below="@id/add_funds_amount_fragment"
         android:layout_alignParentLeft="true"

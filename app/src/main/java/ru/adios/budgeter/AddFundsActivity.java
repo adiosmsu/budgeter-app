@@ -114,25 +114,27 @@ public class AddFundsActivity extends CoreElementActivity {
     }
 
     public void addFunds(View view) {
-        final BigDecimal decimal = additionElement.getAmountDecimal();
-        final CurrencyUnit amountUnit = additionElement.getAmountUnit();
-
-        new AsyncTask<FundsAdditionElementCore, Void, Submitter.Result<Treasury.BalanceAccount>>() {
+        additionElement.lock();
+        new AsyncTask<FundsAdditionElementCore, Void, FundsAdditionElementCore>() {
             @Override
-            protected Submitter.Result<Treasury.BalanceAccount> doInBackground(FundsAdditionElementCore[] params) {
-                return params[0].submit();
+            protected FundsAdditionElementCore doInBackground(FundsAdditionElementCore[] params) {
+                final FundsAdditionElementCore core = params[0];
+                core.submitAndStoreResult();
+                return core;
             }
 
             @Override
-            protected void onPostExecute(Submitter.Result<Treasury.BalanceAccount> result) {
+            protected void onPostExecute(FundsAdditionElementCore core) {
+                final Submitter.Result<Treasury.BalanceAccount> result = core.getStoredResult();
+
                 addFundsErrorHighlighter.processSubmitResult(result);
                 if (result.isSuccessful()) {
-                    final Spinner accountsSpinner = (Spinner) findViewById(R.id.accounts_spinner);
-                    UiUtils.replaceAccountInSpinner(result.submitResult, accountsSpinner);
+                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner));
                     //noinspection ConstantConditions
-                    BalancesUiThreadState.addMoney(Money.of(amountUnit, decimal), AddFundsActivity.this);
+                    BalancesUiThreadState.addMoney(Money.of(additionElement.getAmountUnit(), additionElement.getAmountDecimal()), AddFundsActivity.this);
                 }
                 findViewById(R.id.activity_add_funds).invalidate();
+                core.unlock();
             }
         }.execute(additionElement);
     }

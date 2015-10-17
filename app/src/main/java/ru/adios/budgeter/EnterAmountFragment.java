@@ -26,7 +26,7 @@ public class EnterAmountFragment extends Fragment {
     public static final String FIELD_AMOUNT_DECIMAL = "amount_decimal";
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";
 
-    public static CollectibleFragmentInfoProvider<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>> getInfoProvider(@IdRes int fragmentId,
+    public static CollectibleFragmentInfoProvider<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>> getInfoProvider(@IdRes final int fragmentId,
                                                                                            final MoneySettable moneySettable,
                                                                                            final CoreErrorHighlighter highlighter,
                                                                                            String amountDecimalCoreName,
@@ -34,8 +34,8 @@ public class EnterAmountFragment extends Fragment {
         return new CollectibleFragmentInfoProvider.Builder<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>>(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker() {
             @Override
             public void performFeedback(CoreElementActivity activity) {
-                activity.decimalTextViewFeedback(moneySettable.getAmountDecimal(), R.id.amount_decimal);
-                activity.currenciesSpinnerFeedback(moneySettable.getAmountUnit(), R.id.amount_currency);
+                activity.decimalTextViewFeedback(moneySettable.getAmountDecimal(), fragmentId, R.id.amount_decimal);
+                activity.currenciesSpinnerFeedback(moneySettable.getAmountUnit(), fragmentId, R.id.amount_currency);
             }
         })
                 .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(amountDecimalCoreName, new CoreNotifier.DecimalLinker() {

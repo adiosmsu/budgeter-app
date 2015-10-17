@@ -39,7 +39,7 @@ public class DelayingAutoCompleteTextView extends AutoCompleteTextView {
     }
 
     @Override
-    protected void performFiltering(CharSequence text, int keyCode) {
+    protected final void performFiltering(CharSequence text, int keyCode) {
         if (loadingIndicator != null) {
             loadingIndicator.setVisibility(View.VISIBLE);
             loadingIndicator.invalidate();

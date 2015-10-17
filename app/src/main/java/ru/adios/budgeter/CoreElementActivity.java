@@ -22,6 +22,7 @@ import org.threeten.bp.OffsetTime;
 
 import java.math.BigDecimal;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
@@ -114,65 +115,101 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
     protected final void textViewFeedback(String text, @IdRes int textViewId) {
         if (text != null) {
-            final TextView textView = (TextView) findViewById(textViewId);
-            if (!textView.getText().equals(text)) {
-                textView.setText(text);
-                textView.invalidate();
-            }
+            innerTextViewFeedback(text, (TextView) findViewById(textViewId));
+        }
+    }
+
+    protected final void textViewFeedback(String text, @IdRes int fragmentId, @IdRes int textViewId) {
+        if (text != null) {
+            innerTextViewFeedback(text, (TextView) findViewById(fragmentId).findViewById(textViewId));
+        }
+    }
+
+    private void innerTextViewFeedback(@Nonnull String text, TextView textView) {
+        if (!textView.getText().equals(text)) {
+            textView.setText(text);
+            textView.invalidate();
         }
     }
 
     protected final void decimalTextViewFeedback(BigDecimal decimal, @IdRes int textViewId) {
         if (decimal != null) {
-            final String decimalText = decimal.toPlainString();
-            final TextView textView = (TextView) findViewById(textViewId);
-            if (!decimalText.equals(textView.getText())) {
-                textView.setText(decimalText);
-                textView.invalidate();
-            }
+            innerDecimalTextViewFeedback(decimal, (TextView) findViewById(textViewId));
+        }
+    }
+
+    protected final void decimalTextViewFeedback(BigDecimal decimal, @IdRes int fragmentId, @IdRes int textViewId) {
+        if (decimal != null) {
+            innerDecimalTextViewFeedback(decimal, (TextView) findViewById(fragmentId).findViewById(textViewId));
+        }
+    }
+
+    private void innerDecimalTextViewFeedback(@Nonnull BigDecimal decimal, TextView textView) {
+        final String decimalText = decimal.toPlainString();
+        if (!decimalText.equals(textView.getText())) {
+            textView.setText(decimalText);
+            textView.invalidate();
         }
     }
 
     protected final void currenciesSpinnerFeedback(CurrencyUnit unit, @IdRes int spinnerId) {
         if (unit != null) {
-            final Spinner spinner = (Spinner) findViewById(spinnerId);
-            if (!spinner.getSelectedItem().toString().equals(unit.getCode())) {
-                spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
-                spinner.invalidate();
-            }
+            innerCurrenciesSpinnerFeedback(unit, (Spinner) findViewById(spinnerId));
+        }
+    }
+
+    protected final void currenciesSpinnerFeedback(CurrencyUnit unit, @IdRes int fragmentId, @IdRes int spinnerId) {
+        if (unit != null) {
+            innerCurrenciesSpinnerFeedback(unit, (Spinner) findViewById(fragmentId).findViewById(spinnerId));
+        }
+    }
+
+    private void innerCurrenciesSpinnerFeedback(@Nonnull CurrencyUnit unit, Spinner spinner) {
+        if (!spinner.getSelectedItem().toString().equals(unit.getCode())) {
+            spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
+            spinner.invalidate();
         }
     }
 
     protected final <T> void hintedArraySpinnerFeedback(T object, @IdRes int spinnerId) {
         if (object != null) {
-            final Spinner spinnerView = (Spinner) findViewById(spinnerId);
-            final SpinnerAdapter adapter = spinnerView.getAdapter();
+            innerHintedArraySpinnerFeedback(object, (Spinner) findViewById(spinnerId));
+        }
+    }
 
-            int pos = -1;
-            if (adapter instanceof HintedArrayAdapter) {
-                if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(object)) {
-                    @SuppressWarnings("unchecked")
-                    final HintedArrayAdapter<T> hintedArrayAdapter = (HintedArrayAdapter) adapter;
-                    for (int i = 0; i < adapter.getCount(); i++) {
-                        if (hintedArrayAdapter.getItem(i).getObject().equals(object)) {
-                            pos = i;
-                            break;
-                        }
-                    }
-                }
-            } else if (!spinnerView.getSelectedItem().equals(object)) {
+    protected final <T> void hintedArraySpinnerFeedback(T object, @IdRes int fragmentId, @IdRes int spinnerId) {
+        if (object != null) {
+            innerHintedArraySpinnerFeedback(object, (Spinner) findViewById(fragmentId).findViewById(spinnerId));
+        }
+    }
+
+    private <T> void innerHintedArraySpinnerFeedback(T object, Spinner spinnerView) {
+        final SpinnerAdapter adapter = spinnerView.getAdapter();
+
+        int pos = -1;
+        if (adapter instanceof HintedArrayAdapter) {
+            if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(object)) {
+                @SuppressWarnings("unchecked")
+                final HintedArrayAdapter<T> hintedArrayAdapter = (HintedArrayAdapter) adapter;
                 for (int i = 0; i < adapter.getCount(); i++) {
-                    if (adapter.getItem(i).equals(object)) {
+                    if (hintedArrayAdapter.getItem(i).getObject().equals(object)) {
                         pos = i;
                         break;
                     }
                 }
             }
-
-            if (pos >= 0) {
-                spinnerView.setSelection(pos, true);
-                spinnerView.invalidate();
+        } else if (!spinnerView.getSelectedItem().equals(object)) {
+            for (int i = 0; i < adapter.getCount(); i++) {
+                if (adapter.getItem(i).equals(object)) {
+                    pos = i;
+                    break;
+                }
             }
+        }
+
+        if (pos >= 0) {
+            spinnerView.setSelection(pos, true);
+            spinnerView.invalidate();
         }
     }
 
@@ -244,14 +281,19 @@ public abstract class CoreElementActivity extends AppCompatActivity {
             @SuppressWarnings("unchecked")
             @Override
             public void onClick(View v) {
-                new AsyncTask<CoreElementSubmitInfo<T, Submitter<T>>, Void, Submitter.Result<T>>() {
+                submitInfo.submitter.lock();
+                new AsyncTask<Submitter<T>, Void, Submitter<T>>() {
                     @Override
-                    protected Submitter.Result<T> doInBackground(CoreElementSubmitInfo<T, Submitter<T>>[] params) {
-                        return params[0].submitter.submit();
+                    protected Submitter<T> doInBackground(Submitter<T>[] params) {
+                        final Submitter<T> submitter = params[0];
+                        submitter.submitAndStoreResult();
+                        return submitter;
                     }
 
                     @Override
-                    protected void onPostExecute(Submitter.Result<T> result) {
+                    protected void onPostExecute(Submitter<T> submitter) {
+                        final Submitter.Result<T> result = submitter.getStoredResult();
+
                         submitInfo.errorHighlighter.processSubmitResult(result);
                         if (result.isSuccessful()) {
                             if (submitInfo.successRunnable != null) {
@@ -262,8 +304,10 @@ public abstract class CoreElementActivity extends AppCompatActivity {
                                 successRunnable.accept(result.submitResult);
                             }
                         }
+
+                        submitter.unlock();
                     }
-                }.execute(submitInfo);
+                }.execute(submitInfo.submitter);
             }
         });
     }

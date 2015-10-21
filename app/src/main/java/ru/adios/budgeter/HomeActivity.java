@@ -93,7 +93,7 @@ public class HomeActivity extends AppCompatActivity {
             menuHandler = new BalancedMenuHandler(new Consumer<BalancesUiThreadState.Pair>() {
                 @Override
                 public void accept(BalancesUiThreadState.Pair pair) {
-                    UiUtils.refillLinearLayout(fundsLayout, pair.balances, pair.totalBalance, HomeActivity.this);
+                    UiUtils.refillLinearLayoutWithBalances(fundsLayout, pair.balances, pair.totalBalance, HomeActivity.this);
                 }
             });
             menuHandler.init(this);
@@ -106,7 +106,7 @@ public class HomeActivity extends AppCompatActivity {
         final LinearLayout fundsLayout = (LinearLayout) findViewById(R.id.ah_funds_list);
         if (initMenuHandler(fundsLayout)) {
             final BalancesUiThreadState.Pair pair = BalancesUiThreadState.getSnapshot();
-            UiUtils.refillLinearLayout(fundsLayout, pair.balances, pair.totalBalance, this);
+            UiUtils.refillLinearLayoutWithBalances(fundsLayout, pair.balances, pair.totalBalance, this);
         }
     }
 

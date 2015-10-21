@@ -8,7 +8,7 @@
 
     <android.support.percent.PercentRelativeLayout
         android:id="@+id/funds_mutation_activity"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
@@ -24,7 +24,7 @@
             android:text="@string/funds_mutation_subject_text"/>
         <fragment android:name="ru.adios.budgeter.FundsSubjectFragment"
             android:id="@+id/funds_mutation_subject_fragment"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_subject_text"
             tools:layout="@layout/fragment_funds_subject"/>

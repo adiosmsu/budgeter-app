@@ -44,7 +44,7 @@ public class EnterAmountFragment extends Fragment {
                         moneySettable.setAmountDecimal(data);
                     }
                 }, highlighter))
-                .addFieldInfo(EnterAmountFragment.FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(amountUnitCoreName, new CoreNotifier.CurrencyLinker() {
+                .addFieldInfo(FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(amountUnitCoreName, new CoreNotifier.CurrencyLinker() {
                     @Override
                     public void link(CurrencyUnit data) {
                         moneySettable.setAmountUnit(data);

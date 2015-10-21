@@ -191,10 +191,14 @@ public abstract class CoreElementActivity extends AppCompatActivity {
             if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(object)) {
                 @SuppressWarnings("unchecked")
                 final HintedArrayAdapter<T> hintedArrayAdapter = (HintedArrayAdapter) adapter;
-                for (int i = 0; i < adapter.getCount(); i++) {
-                    if (hintedArrayAdapter.getItem(i).getObject().equals(object)) {
-                        pos = i;
-                        break;
+                if (object == null) {
+                    spinnerView.setSelection(adapter.getCount()); // nothing selected => display hint
+                } else {
+                    for (int i = 0; i < adapter.getCount(); i++) {
+                        if (hintedArrayAdapter.getItem(i).getObject().equals(object)) {
+                            pos = i;
+                            break;
+                        }
                     }
                 }
             }

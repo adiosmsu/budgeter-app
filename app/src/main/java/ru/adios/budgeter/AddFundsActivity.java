@@ -9,10 +9,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
-import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-
-import java.math.BigDecimal;
 
 import java8.util.function.Supplier;
 import ru.adios.budgeter.api.Treasury;

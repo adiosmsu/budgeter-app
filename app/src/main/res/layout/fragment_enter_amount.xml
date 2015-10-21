@@ -8,7 +8,7 @@
     <EditText
         android:id="@+id/amount_decimal"
         android:layout_width="0dp"
-        app:layout_widthPercent="70%"
+        app:layout_widthPercent="60%"
         android:layout_height="wrap_content"
         android:hint="@string/amount_decimal_hint"
         android:layout_alignParentLeft="true"
@@ -17,15 +17,15 @@
     <Spinner
         android:id="@+id/amount_currency"
         android:layout_width="0dp"
-        app:layout_widthPercent="30%"
-        android:layout_height="0dp"
+        app:layout_widthPercent="40%"
+        android:layout_height="40dp"
         android:prompt="@string/amount_currency_hint"
         android:layout_toRightOf="@id/amount_decimal"
         android:layout_toEndOf="@id/amount_decimal"
         android:layout_alignTop="@id/amount_decimal"
         android:layout_alignBottom="@id/amount_decimal"
         android:spinnerMode="dropdown"
-        style="@style/Widget.AppCompat.EditText"/>
+        style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
 
     <TextView
         android:layout_width="0dp"

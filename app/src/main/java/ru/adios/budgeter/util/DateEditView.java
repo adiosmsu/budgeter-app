@@ -14,6 +14,9 @@ import android.widget.TextView;
 
 import org.threeten.bp.Clock;
 import org.threeten.bp.DateTimeException;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
@@ -60,7 +63,7 @@ public class DateEditView extends TextView {
     @Nullable
     public final OffsetDateTime formatText(CharSequence text) {
         try {
-            return OffsetDateTime.parse(text, formatter);
+            return OffsetDateTime.of(LocalDateTime.of(LocalDate.parse(text, formatter), LocalTime.of(0, 0)), GeneralUtils.getLocalZoneOffset());
         } catch (DateTimeException ignore) {
             return null;
         }
@@ -94,7 +97,7 @@ public class DateEditView extends TextView {
             final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    final OffsetDateTime of = OffsetDateTime.of(year, monthOfYear, dayOfMonth, 0, 0, 0, 0, ZoneOffset.systemDefault().getRules().getOffset(Clock.systemDefaultZone().instant()));
+                    final OffsetDateTime of = OffsetDateTime.of(year, monthOfYear + 1, dayOfMonth, 0, 0, 0, 0, ZoneOffset.systemDefault().getRules().getOffset(Clock.systemDefaultZone().instant()));
                     dateEditView.setDate(of);
                 }
             };
@@ -105,7 +108,7 @@ public class DateEditView extends TextView {
                 dateEditView.setDate(date);
             }
 
-            return new DatePickerDialog(getActivity(), dateSetListener, date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
+            return new DatePickerDialog(getActivity(), dateSetListener, date.getYear(), date.getMonth().getValue() - 1, date.getDayOfMonth());
         }
 
     }

@@ -12,10 +12,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import org.threeten.bp.Clock;
 import org.threeten.bp.DateTimeException;
+import org.threeten.bp.LocalTime;
 import org.threeten.bp.OffsetTime;
-import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
 
 import javax.annotation.Nullable;
@@ -60,7 +59,7 @@ public class TimeEditView extends TextView {
     @Nullable
     public final OffsetTime formatText(CharSequence text) {
         try {
-            return OffsetTime.parse(text, formatter);
+            return OffsetTime.of(LocalTime.parse(text, formatter), GeneralUtils.getLocalZoneOffset());
         } catch (DateTimeException ignore) {
             return null;
         }
@@ -94,7 +93,7 @@ public class TimeEditView extends TextView {
             final TimePickerDialog.OnTimeSetListener dateSetListener = new TimePickerDialog.OnTimeSetListener() {
                 @Override
                 public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                    final OffsetTime of = OffsetTime.of(hourOfDay, minute, 0, 0, ZoneOffset.systemDefault().getRules().getOffset(Clock.systemDefaultZone().instant()));
+                    final OffsetTime of = OffsetTime.of(hourOfDay, minute, 0, 0, GeneralUtils.getLocalZoneOffset());
                     timeEditView.setTime(of);
                 }
             };

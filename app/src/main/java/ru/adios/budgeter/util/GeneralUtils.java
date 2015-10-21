@@ -1,5 +1,8 @@
 package ru.adios.budgeter.util;
 
+import org.threeten.bp.Clock;
+import org.threeten.bp.ZoneOffset;
+
 import java.lang.reflect.Array;
 import java.util.List;
 
@@ -38,6 +41,10 @@ public final class GeneralUtils {
     @SuppressWarnings("unchecked")
     public static <T> T[] newArrayInstance(T object, int length) {
         return newArrayInstance((Class<T>) object.getClass(), length);
+    }
+
+    public static ZoneOffset getLocalZoneOffset() {
+        return ZoneOffset.systemDefault().getRules().getOffset(Clock.systemDefaultZone().instant());
     }
 
     private GeneralUtils() {}

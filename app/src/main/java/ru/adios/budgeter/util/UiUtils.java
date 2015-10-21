@@ -30,7 +30,7 @@ public final class UiUtils {
 
     public static final int FUNDS_ID = ElementsIdProvider.getNextId();
 
-    public static void refillLinearLayout(LinearLayout fundsLayout, List<Money> balances, Money totalBalance, Context context) {
+    public static void refillLinearLayoutWithBalances(LinearLayout fundsLayout, List<Money> balances, Money totalBalance, Context context) {
         fundsLayout.removeAllViews();
 
         int maxLine = 0;
@@ -82,27 +82,27 @@ public final class UiUtils {
         return fundsInfo;
     }
 
-    public static <T> void addToHintedSpinner(T obj, Spinner accountsSpinner, HintedArrayAdapter.ContainerFactory<T> factory) {
+    public static <T> void addToHintedSpinner(T obj, Spinner hintedSpinner, HintedArrayAdapter.ContainerFactory<T> factory) {
         @SuppressWarnings("unchecked")
-        final HintedArrayAdapter<T> adapter = (HintedArrayAdapter<T>) accountsSpinner.getAdapter();
+        final HintedArrayAdapter<T> adapter = (HintedArrayAdapter<T>) hintedSpinner.getAdapter();
 
-        boolean hintSelected = adapter.getCount() == accountsSpinner.getSelectedItemPosition();
+        boolean hintSelected = adapter.getCount() == hintedSpinner.getSelectedItemPosition();
         Boolean backup = null;
 
         adapter.add(factory.create(obj));
 
         // repair situation when what selected is a hint and we add something to the end of a real items list hence position will not change and no event will fire
-        if (accountsSpinner instanceof FlexibleNotifyingSpinner && hintSelected) {
-            final FlexibleNotifyingSpinner as = (FlexibleNotifyingSpinner) accountsSpinner;
+        if (hintedSpinner instanceof FlexibleNotifyingSpinner && hintSelected) {
+            final FlexibleNotifyingSpinner as = (FlexibleNotifyingSpinner) hintedSpinner;
             backup = as.willNotifyEvenIfSameSelection();
             as.setNotifyEvenIfSameSelection(true);
         }
 
-        accountsSpinner.setSelection(adapter.getCount() - 1, true);
+        hintedSpinner.setSelection(adapter.getCount() - 1, true);
 
         // change back
         if (backup != null && backup == Boolean.FALSE) {
-            ((FlexibleNotifyingSpinner) accountsSpinner).setNotifyEvenIfSameSelection(false);
+            ((FlexibleNotifyingSpinner) hintedSpinner).setNotifyEvenIfSameSelection(false);
         }
     }
 

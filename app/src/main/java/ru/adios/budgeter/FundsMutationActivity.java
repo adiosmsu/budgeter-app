@@ -5,7 +5,10 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -137,6 +140,9 @@ public class FundsMutationActivity extends CoreElementActivity {
                     ))
                     .build();
 
+    private final CheckedChangeListener paidMoneyListener = new CheckedChangeListener(R.id.funds_mutation_paid_amount_fragment);
+    private final CheckedChangeListener costListener = new CheckedChangeListener(R.id.funds_mutation_subject_cost_fragment);
+
     @Override
     protected final FragmentsInfoProvider getInfoProvider() {
         return infoProvider;
@@ -168,6 +174,18 @@ public class FundsMutationActivity extends CoreElementActivity {
             @Override
             public void link(Number data) {
                 mutationElement.setDirection(FundsMutator.MutationDirection.values()[data.intValue()]);
+            }
+        });
+        CoreNotifier.addLink(this, findViewById(R.id.funds_mutation_natural_rate), new CoreNotifier.DecimalLinker() {
+            @Override
+            public void link(BigDecimal data) {
+                mutationElement.setNaturalRate(data);
+            }
+        });
+        CoreNotifier.addLink(this, findViewById(R.id.funds_mutation_custom_rate), new CoreNotifier.DecimalLinker() {
+            @Override
+            public void link(BigDecimal data) {
+                mutationElement.setCustomRate(data);
             }
         });
 
@@ -206,6 +224,11 @@ public class FundsMutationActivity extends CoreElementActivity {
         dateView.init(this);
         timeView.init(this);
 
+        final CheckBox paidAmountBox = (CheckBox) findViewById(R.id.funds_mutation_paid_amount_box);
+        paidAmountBox.setOnCheckedChangeListener(paidMoneyListener);
+        final CheckBox costBox = (CheckBox) findViewById(R.id.funds_mutation_subject_cost_box);
+        costBox.setOnCheckedChangeListener(costListener);
+
         final View infoView = findViewById(R.id.funds_mutation_info);
         mutationHighlighter.setGlobalInfoView(infoView);
         setGlobalInfoViewPerFragment(R.id.funds_mutation_subject_fragment, FundsSubjectFragment.BUTTON_NEW_SUBJECT_SUBMIT, infoView);
@@ -219,6 +242,8 @@ public class FundsMutationActivity extends CoreElementActivity {
 
     @Override
     protected final void activityInnerFeedback() {
+        decimalTextViewFeedback(mutationElement.getNaturalRate(), R.id.funds_mutation_natural_rate);
+        decimalTextViewFeedback(mutationElement.getCustomRate(), R.id.funds_mutation_custom_rate);
         textViewFeedback(String.valueOf(mutationElement.getQuantity()), R.id.funds_mutation_quantity);
         radioGroupFeedback(mutationElement.getDirection(), R.id.funds_mutation_direction_radio);
         dateTimeFeedback(mutationElement.getTimestamp(), R.id.funds_mutation_date, R.id.funds_mutation_time);
@@ -253,10 +278,48 @@ public class FundsMutationActivity extends CoreElementActivity {
                     UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner));
                     BalancesUiThreadState.addMoney(mutationElement.getSubmittedMoney(), FundsMutationActivity.this);
                 }
+
+                final CheckBox paidBox = (CheckBox) findViewById(R.id.funds_mutation_paid_amount_box);
+                if (paidBox.isChecked()
+                        && result.containsFieldErrors(FundsMutationElementCore.FIELD_PAID_MONEY, FundsMutationElementCore.FIELD_PAYEE_ACCOUNT_UNIT, FundsMutationElementCore.FIELD_PAYEE_AMOUNT))
+                {
+                    paidBox.setChecked(false);
+                }
+                final CheckBox costBox = (CheckBox) findViewById(R.id.funds_mutation_subject_cost_box);
+                if (costBox.isChecked() && result.containsFieldErrors(FundsMutationElementCore.FIELD_AMOUNT, FundsMutationElementCore.FIELD_AMOUNT_DECIMAL, FundsMutationElementCore.FIELD_AMOUNT_UNIT)) {
+                    costBox.setChecked(false);
+                }
+
+                coreFeedback();
                 findViewById(R.id.activity_funds_mutation).invalidate();
                 core.unlock();
             }
         }.execute(mutationElement);
+    }
+
+    private final class CheckedChangeListener implements CompoundButton.OnCheckedChangeListener {
+
+        @IdRes
+        private final int fragId;
+
+        public CheckedChangeListener(@IdRes int fragId) {
+            this.fragId = fragId;
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            final View paFragment = findViewById(fragId);
+            if (isChecked) {
+                paFragment.setVisibility(View.INVISIBLE);
+                ((TextView) paFragment.findViewById(R.id.amount_decimal)).setText(null);
+                final Spinner curSp = (Spinner) paFragment.findViewById(R.id.amount_currency);
+                curSp.setSelection(curSp.getAdapter().getCount());
+            } else {
+                paFragment.setVisibility(View.VISIBLE);
+            }
+            paFragment.invalidate();
+        }
+
     }
 
 }

@@ -39,5 +39,7 @@
     <string name="funds_mutation_agent_text">Operation agent (e.g. a place where the deal broke)</string>
     <string name="funds_mutation_datetime_text">Date and time of operation:</string>
     <string name="button_mutate_funds">register operation</string>
+    <string name="funds_mutation_payed_amount_box_text">Drop paid amount</string>
+    <string name="funds_mutation_subject_cost_box_text">Drop subject cost</string>
 
 </resources>

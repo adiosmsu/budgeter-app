@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import org.joda.money.CurrencyUnit;
@@ -116,10 +117,8 @@ public final class CoreNotifier {
                     if (activity.isFeedbackCommencing())
                         return;
 
-                    if (s != null && s.length() > 0) {
-                        linkViewValueWithCore(s.toString(), linker, activity);
-                        view.invalidate();
-                    }
+                    linkViewValueWithCore(s, linker, activity);
+                    view.invalidate();
                 }
             });
         } else if (view instanceof Spinner) {
@@ -130,7 +129,8 @@ public final class CoreNotifier {
                     if (activity.isFeedbackCommencing())
                         return;
 
-                    if (sp.getAdapter().getCount() > position) {
+                    final SpinnerAdapter adapter = sp.getAdapter();
+                    if (adapter.getCount() > position || (adapter.getCount() == position && adapter instanceof HintedArrayAdapter)) {
                         linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
                         sp.invalidate();
                     }
@@ -168,18 +168,29 @@ public final class CoreNotifier {
                     ((DecimalLinker) linker).link(new BigDecimal(decStr));
                     activity.coreFeedback();
                 } catch (NumberFormatException ignore) {}
+            } else {
+                ((DecimalLinker) linker).link(null);
+                activity.coreFeedback();
             }
         } else if (linker instanceof CurrencyLinker) {
             if (o instanceof CurrencyUnit) {
                 ((CurrencyLinker) linker).link((CurrencyUnit) o);
                 activity.coreFeedback();
             } else {
-                final String decStr = getStringFromObject(o);
-                if (decStr.length() > 0) {
-                    try {
-                        ((CurrencyLinker) linker).link(CurrencyUnit.of(decStr.toUpperCase()));
+                if (o instanceof HintedArrayAdapter.ObjectContainer && ((HintedArrayAdapter.ObjectContainer) o).getObject() == null) {
+                    ((CurrencyLinker) linker).link(null);
+                    activity.coreFeedback();
+                } else {
+                    final String decStr = getStringFromObject(o);
+                    if (decStr.length() > 0) {
+                        try {
+                            ((CurrencyLinker) linker).link(CurrencyUnit.of(decStr.toUpperCase()));
+                            activity.coreFeedback();
+                        } catch (IllegalCurrencyException ignore) {
+                        }
+                    } else {
+                        ((CurrencyLinker) linker).link(null);
                         activity.coreFeedback();
-                    } catch (IllegalCurrencyException ignore) {
                     }
                 }
             }
@@ -209,7 +220,7 @@ public final class CoreNotifier {
     }
 
     private static String getStringFromObject(Object o) {
-        return o instanceof String ? (String) o : o.toString();
+        return o == null ? "" : (o instanceof String ? (String) o : o.toString());
     }
 
     /**

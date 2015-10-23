@@ -84,11 +84,20 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_direction_radio_info"
             android:text="@string/funds_mutation_subject_cost_text"/>
+        <CheckBox
+            android:id="@+id/funds_mutation_subject_cost_box"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/funds_mutation_direction_radio_info"
+            app:layout_widthPercent="40%"
+            android:text="@string/funds_mutation_subject_cost_box_text" />
         <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
             android:id="@+id/funds_mutation_subject_cost_fragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/funds_mutation_subject_cost_text"
+            android:layout_below="@id/funds_mutation_subject_cost_box"
             tools:layout="@layout/fragment_enter_amount" />
 
         <TextView
@@ -97,11 +106,20 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_subject_cost_fragment"
             android:text="@string/funds_mutation_payed_amount_text"/>
+        <CheckBox
+            android:id="@+id/funds_mutation_paid_amount_box"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/funds_mutation_subject_cost_fragment"
+            app:layout_widthPercent="40%"
+            android:text="@string/funds_mutation_payed_amount_box_text" />
         <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
             android:id="@+id/funds_mutation_paid_amount_fragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/funds_mutation_paid_amount_text"
+            android:layout_below="@id/funds_mutation_paid_amount_box"
             tools:layout="@layout/fragment_enter_amount" />
 
         <TextView

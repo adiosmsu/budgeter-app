@@ -130,6 +130,8 @@ public class AddFundsActivity extends CoreElementActivity {
                     //noinspection ConstantConditions
                     BalancesUiThreadState.addMoney(Money.of(additionElement.getAmountUnit(), additionElement.getAmountDecimal()), AddFundsActivity.this);
                 }
+
+                coreFeedback();
                 findViewById(R.id.activity_add_funds).invalidate();
                 core.unlock();
             }

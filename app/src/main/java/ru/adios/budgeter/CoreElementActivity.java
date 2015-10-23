@@ -22,7 +22,6 @@ import org.threeten.bp.OffsetTime;
 
 import java.math.BigDecimal;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
@@ -114,81 +113,83 @@ public abstract class CoreElementActivity extends AppCompatActivity {
     protected abstract void activityInnerFeedback();
 
     protected final void textViewFeedback(String text, @IdRes int textViewId) {
-        if (text != null) {
-            innerTextViewFeedback(text, (TextView) findViewById(textViewId));
-        }
+        innerTextViewFeedback(text, (TextView) findViewById(textViewId));
     }
 
     protected final void textViewFeedback(String text, @IdRes int fragmentId, @IdRes int textViewId) {
-        if (text != null) {
-            innerTextViewFeedback(text, (TextView) findViewById(fragmentId).findViewById(textViewId));
-        }
+        innerTextViewFeedback(text, (TextView) getFragmentView(fragmentId, textViewId));
     }
 
-    private void innerTextViewFeedback(@Nonnull String text, TextView textView) {
+    private void innerTextViewFeedback(String text, TextView textView) {
         if (!textView.getText().equals(text)) {
-            textView.setText(text);
+            if (text == null) {
+                textView.setText("");
+            } else {
+                textView.setText(text);
+            }
+
             textView.invalidate();
         }
     }
 
     protected final void decimalTextViewFeedback(BigDecimal decimal, @IdRes int textViewId) {
-        if (decimal != null) {
-            innerDecimalTextViewFeedback(decimal, (TextView) findViewById(textViewId));
-        }
+        innerDecimalTextViewFeedback(decimal, (TextView) findViewById(textViewId));
     }
 
     protected final void decimalTextViewFeedback(BigDecimal decimal, @IdRes int fragmentId, @IdRes int textViewId) {
-        if (decimal != null) {
-            innerDecimalTextViewFeedback(decimal, (TextView) findViewById(fragmentId).findViewById(textViewId));
-        }
+        innerDecimalTextViewFeedback(decimal, (TextView) getFragmentView(fragmentId, textViewId));
     }
 
-    private void innerDecimalTextViewFeedback(@Nonnull BigDecimal decimal, TextView textView) {
-        final String decimalText = decimal.toPlainString();
-        if (!decimalText.equals(textView.getText())) {
-            textView.setText(decimalText);
+    private void innerDecimalTextViewFeedback(BigDecimal decimal, TextView textView) {
+        if (decimal == null) {
+            textView.setText("");
             textView.invalidate();
+        } else {
+            final String decimalText = decimal.toPlainString();
+            if (!decimalText.equals(textView.getText())) {
+                textView.setText(decimalText);
+                textView.invalidate();
+            }
         }
     }
 
     protected final void currenciesSpinnerFeedback(CurrencyUnit unit, @IdRes int spinnerId) {
-        if (unit != null) {
-            innerCurrenciesSpinnerFeedback(unit, (Spinner) findViewById(spinnerId));
-        }
+        innerCurrenciesSpinnerFeedback(unit, (Spinner) findViewById(spinnerId));
     }
 
     protected final void currenciesSpinnerFeedback(CurrencyUnit unit, @IdRes int fragmentId, @IdRes int spinnerId) {
-        if (unit != null) {
-            innerCurrenciesSpinnerFeedback(unit, (Spinner) findViewById(fragmentId).findViewById(spinnerId));
-        }
+        innerCurrenciesSpinnerFeedback(unit, (Spinner) getFragmentView(fragmentId, spinnerId));
     }
 
-    private void innerCurrenciesSpinnerFeedback(@Nonnull CurrencyUnit unit, Spinner spinner) {
-        if (!spinner.getSelectedItem().toString().equals(unit.getCode())) {
+    private void innerCurrenciesSpinnerFeedback(CurrencyUnit unit, Spinner spinner) {
+        if (unit == null) {
+            final SpinnerAdapter adapter = spinner.getAdapter();
+            if (adapter instanceof HintedArrayAdapter) {
+                spinner.setSelection(adapter.getCount());
+                spinner.invalidate();
+            }
+        } else if (!spinner.getSelectedItem().toString().equals(unit.getCode())) {
             spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
             spinner.invalidate();
         }
     }
 
     protected final <T> void hintedArraySpinnerFeedback(T object, @IdRes int spinnerId) {
-        if (object != null) {
-            innerHintedArraySpinnerFeedback(object, (Spinner) findViewById(spinnerId));
-        }
+        innerHintedArraySpinnerFeedback(object, (Spinner) findViewById(spinnerId));
     }
 
     protected final <T> void hintedArraySpinnerFeedback(T object, @IdRes int fragmentId, @IdRes int spinnerId) {
-        if (object != null) {
-            innerHintedArraySpinnerFeedback(object, (Spinner) findViewById(fragmentId).findViewById(spinnerId));
-        }
+        innerHintedArraySpinnerFeedback(object, (Spinner) getFragmentView(fragmentId, spinnerId));
     }
 
     private <T> void innerHintedArraySpinnerFeedback(T object, Spinner spinnerView) {
         final SpinnerAdapter adapter = spinnerView.getAdapter();
 
         int pos = -1;
+        final Object selectedItem = spinnerView.getSelectedItem();
         if (adapter instanceof HintedArrayAdapter) {
-            if (!((HintedArrayAdapter.ObjectContainer) spinnerView.getSelectedItem()).getObject().equals(object)) {
+            Object innerItem;
+            if (selectedItem == null || (innerItem = ((HintedArrayAdapter.ObjectContainer) selectedItem).getObject()) == null || !innerItem.equals(object)) {
                 @SuppressWarnings("unchecked")
                 final HintedArrayAdapter<T> hintedArrayAdapter = (HintedArrayAdapter) adapter;
                 if (object == null) {
@@ -202,7 +203,7 @@ public abstract class CoreElementActivity extends AppCompatActivity {
                     }
                 }
             }
-        } else if (!spinnerView.getSelectedItem().equals(object)) {
+        } else if (object != null && !object.equals(selectedItem)) {
             for (int i = 0; i < adapter.getCount(); i++) {
                 if (adapter.getItem(i).equals(object)) {
                     pos = i;
@@ -215,6 +216,10 @@ public abstract class CoreElementActivity extends AppCompatActivity {
             spinnerView.setSelection(pos, true);
             spinnerView.invalidate();
         }
+    }
+
+    private View getFragmentView(@IdRes int fragmentId, int viewId) {
+        return findViewById(fragmentId).findViewById(viewId);
     }
 
     protected final void radioGroupFeedback(Enum e, @IdRes int radioId) {

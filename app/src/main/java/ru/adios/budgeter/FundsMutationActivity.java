@@ -32,6 +32,7 @@ public class FundsMutationActivity extends CoreElementActivity {
             new CollectedFragmentsInfoProvider.Builder(this)
                     .addProvider(FundsSubjectFragment.getInfoProvider(
                             R.id.funds_mutation_subject_fragment,
+                            this,
                             null,
                             new CoreElementFieldInfo(FundsMutationElementCore.FIELD_SUBJECT, new CoreNotifier.HintedLinker() {
                                 @Override

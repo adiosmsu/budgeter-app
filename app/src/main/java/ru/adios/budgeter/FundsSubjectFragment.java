@@ -1,6 +1,8 @@
 package ru.adios.budgeter;
 
 
+import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -46,7 +48,10 @@ public class FundsSubjectFragment extends CoreFragment {
     public static final String FIELD_NEW_SUBJECT_TYPE = "new_subject_type";
     public static final String BUTTON_NEW_SUBJECT_SUBMIT = "new_subject_submit";
 
-    public static CollectedFragmentsInfoProvider.InfoProvider<FundsMutationSubject, SubjectAdditionElementCore> getInfoProvider(@IdRes int fragmentId,
+    private static final String NO_SUCH_PARENT_ERROR = "No such parent";
+
+    public static CollectedFragmentsInfoProvider.InfoProvider<FundsMutationSubject, SubjectAdditionElementCore> getInfoProvider(@IdRes final int fragmentId,
+                                                                                                                                final Activity activity,
                                                                                                                                 @Nullable Consumer<FundsMutationSubject> subjectSubmitSuccessCallback,
                                                                                                                                 CoreElementActivity.CoreElementFieldInfo subjectFieldInfo,
                                                                                                                                 Supplier<FundsMutationSubject> feedbackAccountSupplier) {
@@ -64,8 +69,34 @@ public class FundsSubjectFragment extends CoreFragment {
                 }, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
                     @Override
-                    public void link(String data) {
-                        subjectsElement.setParentName(data);
+                    public void link(final String data) {
+                        new AsyncTask<SubjectAdditionElementCore, Void, Boolean>() {
+                            @Override
+                            protected Boolean doInBackground(SubjectAdditionElementCore[] params) {
+                                final SubjectAdditionElementCore e = params[0];
+                                return e.setParentName(data);
+                            }
+
+                            @Override
+                            protected void onPostExecute(Boolean result) {
+                                final TextView infoView = (TextView) activity.findViewById(fragmentId).findViewById(R.id.subjects_parent_name_input_info);
+                                if (infoView == null) {
+                                    return;
+                                }
+
+                                if (result) {
+                                    if (infoView.getVisibility() == View.VISIBLE && NO_SUCH_PARENT_ERROR.equals(infoView.getText())) {
+                                        infoView.setText("");
+                                        infoView.setVisibility(View.INVISIBLE);
+                                        infoView.invalidate();
+                                    }
+                                } else {
+                                    infoView.setVisibility(View.VISIBLE);
+                                    infoView.setText(NO_SUCH_PARENT_ERROR);
+                                    infoView.invalidate();
+                                }
+                            }
+                        }.execute(subjectsElement);
                     }
                 }, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_SUBJECT_TYPE, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_TYPE, new CoreNotifier.NumberLinker() {

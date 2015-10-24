@@ -190,7 +190,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_agent_fragment"
-            android:text="@string/funds_mutation_datetime_text"/>
+            android:text="@string/enter_datetime_text"/>
         <ru.adios.budgeter.util.DateEditView
             android:id="@+id/funds_mutation_date"
             android:layout_width="0dp"

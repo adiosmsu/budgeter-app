@@ -1,8 +1,6 @@
 package ru.adios.budgeter;
 
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -36,13 +34,11 @@ import ru.adios.budgeter.util.ModedRequestingAutoCompleteAdapter;
 import ru.adios.budgeter.util.RequestingAutoCompleteAdapter;
 import ru.adios.budgeter.util.UiUtils;
 
-import static com.google.common.base.Preconditions.checkState;
-
 
 /**
  * Fragment for choosing and optionally adding a subject of a deal.
  */
-public class FundsSubjectFragment extends Fragment {
+public class FundsSubjectFragment extends CoreFragment {
 
     public static final String FIELD_SUBJECTS = "subject";
     public static final String FIELD_NEW_SUBJECT_NAME = "new_subject_name";
@@ -84,16 +80,6 @@ public class FundsSubjectFragment extends Fragment {
 
     public FundsSubjectFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Overridden to fail early.
-     * @param activity activity of CoreElementActivity type.
-     */
-    @Override
-    public void onAttach(Activity activity) {
-        checkState(activity instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", activity);
-        super.onAttach(activity);
     }
 
     @Override

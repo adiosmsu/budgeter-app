@@ -1,8 +1,6 @@
 package ru.adios.budgeter;
 
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -27,13 +25,11 @@ import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.HintedArrayAdapter;
 import ru.adios.budgeter.util.UiUtils;
 
-import static com.google.common.base.Preconditions.checkState;
-
 
 /**
  * Fragment for choosing and optionally adding a agent entity of a deal.
  */
-public class FundsAgentFragment extends Fragment {
+public class FundsAgentFragment extends CoreFragment {
 
     public static final String FIELD_AGENTS = "agent";
     public static final String FIELD_NEW_AGENT_NAME = "new_agent_name";
@@ -60,16 +56,6 @@ public class FundsAgentFragment extends Fragment {
 
     public FundsAgentFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Overridden to fail early.
-     * @param activity activity of CoreElementActivity type.
-     */
-    @Override
-    public void onAttach(Activity activity) {
-        checkState(activity instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", activity);
-        super.onAttach(activity);
     }
 
     @Override

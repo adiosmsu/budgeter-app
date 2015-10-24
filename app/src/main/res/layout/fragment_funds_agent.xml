@@ -42,7 +42,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_widthPercent="70%"
-        android:hint="@string/angent_name_hint"
+        android:hint="@string/agent_name_hint"
         android:layout_below="@+id/agents_spinner_info"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"

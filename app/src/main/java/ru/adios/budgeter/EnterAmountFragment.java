@@ -1,6 +1,5 @@
 package ru.adios.budgeter;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -21,7 +20,7 @@ import ru.adios.budgeter.util.HintedArrayAdapter;
 /**
  * Common fields for entering monetary value.
  */
-public class EnterAmountFragment extends Fragment {
+public class EnterAmountFragment extends CoreFragment {
 
     public static final String FIELD_AMOUNT_DECIMAL = "amount_decimal";
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";

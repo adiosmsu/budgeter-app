@@ -1,8 +1,6 @@
 package ru.adios.budgeter;
 
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -41,7 +39,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Fragment for accounts spinner with a button to add a new one.
  */
-public class AccountStandardFragment extends Fragment {
+public class AccountStandardFragment extends CoreFragment {
 
     public static final String FIELD_ACCOUNT = "account";
     public static final String FIELD_NEW_ACCOUNT_NAME = "new_account_name";
@@ -209,16 +207,6 @@ public class AccountStandardFragment extends Fragment {
 
     public AccountStandardFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Overridden to fail early.
-     * @param activity activity of CoreElementActivity type.
-     */
-    @Override
-    public void onAttach(Activity activity) {
-        checkState(activity instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", activity);
-        super.onAttach(activity);
     }
 
     @Override

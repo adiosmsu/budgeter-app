@@ -11,7 +11,6 @@ import org.joda.money.CurrencyUnit;
 
 import java.math.BigDecimal;
 
-import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.HintedArrayAdapter;
@@ -25,31 +24,27 @@ public class EnterAmountFragment extends CoreFragment {
     public static final String FIELD_AMOUNT_DECIMAL = "amount_decimal";
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";
 
-    public static CollectibleFragmentInfoProvider<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>> getInfoProvider(@IdRes final int fragmentId,
-                                                                                           final MoneySettable moneySettable,
-                                                                                           final CoreErrorHighlighter highlighter,
-                                                                                           String amountDecimalCoreName,
-                                                                                           String amountUnitCoreName) {
-        return new CollectibleFragmentInfoProvider.Builder<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>>(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker() {
+    public static CollectibleFragmentInfoProvider getInfoProvider(@IdRes final int fragmentId, final MoneySettable monSet, final CoreErrorHighlighter highlighter, String decCoreName, String unitCoreName) {
+        return new CollectibleFragmentInfoProvider.Builder(fragmentId, new CollectibleFragmentInfoProvider.Feedbacker() {
             @Override
             public void performFeedback(CoreElementActivity activity) {
-                activity.decimalTextViewFeedback(moneySettable.getAmountDecimal(), fragmentId, R.id.amount_decimal);
-                activity.currenciesSpinnerFeedback(moneySettable.getAmountUnit(), fragmentId, R.id.amount_currency);
+                activity.decimalTextViewFeedback(monSet.getAmountDecimal(), fragmentId, R.id.amount_decimal);
+                activity.currenciesSpinnerFeedback(monSet.getAmountUnit(), fragmentId, R.id.amount_currency);
             }
         })
-                .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(amountDecimalCoreName, new CoreNotifier.DecimalLinker() {
+                .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(decCoreName, new CoreNotifier.DecimalLinker() {
                     @Override
                     public void link(BigDecimal data) {
-                        moneySettable.setAmountDecimal(data);
+                        monSet.setAmountDecimal(data);
                     }
                 }, highlighter))
-                .addFieldInfo(FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(amountUnitCoreName, new CoreNotifier.CurrencyLinker() {
+                .addFieldInfo(FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(unitCoreName, new CoreNotifier.CurrencyLinker() {
                     @Override
                     public void link(CurrencyUnit data) {
-                        moneySettable.setAmountUnit(data);
+                        monSet.setAmountUnit(data);
                     }
                 }, highlighter))
-                .<Treasury.BalanceAccount, Submitter<Treasury.BalanceAccount>>build();
+                .build();
     }
 
     public EnterAmountFragment() {

@@ -279,20 +279,20 @@ public class FundsMutationActivity extends CoreElementActivity {
                     BalancesUiThreadState.addMoney(mutationElement.getSubmittedMoney(), FundsMutationActivity.this);
                 }
 
-                final CheckBox paidBox = (CheckBox) findViewById(R.id.funds_mutation_paid_amount_box);
-                if (paidBox.isChecked()
-                        && result.containsFieldErrors(FundsMutationElementCore.FIELD_PAID_MONEY, FundsMutationElementCore.FIELD_PAYEE_ACCOUNT_UNIT, FundsMutationElementCore.FIELD_PAYEE_AMOUNT))
-                {
-                    paidBox.setChecked(false);
-                }
-                final CheckBox costBox = (CheckBox) findViewById(R.id.funds_mutation_subject_cost_box);
-                if (costBox.isChecked() && result.containsFieldErrors(FundsMutationElementCore.FIELD_AMOUNT, FundsMutationElementCore.FIELD_AMOUNT_DECIMAL, FundsMutationElementCore.FIELD_AMOUNT_UNIT)) {
-                    costBox.setChecked(false);
-                }
 
-                coreFeedback();
-                findViewById(R.id.activity_funds_mutation).invalidate();
-                core.unlock();
+                processResultDependentCheckBox(R.id.funds_mutation_paid_amount_box, result,
+                        FundsMutationElementCore.FIELD_PAID_MONEY, FundsMutationElementCore.FIELD_PAYEE_ACCOUNT_UNIT, FundsMutationElementCore.FIELD_PAYEE_AMOUNT);
+                processResultDependentCheckBox(R.id.funds_mutation_subject_cost_box, result,
+                        FundsMutationElementCore.FIELD_AMOUNT, FundsMutationElementCore.FIELD_AMOUNT_DECIMAL, FundsMutationElementCore.FIELD_AMOUNT_UNIT);
+
+                finishSubmit(core, R.id.activity_funds_mutation);
+            }
+
+            private void processResultDependentCheckBox(@IdRes int boxId, Submitter.Result result, String... fieldNames) {
+                final CheckBox box = (CheckBox) findViewById(boxId);
+                if (box.isChecked() && result.containsFieldErrors(fieldNames)) {
+                    box.setChecked(false);
+                }
             }
         }.execute(mutationElement);
     }

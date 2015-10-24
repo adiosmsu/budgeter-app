@@ -2,6 +2,7 @@ package ru.adios.budgeter;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.MenuRes;
 import android.view.MenuItem;
@@ -131,9 +132,7 @@ public class AddFundsActivity extends CoreElementActivity {
                     BalancesUiThreadState.addMoney(Money.of(additionElement.getAmountUnit(), additionElement.getAmountDecimal()), AddFundsActivity.this);
                 }
 
-                coreFeedback();
-                findViewById(R.id.activity_add_funds).invalidate();
-                core.unlock();
+                finishSubmit(core, R.id.activity_add_funds);
             }
         }.execute(additionElement);
     }

@@ -334,6 +334,12 @@ public abstract class CoreElementActivity extends AppCompatActivity {
         }
     }
 
+    protected final void finishSubmit(Submitter core, @IdRes int layoutId) {
+        coreFeedback();
+        findViewById(layoutId).invalidate();
+        core.unlock();
+    }
+
     protected interface FragmentsInfoProvider {
 
         CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName);

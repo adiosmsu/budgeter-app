@@ -190,35 +190,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_agent_fragment"
-            android:text="@string/enter_datetime_text"/>
-        <ru.adios.budgeter.util.DateEditView
-            android:id="@+id/funds_mutation_date"
-            android:layout_width="0dp"
+            android:text="@string/funds_mutation_datetime_text"/>
+        <fragment
+            android:id="@+id/funds_mutation_datetime_fragment"
+            android:name="ru.adios.budgeter.DateTimeFragment"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_widthPercent="70%"
             android:layout_below="@id/funds_mutation_datetime_text"
-            tools:ignore="TextFields"
-            style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
-        <ru.adios.budgeter.util.TimeEditView
-            android:id="@+id/funds_mutation_time"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_widthPercent="30%"
-            android:layout_below="@id/funds_mutation_datetime_text"
-            android:layout_toRightOf="@id/funds_mutation_date"
-            android:layout_toEndOf="@id/funds_mutation_date"
-            tools:ignore="TextFields"
-            style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
-        <TextView
-            android:id="@+id/funds_mutation_datetime_info"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:text=""
-            android:textColor="#af0b0b"
-            android:layout_below="@id/funds_mutation_date"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:visibility="invisible" />
+            tools:layout="@layout/fragment_date_time"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -226,7 +205,7 @@
             android:text=""
             android:textColor="#af0b0b"
             android:id="@+id/funds_mutation_info"
-            android:layout_below="@id/funds_mutation_datetime_info"
+            android:layout_below="@id/funds_mutation_datetime_fragment"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:visibility="invisible" />

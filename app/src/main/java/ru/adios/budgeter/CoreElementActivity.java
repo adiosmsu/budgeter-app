@@ -121,7 +121,8 @@ public abstract class CoreElementActivity extends AppCompatActivity {
     }
 
     private void innerTextViewFeedback(String text, TextView textView) {
-        if (!textView.getText().equals(text)) {
+        final CharSequence innerText = textView.getText();
+        if (innerText == null || !innerText.equals(text)) {
             if (text == null) {
                 textView.setText("");
             } else {

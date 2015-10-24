@@ -8,7 +8,7 @@
 
     <ru.adios.budgeter.util.FlexibleNotifyingSpinner
         android:id="@+id/accounts_spinner"
-        android:layout_width="0dp"
+        android:layout_width="50dp"
         app:layout_widthPercent="50%"
         android:layout_height="wrap_content"
         android:prompt="@string/accounts_spinner_prompt"
@@ -27,7 +27,7 @@
         android:textSize="24sp"/>
     <TextView
         android:id="@+id/accounts_spinner_info"
-        android:layout_width="0dp"
+        android:layout_width="80dp"
         app:layout_widthPercent="50%"
         android:layout_height="wrap_content"
         android:text=""
@@ -39,8 +39,8 @@
 
     <EditText
         android:id="@+id/accounts_name_input"
-        android:layout_width="0dp"
-        app:layout_widthPercent="70%"
+        android:layout_width="80dp"
+        app:layout_widthPercent="60%"
         android:layout_height="wrap_content"
         android:hint="@string/account_name_hint"
         android:layout_below="@+id/accounts_spinner_info"
@@ -50,8 +50,8 @@
         android:visibility="gone"/>
     <TextView
         android:id="@+id/accounts_name_input_info"
-        android:layout_width="0dp"
-        app:layout_widthPercent="70%"
+        android:layout_width="80dp"
+        app:layout_widthPercent="60%"
         android:layout_height="wrap_content"
         android:text=""
         android:textColor="#af0b0b"
@@ -62,20 +62,20 @@
     <Spinner
         android:id="@+id/accounts_currency_input"
         android:layout_width="0dp"
-        app:layout_widthPercent="30%"
-        android:layout_height="0dp"
+        app:layout_widthPercent="40%"
+        android:layout_height="40dp"
         android:prompt="@string/amount_currency_hint"
         android:layout_toRightOf="@id/accounts_name_input"
         android:layout_toEndOf="@id/accounts_name_input"
         android:layout_alignTop="@id/accounts_name_input"
         android:layout_alignBottom="@id/accounts_name_input"
         android:spinnerMode="dropdown"
-        style="@style/Widget.AppCompat.EditText"
+        style="@android:style/Widget.DeviceDefault.Light.Spinner"
         android:visibility="gone"/>
     <TextView
         android:id="@+id/accounts_currency_input_info"
         android:layout_width="0dp"
-        app:layout_widthPercent="30%"
+        app:layout_widthPercent="40%"
         android:layout_height="wrap_content"
         android:text=""
         android:textColor="#af0b0b"

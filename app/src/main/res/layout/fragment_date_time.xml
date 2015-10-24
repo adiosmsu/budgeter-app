@@ -6,17 +6,11 @@
     android:layout_height="match_parent"
     tools:context="ru.adios.budgeter.DateTimeFragment">
 
-    <TextView
-        android:id="@+id/enter_datetime_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/enter_datetime_text"/>
     <ru.adios.budgeter.util.DateEditView
         android:id="@+id/enter_date"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_widthPercent="70%"
-        android:layout_below="@id/enter_datetime_text"
         tools:ignore="TextFields"
         style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
     <ru.adios.budgeter.util.TimeEditView
@@ -24,7 +18,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_widthPercent="30%"
-        android:layout_below="@id/enter_datetime_text"
         android:layout_toRightOf="@id/enter_date"
         android:layout_toEndOf="@id/enter_date"
         tools:ignore="TextFields"

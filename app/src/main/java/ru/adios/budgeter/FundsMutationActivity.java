@@ -10,11 +10,6 @@ import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import org.joda.money.CurrencyUnit;
-import org.joda.money.Money;
-import org.threeten.bp.OffsetDateTime;
-import org.threeten.bp.OffsetTime;
-
 import java.math.BigDecimal;
 
 import java8.util.function.Supplier;
@@ -25,9 +20,7 @@ import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
-import ru.adios.budgeter.util.DateEditView;
 import ru.adios.budgeter.util.HintedArrayAdapter;
-import ru.adios.budgeter.util.TimeEditView;
 import ru.adios.budgeter.util.UiUtils;
 
 public class FundsMutationActivity extends CoreElementActivity {
@@ -62,47 +55,7 @@ public class FundsMutationActivity extends CoreElementActivity {
                     ))
                     .addProvider(EnterAmountFragment.getInfoProvider(
                             R.id.funds_mutation_paid_amount_fragment,
-                            new MoneySettable() {
-                                @Override
-                                public void setAmount(int coins, int cents) {
-                                    mutationElement.setPayeeAmount(coins, cents);
-                                }
-
-                                @Override
-                                public void setAmountDecimal(BigDecimal amountDecimal) {
-                                    mutationElement.setPayeeAmount(amountDecimal);
-                                }
-
-                                @Override
-                                public BigDecimal getAmountDecimal() {
-                                    return mutationElement.getPayeeAmount();
-                                }
-
-                                @Override
-                                public void setAmountUnit(String code) {
-                                    mutationElement.setPayeeAccountUnit(code);
-                                }
-
-                                @Override
-                                public void setAmountUnit(CurrencyUnit unit) {
-                                    mutationElement.setPayeeAccountUnit(unit);
-                                }
-
-                                @Override
-                                public CurrencyUnit getAmountUnit() {
-                                    return mutationElement.getPayeeAccountUnit();
-                                }
-
-                                @Override
-                                public void setAmount(Money amount) {
-                                    mutationElement.setPaidMoney(amount);
-                                }
-
-                                @Override
-                                public Money getAmount() {
-                                    return mutationElement.getPaidMoney();
-                                }
-                            },
+                            mutationElement.getPayeeMoneySettable(),
                             mutationHighlighter,
                             FundsMutationElementCore.FIELD_PAYEE_AMOUNT,
                             FundsMutationElementCore.FIELD_PAYEE_ACCOUNT_UNIT
@@ -138,6 +91,7 @@ public class FundsMutationActivity extends CoreElementActivity {
                                 }
                             }
                     ))
+                    .addProvider(DateTimeFragment.getInfoProvider(R.id.funds_mutation_datetime_fragment, mutationHighlighter, FundsMutationElementCore.FIELD_TIMESTAMP, mutationElement))
                     .build();
 
     private final CheckedChangeListener paidMoneyListener = new CheckedChangeListener(R.id.funds_mutation_paid_amount_fragment);
@@ -189,41 +143,6 @@ public class FundsMutationActivity extends CoreElementActivity {
             }
         });
 
-        mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_TIMESTAMP, findViewById(R.id.funds_mutation_datetime_info));
-        final DateEditView dateView = (DateEditView) findViewById(R.id.funds_mutation_date);
-        CoreNotifier.addLink(this, dateView, new CoreNotifier.ArbitraryLinker() {
-            @Override
-            public void link(Object data) {
-                if (data instanceof OffsetDateTime) {
-                    final OffsetDateTime date = (OffsetDateTime) data;
-
-                    final OffsetDateTime ts = mutationElement.getTimestamp();
-                    if (ts != null) {
-                        mutationElement.setTimestamp(OffsetDateTime.of(date.toLocalDate(), ts.toLocalTime(), date.getOffset()));
-                    } else {
-                        mutationElement.setTimestamp(date);
-                    }
-                }
-            }
-        });
-        final TimeEditView timeView = (TimeEditView) findViewById(R.id.funds_mutation_time);
-        CoreNotifier.addLink(this, timeView, new CoreNotifier.ArbitraryLinker() {
-            @Override
-            public void link(Object data) {
-                if (data instanceof OffsetTime) {
-                    final OffsetTime time = (OffsetTime) data;
-
-                    OffsetDateTime ts = mutationElement.getTimestamp();
-                    if (ts == null) {
-                        ts = OffsetDateTime.now();
-                    }
-                    mutationElement.setTimestamp(OffsetDateTime.of(ts.toLocalDate(), time.toLocalTime(), time.getOffset()));
-                }
-            }
-        });
-        dateView.init(this);
-        timeView.init(this);
-
         final CheckBox paidAmountBox = (CheckBox) findViewById(R.id.funds_mutation_paid_amount_box);
         paidAmountBox.setOnCheckedChangeListener(paidMoneyListener);
         final CheckBox costBox = (CheckBox) findViewById(R.id.funds_mutation_subject_cost_box);
@@ -246,7 +165,6 @@ public class FundsMutationActivity extends CoreElementActivity {
         decimalTextViewFeedback(mutationElement.getCustomRate(), R.id.funds_mutation_custom_rate);
         textViewFeedback(String.valueOf(mutationElement.getQuantity()), R.id.funds_mutation_quantity);
         radioGroupFeedback(mutationElement.getDirection(), R.id.funds_mutation_direction_radio);
-        dateTimeFeedback(mutationElement.getTimestamp(), R.id.funds_mutation_date, R.id.funds_mutation_time);
     }
 
     @Override

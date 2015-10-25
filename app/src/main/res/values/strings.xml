@@ -41,5 +41,16 @@
     <string name="button_mutate_funds">register operation</string>
     <string name="funds_mutation_payed_amount_box_text">Drop paid amount</string>
     <string name="funds_mutation_subject_cost_box_text">Drop subject cost</string>
+    <string name="ah_ops_table_col_time">Op time</string>
+    <string name="ah_ops_table_col_subj">Subject</string>
+    <string name="ah_ops_table_col_money">Money</string>
+    <string name="ah_ops_table_col_account">Account</string>
+    <string name="ah_ops_table_header">Recent operations</string>
+    <string name="ah_exchanges_table_header">Recent exchanges</string>
+    <string name="ah_exchanges_table_col_bought">Bought</string>
+    <string name="ah_exchanges_table_col_sold">Sold</string>
+    <string name="ah_exchanges_table_col_b_acc">B-Acc</string>
+    <string name="ah_exchanges_table_col_s_acc">S-Acc</string>
+    <string name="ah_exchanges_table_col_rate">Rate</string>
 
 </resources>

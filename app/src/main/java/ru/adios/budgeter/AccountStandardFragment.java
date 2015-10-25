@@ -2,7 +2,6 @@ package ru.adios.budgeter;
 
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -17,7 +16,6 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -25,7 +23,6 @@ import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
-import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.BalanceAccountContainer;

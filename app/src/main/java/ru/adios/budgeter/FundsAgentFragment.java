@@ -1,7 +1,6 @@
 package ru.adios.budgeter;
 
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -12,14 +11,11 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
-import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.FundsMutationAgent;
 import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.CachingHintedContainer;

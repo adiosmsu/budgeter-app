@@ -7,7 +7,6 @@
     android:layout_height="match_parent">
 
     <android.support.percent.PercentRelativeLayout
-        android:id="@+id/funds_mutation_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -144,7 +143,7 @@
             android:layout_height="wrap_content"
             app:layout_widthPercent="50%"
             android:layout_below="@id/funds_mutation_natural_rate_text"
-            android:hint="@string/funds_mutation_natural_rate_text"
+            android:hint="@string/natural_rate_text"
             android:inputType="numberDecimal"/>
         <EditText
             android:id="@+id/funds_mutation_custom_rate"
@@ -154,7 +153,7 @@
             android:layout_below="@id/funds_mutation_custom_rate_text"
             android:layout_toRightOf="@+id/funds_mutation_natural_rate"
             android:layout_toEndOf="@+id/funds_mutation_natural_rate"
-            android:hint="@string/funds_mutation_custom_rate_text"
+            android:hint="@string/custom_rate_text"
             android:inputType="numberDecimal"/>
 
         <TextView
@@ -176,7 +175,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_relevant_balance_fragment"
-            android:text="@string/funds_mutation_agent_text"/>
+            android:text="@string/op_agent_text"/>
         <fragment
             android:id="@+id/funds_mutation_agent_fragment"
             android:name="ru.adios.budgeter.FundsAgentFragment"
@@ -190,7 +189,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/funds_mutation_agent_fragment"
-            android:text="@string/funds_mutation_datetime_text"/>
+            android:text="@string/enter_datetime_text"/>
         <fragment
             android:id="@+id/funds_mutation_datetime_fragment"
             android:name="ru.adios.budgeter.DateTimeFragment"

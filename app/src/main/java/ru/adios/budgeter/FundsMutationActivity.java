@@ -156,10 +156,6 @@ public class FundsMutationActivity extends CoreElementActivity {
         setGlobalInfoViewPerFragment(R.id.funds_mutation_agent_fragment, FundsAgentFragment.BUTTON_NEW_AGENT_SUBMIT, infoView);
     }
 
-    private void setGlobalInfoViewPerFragment(@IdRes int fragmentId, String buttonName, View infoView) {
-        infoProvider.getSubmitInfo(fragmentId, buttonName).errorHighlighter.setGlobalInfoView(infoView);
-    }
-
     @Override
     protected final void activityInnerFeedback() {
         decimalTextViewFeedback(mutationElement.getNaturalRate(), R.id.funds_mutation_natural_rate);

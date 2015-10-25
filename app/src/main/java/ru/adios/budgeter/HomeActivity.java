@@ -119,7 +119,7 @@ public class HomeActivity extends AppCompatActivity {
 
     /** Called when user clicks on Exchange button */
     public void startExchangeCurrenciesActivity(View view) {
-        startActivity(new Intent(this, FundsMutationActivity.class)); //TODO: change
+        startActivity(new Intent(this, ExchangeCurrenciesActivity.class));
     }
 
     private boolean initMenuHandler(final LinearLayout fundsLayout) {

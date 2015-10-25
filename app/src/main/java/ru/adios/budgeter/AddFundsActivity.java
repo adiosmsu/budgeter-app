@@ -2,7 +2,6 @@ package ru.adios.budgeter;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.MenuRes;
 import android.view.MenuItem;
@@ -97,9 +96,6 @@ public class AddFundsActivity extends CoreElementActivity {
             }
         });
     }
-
-    @Override
-    protected final void activityInnerFeedback() {}
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

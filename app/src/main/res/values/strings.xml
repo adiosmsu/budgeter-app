@@ -30,14 +30,14 @@
     <string name="type_service">Service</string>
     <string name="type_occasion">Occasion</string>
     <string name="funds_mutation_subject_text">Funds operation subject:</string>
-    <string name="funds_mutation_natural_rate_text">Today\'s exchange rate:</string>
-    <string name="funds_mutation_custom_rate_text">Custom deal rate:</string>
+    <string name="natural_rate_text">Today\'s exchange rate:</string>
+    <string name="custom_rate_text">Custom deal rate:</string>
     <string name="funds_mutation_relevant_balance_text">Relevant balance account:</string>
     <string name="funds_mutation_quantity_text">Quantity of subjects:</string>
     <string name="agents_spinner_prompt">Available agents</string>
     <string name="agent_name_hint">Agent name</string>
-    <string name="funds_mutation_agent_text">Operation agent (e.g. a place where the deal broke)</string>
-    <string name="funds_mutation_datetime_text">Enter date and time of operation:</string>
+    <string name="op_agent_text">Operation agent (e.g. a place where the deal broke)</string>
+    <string name="enter_datetime_text">Enter date and time of operation:</string>
     <string name="button_mutate_funds">register operation</string>
     <string name="funds_mutation_payed_amount_box_text">Drop paid amount</string>
     <string name="funds_mutation_subject_cost_box_text">Drop subject cost</string>
@@ -53,5 +53,11 @@
     <string name="ah_exchanges_table_col_s_acc">S-Acc</string>
     <string name="ah_exchanges_table_col_rate">Rate</string>
     <string name="button_register_exchange">Register exchange</string>
+    <string name="exchange_currencies_buy_amount_text">Buy amount:</string>
+    <string name="exchange_currencies_sell_amount_text">Sell amount:</string>
+    <string name="exchange_currencies_buy_account_text">Buy currency account:</string>
+    <string name="exchange_currencies_sell_account_text">Sell currency account:</string>
+    <string name="exchange_currencies_finish_button">Finish</string>
+    <string name="title_activity_exchange_currencies">Add Exchange</string>
 
 </resources>

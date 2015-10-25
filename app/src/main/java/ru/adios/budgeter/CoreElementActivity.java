@@ -110,7 +110,11 @@ public abstract class CoreElementActivity extends AppCompatActivity {
         }
     }
 
-    protected abstract void activityInnerFeedback();
+    protected final void setGlobalInfoViewPerFragment(@IdRes int fragmentId, String buttonName, View infoView) {
+        getInfoProvider().getSubmitInfo(fragmentId, buttonName).errorHighlighter.setGlobalInfoView(infoView);
+    }
+
+    protected void activityInnerFeedback() {}
 
     protected final void textViewFeedback(String text, @IdRes int textViewId) {
         innerTextViewFeedback(text, (TextView) findViewById(textViewId));

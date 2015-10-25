@@ -37,6 +37,11 @@ public final class UiUtils {
 
     public static final int FUNDS_ID = ElementsIdProvider.getNextId();
 
+    public static int dpAsPixels(Context context, int sizeInDp) {
+        float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (sizeInDp*scale + 0.5f);
+    }
+
     public static <T> void prepareHintedSpinnerAsync(final Spinner spinner,
                                                      final CoreElementActivity activity,
                                                      final @IdRes int fragmentId,

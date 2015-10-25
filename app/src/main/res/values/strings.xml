@@ -52,5 +52,6 @@
     <string name="ah_exchanges_table_col_b_acc">B-Acc</string>
     <string name="ah_exchanges_table_col_s_acc">S-Acc</string>
     <string name="ah_exchanges_table_col_rate">Rate</string>
+    <string name="button_register_exchange">Register exchange</string>
 
 </resources>

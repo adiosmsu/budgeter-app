@@ -1,6 +1,7 @@
 package ru.adios.budgeter;
 
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -10,6 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -69,17 +72,14 @@ public class FundsAgentFragment extends CoreFragment {
 
         // main spinner init
         final Spinner agentsSpinner = (Spinner) inflated.findViewById(R.id.agents_spinner);
-        HintedArrayAdapter.adaptArbitraryContainedSpinner(
-                agentsSpinner,
-                activity,
-                Schema.FUNDS_MUTATION_AGENTS.streamAll().map(new Function<FundsMutationAgent, HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>() {
+        UiUtils.prepareHintedSpinnerAsync(agentsSpinner, activity, id, FIELD_AGENTS, inflated, R.id.agents_spinner_info, Schema.FUNDS_MUTATION_AGENTS.streamAll(),
+                new Function<FundsMutationAgent, HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<FundsMutationAgent> apply(FundsMutationAgent agent) {
                         return CONTAINER_FACTORY.create(agent);
                     }
-                }).collect(Collectors.<HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>toList())
+                }
         );
-        activity.addFieldFragmentInfo(id, FIELD_AGENTS, agentsSpinner, inflated.findViewById(R.id.agents_spinner_info));
 
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.agents_name_input);

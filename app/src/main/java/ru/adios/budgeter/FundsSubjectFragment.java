@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
-import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.FundsMutationSubject;
 import ru.adios.budgeter.inmemrepo.Schema;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
@@ -124,17 +123,14 @@ public class FundsSubjectFragment extends CoreFragment {
 
         // main spinner init
         final Spinner subjectsSpinner = (Spinner) inflated.findViewById(R.id.subjects_spinner);
-        HintedArrayAdapter.adaptArbitraryContainedSpinner(
-                subjectsSpinner,
-                activity,
-                Schema.FUNDS_MUTATION_SUBJECTS.streamAll().map(new Function<FundsMutationSubject, HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>() {
+        UiUtils.prepareHintedSpinnerAsync(subjectsSpinner, activity, id, FIELD_SUBJECTS, inflated, R.id.subjects_spinner_info, Schema.FUNDS_MUTATION_SUBJECTS.streamAll(),
+                new Function<FundsMutationSubject, HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<FundsMutationSubject> apply(FundsMutationSubject subject) {
                         return new FundsMutationSubjectContainer(subject);
                     }
-                }).collect(Collectors.<HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>toList())
+                }
         );
-        activity.addFieldFragmentInfo(id, FIELD_SUBJECTS, subjectsSpinner, inflated.findViewById(R.id.subjects_spinner_info));
 
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.subjects_name_input);

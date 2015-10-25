@@ -2,6 +2,7 @@ package ru.adios.budgeter;
 
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -219,20 +221,14 @@ public class AccountStandardFragment extends CoreFragment {
 
         // main spinner init
         final Spinner accountsSpinner = (Spinner) inflated.findViewById(R.id.accounts_spinner);
-        HintedArrayAdapter.adaptArbitraryContainedSpinner(
-                accountsSpinner,
-                activity,
-                Schema.TREASURY
-                        .streamRegisteredAccounts()
-                        .map(new Function<Treasury.BalanceAccount, HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount>>() {
-                            @Override
-                            public HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> apply(Treasury.BalanceAccount balanceAccount) {
-                                return new BalanceAccountContainer(balanceAccount);
-                            }
-                        })
-                        .collect(Collectors.<HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount>>toList())
+        UiUtils.prepareHintedSpinnerAsync(accountsSpinner, activity, id, FIELD_ACCOUNT, inflated, R.id.accounts_spinner_info, Schema.TREASURY.streamRegisteredAccounts(),
+                new Function<Treasury.BalanceAccount, HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount>>() {
+                    @Override
+                    public HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> apply(Treasury.BalanceAccount balanceAccount) {
+                        return new BalanceAccountContainer(balanceAccount);
+                    }
+                }
         );
-        activity.addFieldFragmentInfo(id, FIELD_ACCOUNT, accountsSpinner, inflated.findViewById(R.id.accounts_spinner_info));
 
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.accounts_name_input);

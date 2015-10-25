@@ -1,8 +1,11 @@
 package ru.adios.budgeter.util;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.support.annotation.IdRes;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -13,7 +16,11 @@ import org.joda.money.Money;
 
 import java.util.List;
 
+import java8.util.function.Function;
+import java8.util.stream.Collectors;
+import java8.util.stream.Stream;
 import ru.adios.budgeter.Constants;
+import ru.adios.budgeter.CoreElementActivity;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.api.Treasury;
 
@@ -29,6 +36,35 @@ public final class UiUtils {
     }
 
     public static final int FUNDS_ID = ElementsIdProvider.getNextId();
+
+    public static <T> void prepareHintedSpinnerAsync(final Spinner spinner,
+                                                     final CoreElementActivity activity,
+                                                     final @IdRes int fragmentId,
+                                                     final String fieldName,
+                                                     final View mainFragmentView,
+                                                     final @IdRes int spinnerInfoId,
+                                                     Stream<T> stream,
+                                                     Function<T, HintedArrayAdapter.ObjectContainer<T>> converter) {
+        HintedArrayAdapter.adaptStringSpinner(spinner, activity, new String[] {}); // empty it first 'cause we need to do our task in background
+        new AsyncTask<Object, Void, List<HintedArrayAdapter.ObjectContainer<T>>>() {
+            @Override
+            protected List<HintedArrayAdapter.ObjectContainer<T>> doInBackground(Object[] params) {
+                // get values from db
+                //noinspection unchecked
+                return ((Stream<T>) params[0])
+                        .map((Function<T, HintedArrayAdapter.ObjectContainer<T>>) params[1])
+                        .collect(Collectors.<HintedArrayAdapter.ObjectContainer<T>>toList());
+            }
+
+            @Override
+            protected void onPostExecute(List<HintedArrayAdapter.ObjectContainer<T>> res) {
+                // fill spinner with data and schedule it for redrawing
+                HintedArrayAdapter.adaptArbitraryContainedSpinner(spinner, activity, res);
+                activity.addFieldFragmentInfo(fragmentId, fieldName, spinner, mainFragmentView.findViewById(spinnerInfoId));
+                spinner.invalidate();
+            }
+        }.execute(stream, converter);
+    }
 
     public static void refillLinearLayoutWithBalances(LinearLayout fundsLayout, List<Money> balances, Money totalBalance, Context context) {
         fundsLayout.removeAllViews();

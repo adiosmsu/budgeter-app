@@ -17,9 +17,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java8.util.function.Consumer;
 import java8.util.stream.Collectors;
 import ru.adios.budgeter.BalanceElementCore;
+import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.api.Units;
-import ru.adios.budgeter.inmemrepo.Schema;
 
 /**
  * Designed for UI thread.
@@ -32,7 +32,8 @@ public final class BalancesUiThreadState {
 
     private static final ArrayList<Money> balances = new ArrayList<>(10);
     public static Money totalBalance = Money.zero(Units.RUB);
-    private static final BalanceElementCore balanceElement = new BalanceElementCore(Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService()); // with service for background thread only
+    private static final BalanceElementCore balanceElement =
+            new BalanceElementCore(BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService()); // with service for background thread only
 
     static {
         balanceElement.setTotalUnit(Units.RUB);

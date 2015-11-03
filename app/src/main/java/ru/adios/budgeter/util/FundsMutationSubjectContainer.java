@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import javax.annotation.Nonnull;
 
 import java8.util.Optional;
-import ru.adios.budgeter.api.FundsMutationSubject;
+import ru.adios.budgeter.api.data.FundsMutationSubject;
 
 /**
  * Created by Michail Kulikov

@@ -9,9 +9,8 @@ import android.widget.Spinner;
 import java.math.BigDecimal;
 
 import java8.util.function.Supplier;
-import ru.adios.budgeter.api.FundsMutationAgent;
-import ru.adios.budgeter.api.Treasury;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.BalanceAccount;
+import ru.adios.budgeter.api.data.FundsMutationAgent;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
@@ -20,7 +19,8 @@ import ru.adios.budgeter.util.UiUtils;
 
 public class ExchangeCurrenciesActivity extends CoreElementActivity {
 
-    private final ExchangeCurrenciesElementCore exchangeElement = new ExchangeCurrenciesElementCore(Constants.ACCOUNTER, Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
+    private final ExchangeCurrenciesElementCore exchangeElement =
+            new ExchangeCurrenciesElementCore(Constants.ACCOUNTER, BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
     private final CoreErrorHighlighter exchangeHighlighter = new CoreErrorHighlighter();
 
     private final CollectedFragmentsInfoProvider infoProvider =
@@ -40,31 +40,31 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                             ExchangeCurrenciesElementCore.FIELD_SELL_AMOUNT_UNIT
                     ))
                     .addProvider(
-                            AccountStandardFragment.getInfoProviderBuilder(R.id.exchange_currencies_buy_account_fragment, this, new Supplier<Treasury.BalanceAccount>() {
+                            AccountStandardFragment.getInfoProviderBuilder(R.id.exchange_currencies_buy_account_fragment, this, new Supplier<BalanceAccount>() {
                                 @Override
-                                public Treasury.BalanceAccount get() {
+                                public BalanceAccount get() {
                                     return exchangeElement.getBuyAccount();
                                 }
                             })
                                     .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_BUY_ACCOUNT, exchangeHighlighter, new CoreNotifier.HintedLinker() {
                                         @Override
                                         public void link(HintedArrayAdapter.ObjectContainer data) {
-                                            exchangeElement.setBuyAccount((Treasury.BalanceAccount) data.getObject());
+                                            exchangeElement.setBuyAccount((BalanceAccount) data.getObject());
                                         }
                                     })
                                     .build()
                     )
                     .addProvider(
-                            AccountStandardFragment.getInfoProviderBuilder(R.id.exchange_currencies_sell_account_fragment, this, new Supplier<Treasury.BalanceAccount>() {
+                            AccountStandardFragment.getInfoProviderBuilder(R.id.exchange_currencies_sell_account_fragment, this, new Supplier<BalanceAccount>() {
                                 @Override
-                                public Treasury.BalanceAccount get() {
+                                public BalanceAccount get() {
                                     return exchangeElement.getSellAccount();
                                 }
                             })
                                     .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_SELL_ACCOUNT, exchangeHighlighter, new CoreNotifier.HintedLinker() {
                                         @Override
                                         public void link(HintedArrayAdapter.ObjectContainer data) {
-                                            exchangeElement.setSellAccount((Treasury.BalanceAccount) data.getObject());
+                                            exchangeElement.setSellAccount((BalanceAccount) data.getObject());
                                         }
                                     })
                                     .build()

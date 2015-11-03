@@ -16,8 +16,7 @@ import javax.annotation.Nullable;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
-import ru.adios.budgeter.api.FundsMutationAgent;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.FundsMutationAgent;
 import ru.adios.budgeter.util.CachingHintedContainer;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
@@ -38,7 +37,7 @@ public class FundsAgentFragment extends CoreFragment {
                                                                                                                 @Nullable Consumer<FundsMutationAgent> agentSubmitSuccessCallback,
                                                                                                                 CoreElementActivity.CoreElementFieldInfo agentFieldInfo,
                                                                                                                 Supplier<FundsMutationAgent> feedbackAgentSupplier) {
-        final AgentAdditionElementCore agentCore = new AgentAdditionElementCore(Schema.FUNDS_MUTATION_AGENTS);
+        final AgentAdditionElementCore agentCore = new AgentAdditionElementCore(BundleProvider.getBundle().fundsMutationAgents());
         final CoreErrorHighlighter agentsErrorHighlighter = new CoreErrorHighlighter();
 
         return new CollectibleFragmentInfoProvider.Builder<FundsMutationAgent, AgentAdditionElementCore>(fragmentId, new Feedbacker(agentCore, feedbackAgentSupplier))
@@ -68,7 +67,7 @@ public class FundsAgentFragment extends CoreFragment {
 
         // main spinner init
         final Spinner agentsSpinner = (Spinner) inflated.findViewById(R.id.agents_spinner);
-        UiUtils.prepareHintedSpinnerAsync(agentsSpinner, activity, id, FIELD_AGENTS, inflated, R.id.agents_spinner_info, Schema.FUNDS_MUTATION_AGENTS.streamAll(),
+        UiUtils.prepareHintedSpinnerAsync(agentsSpinner, activity, id, FIELD_AGENTS, inflated, R.id.agents_spinner_info, BundleProvider.getBundle().fundsMutationAgents().streamAll(),
                 new Function<FundsMutationAgent, HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<FundsMutationAgent> apply(FundsMutationAgent agent) {

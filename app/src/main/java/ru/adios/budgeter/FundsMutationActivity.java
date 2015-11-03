@@ -13,10 +13,9 @@ import android.widget.TextView;
 import java.math.BigDecimal;
 
 import java8.util.function.Supplier;
-import ru.adios.budgeter.api.FundsMutationAgent;
-import ru.adios.budgeter.api.FundsMutationSubject;
-import ru.adios.budgeter.api.Treasury;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.BalanceAccount;
+import ru.adios.budgeter.api.data.FundsMutationAgent;
+import ru.adios.budgeter.api.data.FundsMutationSubject;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
@@ -25,7 +24,8 @@ import ru.adios.budgeter.util.UiUtils;
 
 public class FundsMutationActivity extends CoreElementActivity {
 
-    private final FundsMutationElementCore mutationElement = new FundsMutationElementCore(Constants.ACCOUNTER, Schema.TREASURY, Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
+    private final FundsMutationElementCore mutationElement =
+            new FundsMutationElementCore(Constants.ACCOUNTER, BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
     private final CoreErrorHighlighter mutationHighlighter = new CoreErrorHighlighter();
 
     private final CollectedFragmentsInfoProvider infoProvider =
@@ -62,16 +62,16 @@ public class FundsMutationActivity extends CoreElementActivity {
                             FundsMutationElementCore.FIELD_PAYEE_ACCOUNT_UNIT
                     ))
                     .addProvider(
-                            AccountStandardFragment.getInfoProviderBuilder(R.id.funds_mutation_relevant_balance_fragment, this, new Supplier<Treasury.BalanceAccount>() {
+                            AccountStandardFragment.getInfoProviderBuilder(R.id.funds_mutation_relevant_balance_fragment, this, new Supplier<BalanceAccount>() {
                                 @Override
-                                public Treasury.BalanceAccount get() {
+                                public BalanceAccount get() {
                                     return mutationElement.getRelevantBalance();
                                 }
                             })
                                     .provideAccountFieldInfo(FundsMutationElementCore.FIELD_RELEVANT_BALANCE, mutationHighlighter, new CoreNotifier.HintedLinker() {
                                         @Override
                                         public void link(HintedArrayAdapter.ObjectContainer data) {
-                                            mutationElement.setRelevantBalance((Treasury.BalanceAccount) data.getObject());
+                                            mutationElement.setRelevantBalance((BalanceAccount) data.getObject());
                                         }
                                     })
                                     .build()
@@ -186,7 +186,7 @@ public class FundsMutationActivity extends CoreElementActivity {
 
             @Override
             protected void onPostExecute(FundsMutationElementCore core) {
-                final Submitter.Result<Treasury.BalanceAccount> result = core.getStoredResult();
+                final Submitter.Result<BalanceAccount> result = core.getStoredResult();
 
                 mutationHighlighter.processSubmitResult(result);
                 if (result.isSuccessful() && result.submitResult != null) {

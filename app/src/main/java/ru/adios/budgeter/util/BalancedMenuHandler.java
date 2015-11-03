@@ -2,7 +2,6 @@ package ru.adios.budgeter.util;
 
 import android.app.Activity;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import org.joda.money.Money;
 

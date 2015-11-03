@@ -23,8 +23,7 @@ import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
-import ru.adios.budgeter.api.Treasury;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.util.BalanceAccountContainer;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
@@ -46,30 +45,30 @@ public class AccountStandardFragment extends CoreFragment {
     public static final String FIELD_NEW_ACCOUNT_AMOUNT = "new_account_amount";
     public static final String BUTTON_NEW_ACCOUNT_SUBMIT = "new_account_submit";
 
-    public static InfoProviderBuilder getInfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<Treasury.BalanceAccount> accountSupplier) {
+    public static InfoProviderBuilder getInfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<BalanceAccount> accountSupplier) {
         return new InfoProviderBuilder(fragmentId, context, accountSupplier);
     }
 
     public static final class InfoProviderBuilder {
 
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount = new Mutable<>(Optional.of(BigDecimal.ZERO));
-        private final AccountsElementCore accountsElement = new AccountsElementCore(Schema.TREASURY);
+        private final AccountsElementCore accountsElement = new AccountsElementCore(BundleProvider.getBundle().treasury());
         private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
         private final HybridAccountCore hybridAccountCore = new HybridAccountCore(accountsElement, newAccountOptionalAmount);
 
         private final Context context;
-        private final CollectibleFragmentInfoProvider.Builder<Treasury.BalanceAccount, HybridAccountCore> mainBuilder;
+        private final CollectibleFragmentInfoProvider.Builder<BalanceAccount, HybridAccountCore> mainBuilder;
 
         @Nullable
-        private Consumer<Treasury.BalanceAccount> callback;
+        private Consumer<BalanceAccount> callback;
         private CoreElementActivity.CoreElementFieldInfo accountFieldInfo;
 
-        public InfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<Treasury.BalanceAccount> accountSupplier) {
+        public InfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<BalanceAccount> accountSupplier) {
             this.context = context;
             mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new Feedbacker(fragmentId, accountsElement, newAccountOptionalAmount, accountSupplier));
         }
 
-        public InfoProviderBuilder setNewAccountSubmitButtonCallback(@Nullable Consumer<Treasury.BalanceAccount> callback) {
+        public InfoProviderBuilder setNewAccountSubmitButtonCallback(@Nullable Consumer<BalanceAccount> callback) {
             this.callback = callback;
             return this;
         }
@@ -79,17 +78,18 @@ public class AccountStandardFragment extends CoreFragment {
             return this;
         }
 
-        public CollectibleFragmentInfoProvider<Treasury.BalanceAccount, HybridAccountCore> build() {
+        public CollectibleFragmentInfoProvider<BalanceAccount, HybridAccountCore> build() {
             checkState(accountFieldInfo != null, "Account field info not provided");
 
             return mainBuilder
-                    .addButtonInfo(BUTTON_NEW_ACCOUNT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(hybridAccountCore, new Consumer<Treasury.BalanceAccount>() {
+                    .addButtonInfo(BUTTON_NEW_ACCOUNT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(hybridAccountCore, new Consumer<BalanceAccount>() {
                         @Override
-                        public void accept(Treasury.BalanceAccount account) {
-                            final Money balance = account.getBalance();
+                        public void accept(BalanceAccount account) {
+                            final Optional<Money> balance = account.getBalance();
+                            final Money bal;
 
-                            if (balance != null && balance.isPositive()) {
-                                BalancesUiThreadState.addMoney(balance, context);
+                            if (balance.isPresent() && (bal = balance.get()).isPositive()) {
+                                BalancesUiThreadState.addMoney(bal, context);
                             }
 
                             if (callback != null) {
@@ -128,9 +128,9 @@ public class AccountStandardFragment extends CoreFragment {
         private final int fragmentId;
         private final AccountsElementCore accountsElement;
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
-        private final Supplier<Treasury.BalanceAccount> accountSupplier;
+        private final Supplier<BalanceAccount> accountSupplier;
 
-        private Feedbacker(int fragmentId, AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<Treasury.BalanceAccount> accountSupplier) {
+        private Feedbacker(int fragmentId, AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount, Supplier<BalanceAccount> accountSupplier) {
             this.fragmentId = fragmentId;
             this.accountsElement = accountsElement;
             this.newAccountOptionalAmount = newAccountOptionalAmount;
@@ -147,11 +147,11 @@ public class AccountStandardFragment extends CoreFragment {
 
     }
 
-    public static final class HybridAccountCore implements Submitter<Treasury.BalanceAccount> {
+    public static final class HybridAccountCore implements Submitter<BalanceAccount> {
 
         public final AccountsElementCore accountsElement;
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount;
-        private Result<Treasury.BalanceAccount> storedResult;
+        private Result<BalanceAccount> storedResult;
 
         public HybridAccountCore(AccountsElementCore accountsElement, Mutable<Optional<BigDecimal>> newAccountOptionalAmount) {
             this.accountsElement = accountsElement;
@@ -159,8 +159,8 @@ public class AccountStandardFragment extends CoreFragment {
         }
 
         @Override
-        public Result<Treasury.BalanceAccount> submit() {
-            final Result<Treasury.BalanceAccount> accountResult = accountsElement.submit();
+        public Result<BalanceAccount> submit() {
+            final Result<BalanceAccount> accountResult = accountsElement.submit();
 
             if (!accountResult.isSuccessful()) {
                 return accountResult;
@@ -168,7 +168,7 @@ public class AccountStandardFragment extends CoreFragment {
 
             final BigDecimal dec = newAccountOptionalAmount.object.get();
             if (!dec.equals(BigDecimal.ZERO)) {
-                final FundsAdditionElementCore core = new FundsAdditionElementCore(Schema.TREASURY);
+                final FundsAdditionElementCore core = new FundsAdditionElementCore(BundleProvider.getBundle().treasury());
                 core.setAccount(accountsElement.getName());
                 core.setAmountDecimal(dec);
                 //noinspection ConstantConditions
@@ -192,7 +192,7 @@ public class AccountStandardFragment extends CoreFragment {
         }
 
         @Override
-        public Result<Treasury.BalanceAccount> getStoredResult() {
+        public Result<BalanceAccount> getStoredResult() {
             return storedResult;
         }
 
@@ -218,10 +218,10 @@ public class AccountStandardFragment extends CoreFragment {
 
         // main spinner init
         final Spinner accountsSpinner = (Spinner) inflated.findViewById(R.id.accounts_spinner);
-        UiUtils.prepareHintedSpinnerAsync(accountsSpinner, activity, id, FIELD_ACCOUNT, inflated, R.id.accounts_spinner_info, Schema.TREASURY.streamRegisteredAccounts(),
-                new Function<Treasury.BalanceAccount, HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount>>() {
+        UiUtils.prepareHintedSpinnerAsync(accountsSpinner, activity, id, FIELD_ACCOUNT, inflated, R.id.accounts_spinner_info, BundleProvider.getBundle().treasury().streamRegisteredAccounts(),
+                new Function<BalanceAccount, HintedArrayAdapter.ObjectContainer<BalanceAccount>>() {
                     @Override
-                    public HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> apply(Treasury.BalanceAccount balanceAccount) {
+                    public HintedArrayAdapter.ObjectContainer<BalanceAccount> apply(BalanceAccount balanceAccount) {
                         return new BalanceAccountContainer(balanceAccount);
                     }
                 }
@@ -265,9 +265,9 @@ public class AccountStandardFragment extends CoreFragment {
         addButton.invalidate();
 
         // add submit button logic
-        activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_ACCOUNT_SUBMIT, new Consumer<Treasury.BalanceAccount>() {
+        activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_ACCOUNT_SUBMIT, new Consumer<BalanceAccount>() {
             @Override
-            public void accept(Treasury.BalanceAccount account) {
+            public void accept(BalanceAccount account) {
                 nameInput.setVisibility(View.GONE);
                 nameInputInfo.setVisibility(View.GONE);
                 currencyInput.setVisibility(View.GONE);

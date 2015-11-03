@@ -12,8 +12,7 @@ import android.widget.Spinner;
 import org.joda.money.Money;
 
 import java8.util.function.Supplier;
-import ru.adios.budgeter.api.Treasury;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
@@ -22,19 +21,19 @@ import ru.adios.budgeter.util.UiUtils;
 
 public class AddFundsActivity extends CoreElementActivity {
 
-    private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(Schema.TREASURY);
+    private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(BundleProvider.getBundle().treasury());
     private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
-    private final CollectibleFragmentInfoProvider<Treasury.BalanceAccount, AccountStandardFragment.HybridAccountCore> accountsInfoProvider =
-            AccountStandardFragment.getInfoProviderBuilder(R.id.add_funds_account_fragment, this, new Supplier<Treasury.BalanceAccount>() {
+    private final CollectibleFragmentInfoProvider<BalanceAccount, AccountStandardFragment.HybridAccountCore> accountsInfoProvider =
+            AccountStandardFragment.getInfoProviderBuilder(R.id.add_funds_account_fragment, this, new Supplier<BalanceAccount>() {
                 @Override
-                public Treasury.BalanceAccount get() {
+                public BalanceAccount get() {
                     return additionElement.getAccount();
                 }
             })
                     .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.HintedLinker() {
                         @Override
                         public void link(HintedArrayAdapter.ObjectContainer data) {
-                            additionElement.setAccount((Treasury.BalanceAccount) data.getObject());
+                            additionElement.setAccount((BalanceAccount) data.getObject());
                         }
                     })
                     .build();
@@ -119,7 +118,7 @@ public class AddFundsActivity extends CoreElementActivity {
 
             @Override
             protected void onPostExecute(FundsAdditionElementCore core) {
-                final Submitter.Result<Treasury.BalanceAccount> result = core.getStoredResult();
+                final Submitter.Result<BalanceAccount> result = core.getStoredResult();
 
                 addFundsErrorHighlighter.processSubmitResult(result);
                 if (result.isSuccessful()) {

@@ -22,16 +22,15 @@ import javax.annotation.Nonnull;
 
 import java8.util.function.Consumer;
 import java8.util.stream.Collectors;
-import ru.adios.budgeter.api.CurrencyExchangeEvent;
 import ru.adios.budgeter.api.CurrencyExchangeEventRepository;
-import ru.adios.budgeter.api.FundsMutationEvent;
 import ru.adios.budgeter.api.FundsMutationEventRepository;
 import ru.adios.budgeter.api.OptLimit;
 import ru.adios.budgeter.api.Order;
 import ru.adios.budgeter.api.OrderBy;
-import ru.adios.budgeter.api.Treasury;
 import ru.adios.budgeter.api.Units;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.BalanceAccount;
+import ru.adios.budgeter.api.data.CurrencyExchangeEvent;
+import ru.adios.budgeter.api.data.FundsMutationEvent;
 import ru.adios.budgeter.util.BalancedMenuHandler;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.ElementsIdProvider;
@@ -43,7 +42,7 @@ public class HomeActivity extends AppCompatActivity {
 
     static {
         UiUtils.onApplicationStart();
-        Schema.TREASURY.registerBalanceAccount(new Treasury.BalanceAccount("Тест", Units.RUB));
+        BundleProvider.getBundle().treasury().registerBalanceAccount(new BalanceAccount("Тест", Units.RUB));
     }
 
     private static final int TABLE_ROWS = 5;
@@ -148,7 +147,7 @@ public class HomeActivity extends AppCompatActivity {
             new AsyncTask<Void, Void, List<FundsMutationEvent>>() {
                 @Override
                 protected List<FundsMutationEvent> doInBackground(Void... params) {
-                    return Schema.FUNDS_MUTATION_EVENTS
+                    return BundleProvider.getBundle().fundsMutationEvents()
                             .streamMutationEvents(TABLE_REQUEST_LIMIT, MUTATIONS_ORDER_BY_TIMESTAMP)
                             .collect(Collectors.<FundsMutationEvent>toList());
                 }
@@ -183,7 +182,7 @@ public class HomeActivity extends AppCompatActivity {
             new AsyncTask<Void, Void, List<CurrencyExchangeEvent>>() {
                 @Override
                 protected List<CurrencyExchangeEvent> doInBackground(Void... params) {
-                    return Schema.CURRENCY_EXCHANGE_EVENTS
+                    return BundleProvider.getBundle().currencyExchangeEvents()
                             .streamExchangeEvents(TABLE_REQUEST_LIMIT, EXCHANGES_ORDER_BY_TIMESTAMP)
                             .collect(Collectors.<CurrencyExchangeEvent>toList());
                 }

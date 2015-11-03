@@ -8,8 +8,6 @@ import org.joda.money.CurrencyUnit;
 
 import ru.adios.budgeter.api.Accounter;
 import ru.adios.budgeter.api.Units;
-import ru.adios.budgeter.inmemrepo.InnerMemoryAccounter;
-import ru.adios.budgeter.inmemrepo.Schema;
 
 /**
  * Created by Michail Kulikov
@@ -22,21 +20,16 @@ public final class Constants {
     public static final RatesDelegatingBackgroundService CURRENCIES_EXCHANGE_SERVICE =
             new RatesDelegatingBackgroundService(
                     new CurrenciesExchangeService(
-                            new TransactionalSupport() {
-                                @Override
-                                public void runWithTransaction(Runnable runnable) {
-                                    runnable.run();
-                                }
-                            },
-                            Schema.CURRENCY_RATES,
-                            new InnerMemoryAccounter(),
-                            Schema.TREASURY,
-                            ExchangeRatesLoader.createBtcLoader(Schema.TREASURY),
-                            ExchangeRatesLoader.createCbrLoader(Schema.TREASURY)
+                            BundleProvider.getBundle().getTransactionalSupport(),
+                            BundleProvider.getBundle().currencyRates(),
+                            BundleProvider.getBundle().accounter(),
+                            BundleProvider.getBundle().treasury(),
+                            ExchangeRatesLoader.createBtcLoader(BundleProvider.getBundle().treasury()),
+                            ExchangeRatesLoader.createCbrLoader(BundleProvider.getBundle().treasury())
                     )
             );
 
-    public static final Accounter ACCOUNTER = new InnerMemoryAccounter();
+    public static final Accounter ACCOUNTER = BundleProvider.getBundle().accounter();
 
     public static final String[] CURRENCIES_DROPDOWN = new String[] {
             Units.RUB.getCode(),

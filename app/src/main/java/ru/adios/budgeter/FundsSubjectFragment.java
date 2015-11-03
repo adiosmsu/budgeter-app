@@ -24,8 +24,7 @@ import javax.annotation.Nullable;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
-import ru.adios.budgeter.api.FundsMutationSubject;
-import ru.adios.budgeter.inmemrepo.Schema;
+import ru.adios.budgeter.api.data.FundsMutationSubject;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.DelayingAutoCompleteTextView;
@@ -54,7 +53,7 @@ public class FundsSubjectFragment extends CoreFragment {
                                                                                                                                 @Nullable Consumer<FundsMutationSubject> subjectSubmitSuccessCallback,
                                                                                                                                 CoreElementActivity.CoreElementFieldInfo subjectFieldInfo,
                                                                                                                                 Supplier<FundsMutationSubject> feedbackAccountSupplier) {
-        final SubjectAdditionElementCore subjectsElement = new SubjectAdditionElementCore(Schema.FUNDS_MUTATION_SUBJECTS);
+        final SubjectAdditionElementCore subjectsElement = new SubjectAdditionElementCore(BundleProvider.getBundle().fundsMutationSubjects());
         final CoreErrorHighlighter subjectsErrorHighlighter = new CoreErrorHighlighter();
 
         return new CollectibleFragmentInfoProvider.Builder<FundsMutationSubject, SubjectAdditionElementCore>(fragmentId, new Feedbacker(subjectsElement, feedbackAccountSupplier))
@@ -123,7 +122,7 @@ public class FundsSubjectFragment extends CoreFragment {
 
         // main spinner init
         final Spinner subjectsSpinner = (Spinner) inflated.findViewById(R.id.subjects_spinner);
-        UiUtils.prepareHintedSpinnerAsync(subjectsSpinner, activity, id, FIELD_SUBJECTS, inflated, R.id.subjects_spinner_info, Schema.FUNDS_MUTATION_SUBJECTS.streamAll(),
+        UiUtils.prepareHintedSpinnerAsync(subjectsSpinner, activity, id, FIELD_SUBJECTS, inflated, R.id.subjects_spinner_info, BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
                 new Function<FundsMutationSubject, HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<FundsMutationSubject> apply(FundsMutationSubject subject) {
@@ -144,7 +143,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 new ModedRequestingAutoCompleteAdapter.Requester<FundsMutationSubject>() {
                     @Override
                     public List<FundsMutationSubject> doActualRequest(String constraint) {
-                        return Schema.FUNDS_MUTATION_SUBJECTS.nameLikeSearch(constraint);
+                        return BundleProvider.getBundle().fundsMutationSubjects().nameLikeSearch(constraint);
                     }
                 },
                 new RequestingAutoCompleteAdapter.StringPresenter<FundsMutationSubject>() {

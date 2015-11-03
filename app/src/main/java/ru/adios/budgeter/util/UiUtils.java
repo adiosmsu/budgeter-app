@@ -22,7 +22,7 @@ import java8.util.stream.Stream;
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.CoreElementActivity;
 import ru.adios.budgeter.R;
-import ru.adios.budgeter.api.Treasury;
+import ru.adios.budgeter.api.data.BalanceAccount;
 
 /**
  * Created by Michail Kulikov
@@ -147,13 +147,13 @@ public final class UiUtils {
         }
     }
 
-    public static void replaceAccountInSpinner(Treasury.BalanceAccount account, Spinner accountsSpinner) {
+    public static void replaceAccountInSpinner(BalanceAccount account, Spinner accountsSpinner) {
         @SuppressWarnings("unchecked")
-        final HintedArrayAdapter<Treasury.BalanceAccount> adapter = (HintedArrayAdapter<Treasury.BalanceAccount>) accountsSpinner.getAdapter();
+        final HintedArrayAdapter<BalanceAccount> adapter = (HintedArrayAdapter<BalanceAccount>) accountsSpinner.getAdapter();
 
         for (int i = 0; i < adapter.getCount(); i++) {
-            final HintedArrayAdapter.ObjectContainer<Treasury.BalanceAccount> item = adapter.getItem(i);
-            final Treasury.BalanceAccount someAccount = item.getObject();
+            final HintedArrayAdapter.ObjectContainer<BalanceAccount> item = adapter.getItem(i);
+            final BalanceAccount someAccount = item.getObject();
 
             if (someAccount.name.equals(account.name) && someAccount.getUnit().equals(account.getUnit())) {
                 adapter.insert(new BalanceAccountContainer(account), i);

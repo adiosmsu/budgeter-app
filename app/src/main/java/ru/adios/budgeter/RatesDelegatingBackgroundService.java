@@ -3,6 +3,7 @@ package ru.adios.budgeter;
 import android.os.AsyncTask;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import org.joda.money.CurrencyUnit;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java8.util.Optional;
 import ru.adios.budgeter.api.CurrencyRatesRepository;
 import ru.adios.budgeter.api.UtcDay;
+import ru.adios.budgeter.api.data.ConversionRate;
 
 /**
  * Designed for usage from UI thread.
@@ -73,6 +75,21 @@ public final class RatesDelegatingBackgroundService implements CurrencyRatesRepo
 
     public void runWithTransaction(final ImmutableList<Runnable> runnables) {
         exchangeService.runWithTransaction(runnables);
+    }
+
+    @Override
+    public Optional<ConversionRate> getById(Long id) {
+        return exchangeService.getById(id);
+    }
+
+    @Override
+    public Long currentSeqValue() {
+        return exchangeService.currentSeqValue();
+    }
+
+    @Override
+    public ImmutableSet<Long> getIndexedForDay(UtcDay day) {
+        return exchangeService.getIndexedForDay(day);
     }
 
     @Override

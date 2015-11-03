@@ -85,7 +85,7 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                                 }
                             }
                     ))
-                    .addProvider(DateTimeFragment.getInfoProvider(R.id.funds_mutation_datetime_fragment, exchangeHighlighter, ExchangeCurrenciesElementCore.FIELD_TIMESTAMP, exchangeElement))
+                    .addProvider(DateTimeFragment.getInfoProvider(R.id.exchange_currencies_datetime_fragment, exchangeHighlighter, ExchangeCurrenciesElementCore.FIELD_TIMESTAMP, exchangeElement))
                     .build();
 
     {
@@ -153,7 +153,7 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
             @Override
             protected ExchangeCurrenciesElementCore doInBackground(ExchangeCurrenciesElementCore[] params) {
                 final ExchangeCurrenciesElementCore core = params[0];
-                core.submitAndStoreResult();
+                doSubmitAndStore(core);
                 return core;
             }
 

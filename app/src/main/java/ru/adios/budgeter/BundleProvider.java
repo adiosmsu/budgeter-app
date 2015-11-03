@@ -1,14 +1,19 @@
 package ru.adios.budgeter;
 
+import android.os.Environment;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.io.File;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -29,6 +34,8 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import java8.util.function.Supplier;
+import ru.adios.budgeter.jdbcrepo.ConnectionHolderUtil;
 import ru.adios.budgeter.jdbcrepo.JdbcConnectionHolder;
 import ru.adios.budgeter.jdbcrepo.JdbcTransactionalSupport;
 import ru.adios.budgeter.jdbcrepo.SourcingBundle;
@@ -41,26 +48,40 @@ public final class BundleProvider {
 
     public static SourcingBundle getBundle() {
         if (dataSource == null) {
-            initDataSource(DEFAULT_URL);
+            initDataSource(getDefaultUrl());
         }
         return BundleContainer.BUNDLE;
     }
 
-    public static volatile String DEFAULT_URL = "jdbc:sqlite://data/data/ru.adios.budgeter/databases/budget.db";
+    public static volatile String DEFAULT_URL = "jdbc:sqlite:" + Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases/budget.db";
 
-    public static synchronized void setNewDatabase(String url) {
-        final SingleConnectionDataSource ds = createDataSource(url);
-        BundleContainer.BUNDLE.setNewDataSource(ds, new SpringTransactionalSupport(ds));
-        try {
-            ((ConnectionProxy) dataSource.getConnection()).getTargetConnection().close();
-        } catch (SQLException e) {
-            logger.error("Exception while closing connection to the old database " + dataSource.getUrl(), e);
-        } finally {
-            dataSource = ds;
+    public static void setNewDatabase(String url) {
+        synchronized (BundleProvider.class) {
+            final SingleConnectionDataSource ds = createDataSource(url);
+            BundleContainer.BUNDLE.setNewDataSource(ds, new SpringTransactionalSupport(ds));
+            try {
+                ((ConnectionProxy) dataSource.getConnection()).getTargetConnection().close();
+            } catch (SQLException e) {
+                logger.error("Exception while closing connection to the old database " + dataSource.getUrl(), e);
+            } finally {
+                dataSource = ds;
+            }
         }
     }
 
     private static final Logger logger = LoggerFactory.getLogger(BundleProvider.class);
+
+    private static String getDefaultUrl() {
+        final String path = Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases";
+        final File dbDir = new File(path);
+        if (!dbDir.exists()) {
+            final boolean mk = dbDir.mkdir();
+            if (!mk) {
+                throw new IllegalStateException("Unable to create " + path);
+            }
+        }
+        return DEFAULT_URL;
+    }
 
     private static SingleConnectionDataSource createDataSource(String url) {
         final SingleConnectionDataSource dataSource = new SingleConnectionDataSource(url, true) {
@@ -69,14 +90,16 @@ public final class BundleProvider {
                 return new DelegatingConnectionProxy(target);
             }
         };
-        dataSource.setAutoCommit(false);
+        dataSource.setAutoCommit(true);
         dataSource.setDriverClassName("org.sqldroid.SQLDroidDriver");
         return dataSource;
     }
 
-    private static synchronized void initDataSource(String url) {
-        if (dataSource == null) {
-            dataSource = createDataSource(url);
+    private static void initDataSource(String url) {
+        synchronized (BundleProvider.class) {
+            if (dataSource == null) {
+                dataSource = createDataSource(url);
+            }
         }
     }
 
@@ -88,7 +111,9 @@ public final class BundleProvider {
 
         static {
             final DataSource ds = dataSource;
-            BUNDLE = new SourcingBundle(ds, new SpringTransactionalSupport(ds));
+            final SourcingBundle sourcingBundle = new SourcingBundle(ds, new SpringTransactionalSupport(ds));
+            sourcingBundle.createSchemaIfNeeded();
+            BUNDLE = sourcingBundle;
         }
 
     }
@@ -102,23 +127,47 @@ public final class BundleProvider {
         }
 
         @Override
-        public JdbcConnectionHolder getConnection(DataSource dataSource) {
-            return JdbcTransactionalSupport.Static.getConnection(dataSource);
+        public JdbcConnectionHolder getConnection(DataSource ds) {
+            try {
+                ((ConnectionProxy) dataSource.getConnection()).getTargetConnection().setAutoCommit(false);
+                return JdbcTransactionalSupport.Static.getConnection(ds);
+            } catch (SQLException e) {
+                throw new CannotGetJdbcConnectionException("Exception while setting auto commit false for transactional behaviour", e);
+            }
         }
 
         @Override
         public void releaseConnection(JdbcConnectionHolder con, DataSource dataSource) {
+            try {
+                ConnectionHolderUtil.exposeConnection(con).setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Exception while setting auto commit true");
+            }
             JdbcTransactionalSupport.Static.releaseConnection(con, dataSource);
         }
 
         @Override
         public void runWithTransaction(final Runnable runnable) {
-            txTemplate.execute(new TransactionCallbackWithoutResult() {
-                @Override
-                protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    runnable.run();
-                }
-            });
+            synchronized (BundleProvider.class) {
+                txTemplate.execute(new TransactionCallbackWithoutResult() {
+                    @Override
+                    protected void doInTransactionWithoutResult(TransactionStatus status) {
+                        runnable.run();
+                    }
+                });
+            }
+        }
+
+        @Override
+        public <T> T getWithTransaction(final Supplier<T> supplier) {
+            synchronized (BundleProvider.class) {
+                return txTemplate.execute(new TransactionCallback<T>() {
+                    @Override
+                    public T doInTransaction(TransactionStatus status) {
+                        return supplier.get();
+                    }
+                });
+            }
         }
 
     }
@@ -152,6 +201,16 @@ public final class BundleProvider {
         @Override
         public boolean isClosed() throws SQLException {
             return false;
+        }
+
+        @Override
+        public boolean isReadOnly() throws SQLException {
+            return false; // SQLDroidConnection spams to error stream otherwise.
+        }
+
+        @Override
+        public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+            return delegate.prepareStatement(sql); // Work around idiotic SQLDroid behavior with returning null for prepareStatement(String, int).
         }
 
         @Override
@@ -255,11 +314,6 @@ public final class BundleProvider {
         }
 
         @Override
-        public boolean isReadOnly() throws SQLException {
-            return delegate.isReadOnly();
-        }
-
-        @Override
         public boolean isValid(int timeout) throws SQLException {
             return delegate.isValid(timeout);
         }
@@ -287,11 +341,6 @@ public final class BundleProvider {
         @Override
         public PreparedStatement prepareStatement(String sql) throws SQLException {
             return delegate.prepareStatement(sql);
-        }
-
-        @Override
-        public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-            return delegate.prepareStatement(sql, autoGeneratedKeys);
         }
 
         @Override

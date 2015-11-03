@@ -108,13 +108,18 @@ public final class BalancesUiThreadState {
         new AsyncTask<BalanceElementCore, Void, Pair>() {
             @Override
             protected Pair doInBackground(BalanceElementCore[] params) {
-                final BalanceElementCore balanceElement = params[0];
-                final List<Money> collect = balanceElement.streamIndividualBalances().collect(Collectors.<Money>toList());
-                final ArrayList<Money> balances = collect instanceof ArrayList
-                        ? (ArrayList<Money>) collect
-                        : new ArrayList<>(collect);
-                final Money totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
-                return new Pair(balances, totalBalance);
+                try {
+                    final BalanceElementCore balanceElement = params[0];
+                    final List<Money> collect = balanceElement.streamIndividualBalances().collect(Collectors.<Money>toList());
+                    final ArrayList<Money> balances = collect instanceof ArrayList
+                            ? (ArrayList<Money>) collect
+                            : new ArrayList<>(collect);
+                    final Money totalBalance = CoreUtils.getTotalBalance(balanceElement, logger);
+                    return new Pair(balances, totalBalance);
+                } catch (RuntimeException ex) {
+                    logger.warn("Exception while instantiating balances state", ex);
+                    return new Pair(new ArrayList<Money>(1), Money.zero(balanceElement.getTotalUnit() != null ? balanceElement.getTotalUnit() : Units.RUB));
+                }
             }
 
             @Override

@@ -27,8 +27,6 @@ import ru.adios.budgeter.api.FundsMutationEventRepository;
 import ru.adios.budgeter.api.OptLimit;
 import ru.adios.budgeter.api.Order;
 import ru.adios.budgeter.api.OrderBy;
-import ru.adios.budgeter.api.Units;
-import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.api.data.CurrencyExchangeEvent;
 import ru.adios.budgeter.api.data.FundsMutationEvent;
 import ru.adios.budgeter.util.BalancedMenuHandler;
@@ -42,7 +40,6 @@ public class HomeActivity extends AppCompatActivity {
 
     static {
         UiUtils.onApplicationStart();
-        BundleProvider.getBundle().treasury().registerBalanceAccount(new BalanceAccount("Тест", Units.RUB));
     }
 
     private static final int TABLE_ROWS = 5;

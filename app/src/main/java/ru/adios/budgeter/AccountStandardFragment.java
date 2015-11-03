@@ -23,6 +23,7 @@ import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
+import ru.adios.budgeter.api.TransactionalSupport;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.util.BalanceAccountContainer;
 import ru.adios.budgeter.util.BalancesUiThreadState;
@@ -177,6 +178,16 @@ public class AccountStandardFragment extends CoreFragment {
             }
 
             return accountResult;
+        }
+
+        @Override
+        public TransactionalSupport getTransactional() {
+            return accountsElement.getTransactional();
+        }
+
+        @Override
+        public void setTransactional(TransactionalSupport transactional) {
+            accountsElement.setTransactional(transactional);
         }
 
         @Override

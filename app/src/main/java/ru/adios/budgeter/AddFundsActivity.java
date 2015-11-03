@@ -112,7 +112,7 @@ public class AddFundsActivity extends CoreElementActivity {
             @Override
             protected FundsAdditionElementCore doInBackground(FundsAdditionElementCore[] params) {
                 final FundsAdditionElementCore core = params[0];
-                core.submitAndStoreResult();
+                doSubmitAndStore(core);
                 return core;
             }
 

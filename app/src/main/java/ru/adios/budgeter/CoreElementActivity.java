@@ -300,7 +300,7 @@ public abstract class CoreElementActivity extends AppCompatActivity {
                     @Override
                     protected Submitter<T> doInBackground(Submitter<T>[] params) {
                         final Submitter<T> submitter = params[0];
-                        submitter.submitAndStoreResult();
+                        doSubmitAndStore(submitter);
                         return submitter;
                     }
 
@@ -327,16 +327,15 @@ public abstract class CoreElementActivity extends AppCompatActivity {
     }
 
     private void checkFragmentAllowance(@IdRes int fragmentId) {
-        boolean coincide = false;
-        for (final int fid : getInfoProvider().allowedFragments()) {
-            if (fragmentId == fid) {
-                coincide = true;
-                break;
-            }
-        }
-        if (!coincide) {
+        if (!getInfoProvider().allowedFragments().contains(fragmentId)) {
             throw new IllegalArgumentException(getClass().getSimpleName() + " doesn't work with " + getResources().getResourceName(fragmentId));
         }
+    }
+
+    protected final void doSubmitAndStore(Submitter core) {
+        core.setTransactional(BundleProvider.getBundle().getTransactionalSupport());
+        core.submitAndStoreResult();
+        core.setTransactional(null);
     }
 
     protected final void finishSubmit(Submitter core, @IdRes int layoutId) {

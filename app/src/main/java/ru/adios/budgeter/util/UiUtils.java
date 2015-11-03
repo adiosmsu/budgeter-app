@@ -13,7 +13,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.joda.money.Money;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import java8.util.function.Function;
@@ -36,6 +39,7 @@ public final class UiUtils {
     }
 
     public static final int FUNDS_ID = ElementsIdProvider.getNextId();
+    private static final Logger logger = LoggerFactory.getLogger(UiUtils.class);
 
     public static int dpAsPixels(Context context, int sizeInDp) {
         float scale = context.getResources().getDisplayMetrics().density;
@@ -55,10 +59,15 @@ public final class UiUtils {
             @Override
             protected List<HintedArrayAdapter.ObjectContainer<T>> doInBackground(Object[] params) {
                 // get values from db
-                //noinspection unchecked
-                return ((Stream<T>) params[0])
-                        .map((Function<T, HintedArrayAdapter.ObjectContainer<T>>) params[1])
-                        .collect(Collectors.<HintedArrayAdapter.ObjectContainer<T>>toList());
+                try {
+                    //noinspection unchecked
+                    return ((Stream<T>) params[0])
+                            .map((Function<T, HintedArrayAdapter.ObjectContainer<T>>) params[1])
+                            .collect(Collectors.<HintedArrayAdapter.ObjectContainer<T>>toList());
+                } catch (RuntimeException e) {
+                    logger.warn("Exception while querying for spinner contents with stream", e);
+                    return new ArrayList<>(1);
+                }
             }
 
             @Override

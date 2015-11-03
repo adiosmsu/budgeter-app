@@ -180,7 +180,7 @@ public class FundsMutationActivity extends CoreElementActivity {
             @Override
             protected FundsMutationElementCore doInBackground(FundsMutationElementCore[] params) {
                 final FundsMutationElementCore core = params[0];
-                core.submitAndStoreResult();
+                doSubmitAndStore(core);
                 return core;
             }
 

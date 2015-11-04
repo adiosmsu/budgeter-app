@@ -1,6 +1,7 @@
 package ru.adios.budgeter;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -120,7 +121,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private boolean initMenuHandler(final LinearLayout fundsLayout) {
         if (menuHandler == null) {
-            menuHandler = new BalancedMenuHandler(new Consumer<BalancesUiThreadState.Pair>() {
+            menuHandler = new BalancedMenuHandler(getResources(), new Consumer<BalancesUiThreadState.Pair>() {
                 @Override
                 public void accept(BalancesUiThreadState.Pair pair) {
                     UiUtils.refillLinearLayoutWithBalances(fundsLayout, pair.balances, pair.totalBalance, HomeActivity.this);
@@ -156,6 +157,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
 
                     final TableLayout tableLayout = (TableLayout) findViewById(R.id.ah_ops_table);
+                    final Resources resources = getResources();
                     for (int i = 0; i < events.size(); i++) {
                         final FundsMutationEvent fme = events.get(i);
                         final TableRow row = new TableRow(HomeActivity.this);
@@ -166,7 +168,7 @@ public class HomeActivity extends AppCompatActivity {
                         row.addView(createSpyingColumnForTableRow(fme.timestamp.format(TS_FORMATTER), R.id.ah_ops_table, rowId));
                         final int seventy = fiveDp * 14;
                         row.addView(createColumnForTableRow(fme.subject.name, seventy));
-                        row.addView(createColumnForTableRow(Formatting.toStringMoneyUsingText(fme.amount)));
+                        row.addView(createColumnForTableRow(Formatting.toStringMoneyUsingSign(fme.amount, resources)));
                         row.addView(createColumnForTableRow(fme.relevantBalance.name, seventy));
                         tableLayout.addView(row, rowId);
                     }
@@ -191,6 +193,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
 
                     final TableLayout tableLayout = (TableLayout) findViewById(R.id.ah_exchanges_table);
+                    final Resources resources = getResources();
                     for (int i = 0; i < events.size(); i++) {
                         final CurrencyExchangeEvent cee = events.get(i);
                         final TableRow row = new TableRow(HomeActivity.this);
@@ -199,8 +202,8 @@ public class HomeActivity extends AppCompatActivity {
                         row.setId(ElementsIdProvider.getNextId());
                         final int rowId = i + 3;
                         row.addView(createSpyingColumnForTableRow(cee.timestamp.format(TS_FORMATTER), R.id.ah_exchanges_table, rowId));
-                        row.addView(createColumnForTableRow(Formatting.toStringMoneyUsingText(cee.bought)));
-                        row.addView(createColumnForTableRow(Formatting.toStringMoneyUsingText(cee.sold)));
+                        row.addView(createColumnForTableRow(Formatting.toStringMoneyUsingSign(cee.bought, resources)));
+                        row.addView(createColumnForTableRow(Formatting.toStringMoneyUsingSign(cee.sold, resources)));
                         final int fiftyDp = fiveDp * 10;
                         row.addView(createColumnForTableRow(cee.boughtAccount.name, fiftyDp));
                         row.addView(createColumnForTableRow(cee.soldAccount.name, fiftyDp));

@@ -122,7 +122,7 @@ public class AddFundsActivity extends CoreElementActivity {
 
                 addFundsErrorHighlighter.processSubmitResult(result);
                 if (result.isSuccessful()) {
-                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner));
+                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner), getResources());
                     //noinspection ConstantConditions
                     BalancesUiThreadState.addMoney(Money.of(additionElement.getAmountUnit(), additionElement.getAmountDecimal()), AddFundsActivity.this);
                 }

@@ -1,6 +1,7 @@
 package ru.adios.budgeter.util;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.view.Menu;
 
 import org.joda.money.Money;
@@ -16,14 +17,17 @@ public final class BalancedMenuHandler {
     private Money tbSnap;
     private Consumer<BalancesUiThreadState.Pair> balancesListener;
 
+    private final Resources resources;
+
     private final Consumer<BalancesUiThreadState.Pair> innerListener;
 
-    public BalancedMenuHandler(Consumer<BalancesUiThreadState.Pair> innerListener) {
+    public BalancedMenuHandler(Resources resources, Consumer<BalancesUiThreadState.Pair> innerListener) {
         this.innerListener = innerListener;
+        this.resources = resources;
     }
 
-    public BalancedMenuHandler() {
-        innerListener = null;
+    public BalancedMenuHandler(Resources resources) {
+        this(resources, null);
     }
 
     public void init(final Activity activity) {
@@ -45,7 +49,7 @@ public final class BalancedMenuHandler {
         if (tbSnap == null) {
             tbSnap = BalancesUiThreadState.totalBalance;
         }
-        UiUtils.fillStandardMenu(menu, tbSnap);
+        UiUtils.fillStandardMenu(menu, tbSnap, resources);
     }
 
     public void destroy() {

@@ -1,6 +1,7 @@
 package ru.adios.budgeter.util;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.widget.TextView;
 
 /**
@@ -22,9 +23,12 @@ public class SpyingTextView extends TextView {
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    protected void onDraw(Canvas canvas) {
+        listenForHeight();
+        super.onDraw(canvas);
+    }
 
+    private void listenForHeight() {
         if (heightCatch) {
             final int heightView = getHeight();
             if (heightView > 0) {

@@ -233,7 +233,7 @@ public class AccountStandardFragment extends CoreFragment {
                 new Function<BalanceAccount, HintedArrayAdapter.ObjectContainer<BalanceAccount>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<BalanceAccount> apply(BalanceAccount balanceAccount) {
-                        return new BalanceAccountContainer(balanceAccount);
+                        return new BalanceAccountContainer(balanceAccount, getResources());
                     }
                 }
         );
@@ -288,7 +288,7 @@ public class AccountStandardFragment extends CoreFragment {
                 amountInputInfo.setVisibility(View.GONE);
                 submitButton.setVisibility(View.GONE);
                 addButton.setVisibility(View.VISIBLE);
-                UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.FACTORY);
+                UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.getFactory(getResources()));
                 inflated.invalidate();
             }
         });

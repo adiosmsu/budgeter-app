@@ -77,7 +77,7 @@ public abstract class CoreElementActivity extends AppCompatActivity {
 
     private void initMenuHandler() {
         if (menuHandler == null) {
-            menuHandler = new BalancedMenuHandler();
+            menuHandler = new BalancedMenuHandler(getResources());
             menuHandler.init(this);
         }
     }

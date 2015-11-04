@@ -190,7 +190,7 @@ public class FundsMutationActivity extends CoreElementActivity {
 
                 mutationHighlighter.processSubmitResult(result);
                 if (result.isSuccessful() && result.submitResult != null) {
-                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner));
+                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner), getResources());
                     BalancesUiThreadState.addMoney(mutationElement.getSubmittedMoney(), FundsMutationActivity.this);
                 }
 

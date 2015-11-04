@@ -1,6 +1,7 @@
 package ru.adios.budgeter.util;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.support.annotation.IdRes;
 import android.view.Menu;
@@ -121,13 +122,13 @@ public final class UiUtils {
         return line;
     }
 
-    public static MenuItem fillStandardMenu(Menu menu, Money totalBalance) {
+    public static MenuItem fillStandardMenu(Menu menu, Money totalBalance, Resources resources) {
         // Add funds info
         final int settingsOrder = menu.getItem(0).getOrder();
         final String text = Formatting.toStringMoneyUsingText(totalBalance);
         final MenuItem fundsInfo = menu.add(Menu.NONE, FUNDS_ID, settingsOrder - 1, text);
         fundsInfo.setTitle(text);
-        fundsInfo.setTitleCondensed(Formatting.toStringMoneyUsingSign(totalBalance));
+        fundsInfo.setTitleCondensed(Formatting.toStringMoneyUsingSign(totalBalance, resources));
         fundsInfo.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         return fundsInfo;
     }
@@ -156,7 +157,7 @@ public final class UiUtils {
         }
     }
 
-    public static void replaceAccountInSpinner(BalanceAccount account, Spinner accountsSpinner) {
+    public static void replaceAccountInSpinner(BalanceAccount account, Spinner accountsSpinner, Resources resources) {
         @SuppressWarnings("unchecked")
         final HintedArrayAdapter<BalanceAccount> adapter = (HintedArrayAdapter<BalanceAccount>) accountsSpinner.getAdapter();
 
@@ -165,7 +166,7 @@ public final class UiUtils {
             final BalanceAccount someAccount = item.getObject();
 
             if (someAccount.name.equals(account.name) && someAccount.getUnit().equals(account.getUnit())) {
-                adapter.insert(new BalanceAccountContainer(account), i);
+                adapter.insert(new BalanceAccountContainer(account, resources), i);
                 adapter.remove(item);
                 return;
             }

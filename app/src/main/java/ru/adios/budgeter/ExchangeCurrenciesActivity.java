@@ -163,9 +163,9 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
 
                 exchangeHighlighter.processSubmitResult(result);
                 if (result.isSuccessful()) {
-                    UiUtils.replaceAccountInSpinner(core.getBuyAccount(), (Spinner) findViewById(R.id.exchange_currencies_buy_account_fragment).findViewById(R.id.accounts_spinner));
+                    UiUtils.replaceAccountInSpinner(core.getBuyAccount(), (Spinner) findViewById(R.id.exchange_currencies_buy_account_fragment).findViewById(R.id.accounts_spinner), getResources());
                     BalancesUiThreadState.addMoney(core.getBuyMoneySettable().getAmount(), ExchangeCurrenciesActivity.this);
-                    UiUtils.replaceAccountInSpinner(core.getSellAccount(), (Spinner) findViewById(R.id.exchange_currencies_sell_account_fragment).findViewById(R.id.accounts_spinner));
+                    UiUtils.replaceAccountInSpinner(core.getSellAccount(), (Spinner) findViewById(R.id.exchange_currencies_sell_account_fragment).findViewById(R.id.accounts_spinner), getResources());
                     BalancesUiThreadState.addMoney(core.getSellMoneySettable().getAmount().negated(), ExchangeCurrenciesActivity.this);
                 }
 

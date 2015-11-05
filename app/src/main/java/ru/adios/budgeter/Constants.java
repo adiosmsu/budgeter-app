@@ -17,17 +17,7 @@ public final class Constants {
 
     public static final Handler MAIN_HANDLER = new Handler();
 
-    public static final RatesDelegatingBackgroundService CURRENCIES_EXCHANGE_SERVICE =
-            new RatesDelegatingBackgroundService(
-                    new CurrenciesExchangeService(
-                            BundleProvider.getBundle().getTransactionalSupport(),
-                            BundleProvider.getBundle().currencyRates(),
-                            BundleProvider.getBundle().accounter(),
-                            BundleProvider.getBundle().treasury(),
-                            ExchangeRatesLoader.createBtcLoader(BundleProvider.getBundle().treasury()),
-                            ExchangeRatesLoader.createCbrLoader(BundleProvider.getBundle().treasury())
-                    )
-            );
+    public static final RatesDelegatingBackgroundService CURRENCIES_EXCHANGE_SERVICE;
 
     public static final Accounter ACCOUNTER = BundleProvider.getBundle().accounter();
 
@@ -38,6 +28,7 @@ public final class Constants {
             Units.BTC.getCode()
     };
     private static final ImmutableMap<String, Integer> CUR_DROP_POSITIONS;
+
     static {
         final ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
         for (int i = 0; i < CURRENCIES_DROPDOWN.length; i++) {
@@ -45,6 +36,17 @@ public final class Constants {
             builder.put(str, i);
         }
         CUR_DROP_POSITIONS = builder.build();
+
+        final CurrenciesExchangeService delegate = new CurrenciesExchangeService(
+                BundleProvider.getBundle().getTransactionalSupport(),
+                BundleProvider.getBundle().currencyRates(),
+                BundleProvider.getBundle().accounter(),
+                BundleProvider.getBundle().treasury(),
+                ExchangeRatesLoader.createBtcLoader(BundleProvider.getBundle().treasury()),
+                ExchangeRatesLoader.createCbrLoader(BundleProvider.getBundle().treasury())
+        );
+        delegate.executeInSameThread();
+        CURRENCIES_EXCHANGE_SERVICE = new RatesDelegatingBackgroundService(delegate);
     }
 
     public static int getCurrencyDropdownPosition(CurrencyUnit unit) {

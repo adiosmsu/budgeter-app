@@ -113,6 +113,7 @@ public final class CoreErrorHighlighter {
                 infoWorker.failureWork(globalInfoView);
             }
             enrichView(globalInfoView, result.generalError);
+            globalInfoView.setVisibility(View.VISIBLE);
             globalInfoView.invalidate();
             if (!idleViews.remove(GLOBAL_INFO_VIEW_NAME)) {
                 toHide.remove(GLOBAL_INFO_VIEW_NAME);
@@ -167,6 +168,7 @@ public final class CoreErrorHighlighter {
     private static void enrichView(View view, String text) {
         if (view instanceof TextView) {
             ((TextView) view).setText(text);
+            ((TextView) view).setTextAppearance(view.getContext(), android.R.style.TextAppearance_Small);
         }
     }
 

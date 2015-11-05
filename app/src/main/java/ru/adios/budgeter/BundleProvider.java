@@ -2,9 +2,7 @@ package ru.adios.budgeter;
 
 import android.os.Environment;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
@@ -32,10 +30,11 @@ import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.sql.DataSource;
 
 import java8.util.function.Supplier;
-import ru.adios.budgeter.jdbcrepo.ConnectionHolderUtil;
 import ru.adios.budgeter.jdbcrepo.JdbcConnectionHolder;
 import ru.adios.budgeter.jdbcrepo.JdbcTransactionalSupport;
 import ru.adios.budgeter.jdbcrepo.SourcingBundle;
@@ -44,6 +43,7 @@ import ru.adios.budgeter.jdbcrepo.SourcingBundle;
  * Created by Michail Kulikov
  * 11/3/15
  */
+@ThreadSafe
 public final class BundleProvider {
 
     public static SourcingBundle getBundle() {
@@ -60,16 +60,12 @@ public final class BundleProvider {
             final SingleConnectionDataSource ds = createDataSource(url);
             BundleContainer.BUNDLE.setNewDataSource(ds, new SpringTransactionalSupport(ds));
             try {
-                ((ConnectionProxy) dataSource.getConnection()).getTargetConnection().close();
-            } catch (SQLException e) {
-                logger.error("Exception while closing connection to the old database " + dataSource.getUrl(), e);
+                dataSource.destroy();
             } finally {
                 dataSource = ds;
             }
         }
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(BundleProvider.class);
 
     private static String getDefaultUrl() {
         final String path = Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases";
@@ -92,6 +88,11 @@ public final class BundleProvider {
         };
         dataSource.setAutoCommit(true);
         dataSource.setDriverClassName("org.sqldroid.SQLDroidDriver");
+        try {
+            dataSource.initConnection();
+        } catch (SQLException ex) {
+            throw new DataAccessResourceFailureException("Unable to initialize SingleConnectionDataSource", ex);
+        }
         return dataSource;
     }
 
@@ -105,6 +106,7 @@ public final class BundleProvider {
 
     private static volatile SingleConnectionDataSource dataSource;
 
+    @Immutable
     private static final class BundleContainer {
 
         private static final SourcingBundle BUNDLE;
@@ -118,6 +120,7 @@ public final class BundleProvider {
 
     }
 
+    @ThreadSafe
     private static final class SpringTransactionalSupport implements JdbcTransactionalSupport {
 
         private final TransactionTemplate txTemplate;
@@ -128,21 +131,11 @@ public final class BundleProvider {
 
         @Override
         public JdbcConnectionHolder getConnection(DataSource ds) {
-            try {
-                ((ConnectionProxy) dataSource.getConnection()).getTargetConnection().setAutoCommit(false);
-                return JdbcTransactionalSupport.Static.getConnection(ds);
-            } catch (SQLException e) {
-                throw new CannotGetJdbcConnectionException("Exception while setting auto commit false for transactional behaviour", e);
-            }
+            return JdbcTransactionalSupport.Static.getConnection(ds);
         }
 
         @Override
         public void releaseConnection(JdbcConnectionHolder con, DataSource dataSource) {
-            try {
-                ConnectionHolderUtil.exposeConnection(con).setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.error("Exception while setting auto commit true");
-            }
             JdbcTransactionalSupport.Static.releaseConnection(con, dataSource);
         }
 
@@ -172,6 +165,7 @@ public final class BundleProvider {
 
     }
 
+    @Immutable
     private static final class DelegatingConnectionProxy implements ConnectionProxy {
 
         private final Connection delegate;

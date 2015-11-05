@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.support.annotation.IdRes;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,8 +44,8 @@ public final class UiUtils {
     private static final Logger logger = LoggerFactory.getLogger(UiUtils.class);
 
     public static int dpAsPixels(Context context, int sizeInDp) {
-        float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (sizeInDp*scale + 0.5f);
+        Resources r = context.getResources();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, sizeInDp, r.getDisplayMetrics());
     }
 
     public static <T> void prepareHintedSpinnerAsync(final Spinner spinner,

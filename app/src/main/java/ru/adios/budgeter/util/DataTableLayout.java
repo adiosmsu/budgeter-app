@@ -297,7 +297,7 @@ public class DataTableLayout extends TableLayout {
                 if (dp3 == 0) {
                     dp3 = UiUtils.dpAsPixels(context, dps);
                 }
-                return dp1;
+                return dp3;
             case 4:
                 if (dp4 == 0) {
                     dp4 = UiUtils.dpAsPixels(context, dps);

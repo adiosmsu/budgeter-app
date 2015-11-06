@@ -12,8 +12,6 @@ import android.widget.RelativeLayout;
 
 import com.google.common.collect.ImmutableList;
 
-import org.threeten.bp.format.DateTimeFormatter;
-
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -43,7 +41,6 @@ public class HomeActivity extends AppCompatActivity {
     private static final int TABLE_ROWS = 5;
     private static final OrderBy<FundsMutationEventRepository.Field> MUTATIONS_ORDER_BY_TIMESTAMP = new OrderBy<>(FundsMutationEventRepository.Field.TIMESTAMP, Order.DESC);
     private static final OrderBy<CurrencyExchangeEventRepository.Field> EXCHANGES_ORDER_BY_TIMESTAMP = new OrderBy<>(CurrencyExchangeEventRepository.Field.TIMESTAMP, Order.DESC);
-    private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("###.####");
 
     private BalancedMenuHandler menuHandler;
@@ -84,7 +81,7 @@ public class HomeActivity extends AppCompatActivity {
                             @Override
                             public Iterable<String> apply(FundsMutationEvent event) {
                                 return ImmutableList.of(
-                                        event.timestamp.format(TS_FORMATTER),
+                                        Formatting.toStringRusDateTimeShort(event.timestamp),
                                         event.subject.name,
                                         Formatting.toStringMoneyUsingSign(event.amount, resources),
                                         event.relevantBalance.name
@@ -95,12 +92,20 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             @Override
+            public int count() {
+                return TABLE_ROWS;
+            }
+
+            @Override
             public List<String> getDataHeaders() {
                 return mutationsHeader;
             }
 
             @Override
             public Optional<Integer> getMaxWidthForData(int index) {
+                if (index == 1) {
+                    return Optional.of(50);
+                }
                 return Optional.empty();
             }
         });
@@ -130,7 +135,7 @@ public class HomeActivity extends AppCompatActivity {
                             @Override
                             public Iterable<String> apply(CurrencyExchangeEvent event) {
                                 return ImmutableList.of(
-                                        event.timestamp.format(TS_FORMATTER),
+                                        Formatting.toStringRusDateTimeShort(event.timestamp),
                                         Formatting.toStringMoneyUsingSign(event.bought, resources),
                                         Formatting.toStringMoneyUsingSign(event.sold, resources),
                                         event.boughtAccount.name,
@@ -140,6 +145,11 @@ public class HomeActivity extends AppCompatActivity {
                             }
                         })
                         .collect(Collectors.<Iterable<String>>toList());
+            }
+
+            @Override
+            public int count() {
+                return TABLE_ROWS;
             }
 
             @Override

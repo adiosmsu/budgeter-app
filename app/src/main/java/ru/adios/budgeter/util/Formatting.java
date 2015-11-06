@@ -3,6 +3,8 @@ package ru.adios.budgeter.util;
 import android.content.res.Resources;
 
 import org.joda.money.Money;
+import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.temporal.TemporalAccessor;
 
 import java8.util.Optional;
 
@@ -11,6 +13,12 @@ import java8.util.Optional;
  * 9/25/15
  */
 public final class Formatting {
+
+    private static final DateTimeFormatter DATE_TIME_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
+
+    public static String toStringRusDateTimeShort(TemporalAccessor dateTime) {
+        return DATE_TIME_RUS_SHORT.format(dateTime);
+    }
 
     public static String toStringMoneyUsingText(Money money) {
         return money.toString();

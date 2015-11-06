@@ -59,5 +59,6 @@
     <string name="exchange_currencies_sell_account_text">Sell currency account:</string>
     <string name="exchange_currencies_finish_button">Finish</string>
     <string name="title_activity_exchange_currencies">Add Exchange</string>
+    <string name="data_table_no_rows">No Data</string>
 
 </resources>

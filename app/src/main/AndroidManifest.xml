@@ -15,6 +15,7 @@
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -42,6 +43,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ru.adios.budgeter.HomeActivity" />
         </activity>
+        <activity android:name=".MutationsTableActivity"
+            android:label="@string/title_activity_mutations_table"
+            android:parentActivityName=".HomeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ru.adios.budgeter.HomeActivity" />
+        </activity>
     </application>
-
+    
 </manifest>

@@ -6,6 +6,7 @@ import android.view.Menu;
 
 import org.joda.money.Money;
 
+import java8.util.Optional;
 import java8.util.function.Consumer;
 
 /**
@@ -19,10 +20,10 @@ public final class BalancedMenuHandler {
 
     private final Resources resources;
 
-    private final Consumer<BalancesUiThreadState.Pair> innerListener;
+    private final Optional<Consumer<BalancesUiThreadState.Pair>> innerListener;
 
     public BalancedMenuHandler(Resources resources, Consumer<BalancesUiThreadState.Pair> innerListener) {
-        this.innerListener = innerListener;
+        this.innerListener = Optional.ofNullable(innerListener);
         this.resources = resources;
     }
 
@@ -34,8 +35,8 @@ public final class BalancedMenuHandler {
         balancesListener = new Consumer<BalancesUiThreadState.Pair>() {
             @Override
             public void accept(BalancesUiThreadState.Pair pair) {
-                if (innerListener != null) {
-                    innerListener.accept(pair);
+                if (innerListener.isPresent()) {
+                    innerListener.get().accept(pair);
                 }
 
                 tbSnap = pair.totalBalance;

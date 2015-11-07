@@ -1,6 +1,7 @@
 package ru.adios.budgeter.util;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.widget.Toast;
 
 import org.joda.money.CurrencyUnit;
@@ -19,6 +20,7 @@ import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.api.BudgeterApiException;
 import ru.adios.budgeter.api.Units;
 import ru.adios.budgeter.api.UtcDay;
+import ru.adios.budgeter.api.data.BalanceAccount;
 
 /**
  * Created by Michail Kulikov
@@ -66,6 +68,14 @@ public final class CoreUtils {
         }
 
         return totalBalance.plus(money);
+    }
+
+    public static String getExtendedAccountString(BalanceAccount account, Resources resources) {
+        final Optional<Money> balance = account.getBalance();
+        return account.name
+                + " ("
+                + (balance.isPresent() ? Formatting.toStringMoneyUsingSign(balance.get(), resources) : account.getUnit().toString())
+                + ')';
     }
 
     private static void makeConversionToast(@Nonnull Context context, CurrencyUnit moneyUnit, CurrencyUnit totalUnit) {

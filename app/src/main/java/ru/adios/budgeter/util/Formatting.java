@@ -6,6 +6,9 @@ import org.joda.money.Money;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.TemporalAccessor;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+
 import java8.util.Optional;
 
 /**
@@ -15,9 +18,14 @@ import java8.util.Optional;
 public final class Formatting {
 
     private static final DateTimeFormatter DATE_TIME_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("###.####");
 
     public static String toStringRusDateTimeShort(TemporalAccessor dateTime) {
         return DATE_TIME_RUS_SHORT.format(dateTime);
+    }
+
+    public static String toStringExchangeRate(BigDecimal rate) {
+        return DECIMAL_FORMAT.format(rate);
     }
 
     public static String toStringMoneyUsingText(Money money) {

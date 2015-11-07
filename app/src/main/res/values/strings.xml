@@ -38,7 +38,7 @@
     <string name="agent_name_hint">Agent name</string>
     <string name="op_agent_text">Operation agent (e.g. a place where the deal broke)</string>
     <string name="enter_datetime_text">Enter date and time of operation:</string>
-    <string name="button_mutate_funds">register operation</string>
+    <string name="button_mutate_funds">Register operation</string>
     <string name="funds_mutation_payed_amount_box_text">Drop paid amount</string>
     <string name="funds_mutation_subject_cost_box_text">Drop subject cost</string>
     <string name="ah_ops_table_col_time">Op time</string>
@@ -60,5 +60,10 @@
     <string name="exchange_currencies_finish_button">Finish</string>
     <string name="title_activity_exchange_currencies">Add Exchange</string>
     <string name="data_table_no_rows">No Data</string>
+    <string name="button_mutations_table">View operations</string>
+    <string name="button_exchanges_table">View exchanges</string>
+    <string name="title_activity_mutations_table">MutationsTableActivity</string>
+    <string name="ah_ops_table_col_agent">Where occurred</string>
+    <string name="mutations_table_header">Explore operations</string>
 
 </resources>

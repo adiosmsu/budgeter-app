@@ -3,10 +3,6 @@ package ru.adios.budgeter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.MenuRes;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioGroup;
@@ -25,7 +21,6 @@ import java.math.BigDecimal;
 import javax.annotation.Nullable;
 
 import java8.util.function.Consumer;
-import ru.adios.budgeter.util.BalancedMenuHandler;
 import ru.adios.budgeter.util.CoreErrorHighlighter;
 import ru.adios.budgeter.util.CoreNotifier;
 import ru.adios.budgeter.util.DateEditView;
@@ -38,9 +33,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by Michail Kulikov
  * 10/7/15
  */
-public abstract class CoreElementActivity extends AppCompatActivity {
+public abstract class CoreElementActivity extends FundsAwareMenuActivity {
 
-    private BalancedMenuHandler menuHandler;
     private boolean feedbackCommencing = false;
 
     public final boolean isFeedbackCommencing() {
@@ -50,52 +44,10 @@ public abstract class CoreElementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setContentView(getLayoutId());
-        initMenuHandler();
         coreFeedback();
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        initMenuHandler();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        initMenuHandler();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        menuHandler.destroy();
-        menuHandler = null;
-    }
-
-    private void initMenuHandler() {
-        if (menuHandler == null) {
-            menuHandler = new BalancedMenuHandler(getResources());
-            menuHandler.init(this);
-        }
-    }
-
-    @Override
-    public final boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(getMenuId(), menu);
-        menuHandler.onCreateMenu(menu);
-        return true;
-    }
-
     protected abstract FragmentsInfoProvider getInfoProvider();
-
-    @LayoutRes
-    protected abstract int getLayoutId();
-
-    @MenuRes
-    protected abstract int getMenuId();
 
     public final void coreFeedback() {
         if (feedbackCommencing)

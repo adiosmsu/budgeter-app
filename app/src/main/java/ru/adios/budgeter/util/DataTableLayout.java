@@ -86,7 +86,11 @@ public class DataTableLayout extends TableLayout {
                 if (tv.isSelected()) {
                     orderBy = Optional.of(orderBy.get().flipOrder());
                 } else {
-                    orderBy = Optional.of(orderResolver.get().byColumnName(tv.getText().toString(), Order.DESC));
+                    final Optional<OrderBy> possibleOrder = orderResolver.get().byColumnName(tv.getText().toString(), Order.DESC);
+                    if (!possibleOrder.isPresent()) {
+                        return;
+                    }
+                    orderBy = Optional.of(possibleOrder.get());
                     selectOrderByColumn(tv);
                 }
                 clearContents();
@@ -149,10 +153,14 @@ public class DataTableLayout extends TableLayout {
             final TableRow columnsRow = (TableRow) getChildAt(2);
             for (int i = 0; i < columnsRow.getChildCount(); i++) {
                 final TextView col = (TextView) columnsRow.getChildAt(i);
-                final CharSequence text = col.getText();
+                final String text = col.getText().toString();
 
                 if (!orderBy.isPresent()) {
-                    orderBy = Optional.of(orderResolver.byColumnName(text.toString(), Order.DESC));
+                    final Optional<OrderBy> possibleOrder = orderResolver.byColumnName(text, Order.DESC);
+                    if (!possibleOrder.isPresent()) {
+                        continue;
+                    }
+                    orderBy = Optional.of(possibleOrder.get());
                     selectOrderByColumn(col);
                     if (tablePopulated) {
                         clearContents();
@@ -161,7 +169,7 @@ public class DataTableLayout extends TableLayout {
                     return;
                 }
 
-                if (text.equals(orderResolver.byField(orderBy.get().field))) {
+                if (text.equals(orderResolver.byField(orderBy.get().field).orElse(null))) {
                     if (!col.isSelected()) {
                         selectOrderByColumn(col);
                         col.invalidate();
@@ -212,9 +220,8 @@ public class DataTableLayout extends TableLayout {
                 final TableRow columnsRow = (TableRow) getChildAt(2);
                 for (int i = 0; i < columnsRow.getChildCount(); i++) {
                     final TextView col = (TextView) columnsRow.getChildAt(i);
-                    final CharSequence text = col.getText();
 
-                    if (text.equals(orderResolver.get().byField(orderBy.field))) {
+                    if (col.getText().toString().equals(orderResolver.get().byField(orderBy.field).orElse(null))) {
                         if (!col.isSelected()) {
                             selectOrderByColumn(col);
                         }
@@ -379,12 +386,18 @@ public class DataTableLayout extends TableLayout {
         }
 
         if (orderResolver.isPresent() && !orderBy.isPresent()) {
-            orderBy = Optional.of(orderResolver.get().byColumnName(headers.get(0), Order.DESC));
+            for (final String h : headers) {
+                final Optional<OrderBy> possibleOrder = orderResolver.get().byColumnName(h, Order.DESC);
+                if (possibleOrder.isPresent()) {
+                    orderBy = Optional.of(possibleOrder.get());
+                    break;
+                }
+            }
         }
         headerOffset = addDataRow(headers, headerOffset, Optional.<Consumer<TextView>>of(new Consumer<TextView>() {
             @Override
             public void accept(TextView textView) {
-                if (orderResolver.isPresent() && orderResolver.get().byField(orderBy.get().field).equals(textView.getText().toString())) {
+                if (orderResolver.isPresent() && textView.getText().toString().equals(orderResolver.get().byField(orderBy.get().field).orElse(null))) {
                     selectOrderByColumn(textView);
                 }
                 textView.setOnClickListener(rowOrderListener);
@@ -658,9 +671,9 @@ public class DataTableLayout extends TableLayout {
 
     public interface OrderResolver {
 
-        OrderBy byColumnName(String columnName, Order order);
+        Optional<OrderBy> byColumnName(String columnName, Order order);
 
-        String byField(OrderedField field);
+        Optional<String> byField(OrderedField field);
 
     }
 

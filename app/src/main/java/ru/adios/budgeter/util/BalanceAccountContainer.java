@@ -2,13 +2,10 @@ package ru.adios.budgeter.util;
 
 import android.content.res.Resources;
 
-import org.joda.money.Money;
-
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nonnull;
 
-import java8.util.Optional;
 import ru.adios.budgeter.api.data.BalanceAccount;
 
 /**
@@ -42,11 +39,7 @@ public final class BalanceAccountContainer extends CachingHintedContainer<Balanc
     @Nonnull
     protected String calculateToString() {
         final BalanceAccount account = getObject();
-        final Optional<Money> balance = account.getBalance();
-        return account.name
-                + " ("
-                + (balance.isPresent() ? Formatting.toStringMoneyUsingSign(balance.get(), resources) : account.getUnit().toString())
-                + ')';
+        return CoreUtils.getExtendedAccountString(account, resources);
     }
 
     public static final class Factory implements HintedArrayAdapter.ContainerFactory<BalanceAccount> {

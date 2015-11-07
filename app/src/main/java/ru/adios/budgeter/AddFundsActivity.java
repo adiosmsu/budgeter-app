@@ -62,7 +62,7 @@ public class AddFundsActivity extends CoreElementActivity {
 
     @Override
     @MenuRes
-    protected final int getMenuId() {
+    protected final int getMenuResource() {
         return R.menu.menu_add_funds;
     }
 

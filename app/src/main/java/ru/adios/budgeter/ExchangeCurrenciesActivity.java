@@ -103,7 +103,7 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
     }
 
     @Override
-    protected int getMenuId() {
+    protected int getMenuResource() {
         return R.menu.menu_exchange_currencies;
     }
 

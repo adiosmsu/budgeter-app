@@ -109,7 +109,7 @@ public class FundsMutationActivity extends CoreElementActivity {
     }
 
     @Override
-    protected final int getMenuId() {
+    protected final int getMenuResource() {
         return R.menu.menu_funds_mutation;
     }
 

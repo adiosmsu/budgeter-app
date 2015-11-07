@@ -3,36 +3,28 @@ package ru.adios.budgeter;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
+import android.support.annotation.LayoutRes;
+import android.support.annotation.MenuRes;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import com.google.common.collect.ImmutableList;
-
-import java.text.DecimalFormat;
-import java.util.List;
-
 import java8.util.Optional;
 import java8.util.function.Consumer;
-import java8.util.function.Function;
-import java8.util.stream.Collectors;
 import ru.adios.budgeter.api.CurrencyExchangeEventRepository;
 import ru.adios.budgeter.api.FundsMutationEventRepository;
 import ru.adios.budgeter.api.Order;
 import ru.adios.budgeter.api.OrderBy;
-import ru.adios.budgeter.api.RepoOption;
-import ru.adios.budgeter.api.data.CurrencyExchangeEvent;
-import ru.adios.budgeter.api.data.FundsMutationEvent;
-import ru.adios.budgeter.util.BalancedMenuHandler;
 import ru.adios.budgeter.util.BalancesUiThreadState;
 import ru.adios.budgeter.util.DataTableLayout;
-import ru.adios.budgeter.util.Formatting;
+import ru.adios.budgeter.util.ExchangesDataStore;
+import ru.adios.budgeter.util.MutationEventsDataStore;
 import ru.adios.budgeter.util.UiUtils;
 
-public class HomeActivity extends AppCompatActivity {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class HomeActivity extends FundsAwareMenuActivity {
 
     static {
         UiUtils.onApplicationStart();
@@ -41,64 +33,37 @@ public class HomeActivity extends AppCompatActivity {
     private static final int TABLE_ROWS = 5;
     private static final OrderBy<FundsMutationEventRepository.Field> MUTATIONS_ORDER_BY_TIMESTAMP = new OrderBy<>(FundsMutationEventRepository.Field.TIMESTAMP, Order.DESC);
     private static final OrderBy<CurrencyExchangeEventRepository.Field> EXCHANGES_ORDER_BY_TIMESTAMP = new OrderBy<>(CurrencyExchangeEventRepository.Field.TIMESTAMP, Order.DESC);
-    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("###.####");
 
-    private BalancedMenuHandler menuHandler;
     private DataTableLayout mutationsTable;
     private DataTableLayout exchangesTable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final Resources resources = getResources();
-        final ImmutableList<String> mutationsHeader = ImmutableList.of(
-                resources.getString(R.string.ah_ops_table_col_time),
-                resources.getString(R.string.ah_ops_table_col_subj),
-                resources.getString(R.string.ah_ops_table_col_money),
-                resources.getString(R.string.ah_ops_table_col_account)
-        );
-        final ImmutableList<String> exchangesHeader = ImmutableList.of(
-                resources.getString(R.string.ah_ops_table_col_time),
-                resources.getString(R.string.ah_exchanges_table_col_bought),
-                resources.getString(R.string.ah_exchanges_table_col_sold),
-                resources.getString(R.string.ah_exchanges_table_col_b_acc),
-                resources.getString(R.string.ah_exchanges_table_col_s_acc),
-                resources.getString(R.string.ah_exchanges_table_col_rate)
-        );
 
-        setContentView(R.layout.activity_home); //draw
         final RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.activity_home);
-
-        initMenuHandler((LinearLayout) findViewById(R.id.ah_funds_list)); // Register balances state listener
-
-        mutationsTable = new DataTableLayout(this, new DataTableLayout.DataStore() {
-            @Override
-            public List<Iterable<String>> loadData(RepoOption... options) {
-                return BundleProvider.getBundle()
-                        .fundsMutationEvents()
-                        .streamMutationEvents(options)
-                        .map(new Function<FundsMutationEvent, Iterable<String>>() {
-                            @Override
-                            public Iterable<String> apply(FundsMutationEvent event) {
-                                return ImmutableList.of(
-                                        Formatting.toStringRusDateTimeShort(event.timestamp),
-                                        event.subject.name,
-                                        Formatting.toStringMoneyUsingSign(event.amount, resources),
-                                        event.relevantBalance.name
-                                );
-                            }
-                        })
-                        .collect(Collectors.<Iterable<String>>toList());
+        View btnMu = null, btnEx = null;
+        int muBtnIx = 0, exBtnIx = 0;
+        for (int i = 0; i < mainLayout.getChildCount(); i++) {
+            final View childAt = mainLayout.getChildAt(i);
+            final int id = childAt.getId();
+            if (id == R.id.ah_mutations_table_button) {
+                muBtnIx = i;
+                btnMu = childAt;
             }
+            if (id == R.id.ah_exchanges_table_button) {
+                exBtnIx = i;
+                btnEx = childAt;
+            }
+        }
+        checkNotNull(btnMu);
+        checkNotNull(btnEx);
 
+        final Resources resources = getResources();
+        mutationsTable = new DataTableLayout(this, new MutationEventsDataStore(resources) {
             @Override
             public int count() {
                 return TABLE_ROWS;
-            }
-
-            @Override
-            public List<String> getDataHeaders() {
-                return mutationsHeader;
             }
 
             @Override
@@ -123,38 +88,16 @@ public class HomeActivity extends AppCompatActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
-        mainLayout.addView(mutationsTable);
+        mainLayout.addView(mutationsTable, muBtnIx);
+        final RelativeLayout.LayoutParams mbParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mbParams.addRule(RelativeLayout.BELOW, mutationsTable.getId());
+        mbParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+        btnMu.setLayoutParams(mbParams);
 
-        exchangesTable = new DataTableLayout(this, new DataTableLayout.DataStore() {
-            @Override
-            public List<Iterable<String>> loadData(RepoOption... options) {
-                return BundleProvider.getBundle()
-                        .currencyExchangeEvents()
-                        .streamExchangeEvents(options)
-                        .map(new Function<CurrencyExchangeEvent, Iterable<String>>() {
-                            @Override
-                            public Iterable<String> apply(CurrencyExchangeEvent event) {
-                                return ImmutableList.of(
-                                        Formatting.toStringRusDateTimeShort(event.timestamp),
-                                        Formatting.toStringMoneyUsingSign(event.bought, resources),
-                                        Formatting.toStringMoneyUsingSign(event.sold, resources),
-                                        event.boughtAccount.name,
-                                        event.soldAccount.name,
-                                        DECIMAL_FORMAT.format(event.rate)
-                                );
-                            }
-                        })
-                        .collect(Collectors.<Iterable<String>>toList());
-            }
-
+        exchangesTable = new DataTableLayout(this, new ExchangesDataStore(resources) {
             @Override
             public int count() {
                 return TABLE_ROWS;
-            }
-
-            @Override
-            public List<String> getDataHeaders() {
-                return exchangesHeader;
             }
 
             @Override
@@ -167,7 +110,7 @@ public class HomeActivity extends AppCompatActivity {
         });
         final RelativeLayout.LayoutParams exchangesParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         exchangesParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-        exchangesParams.addRule(RelativeLayout.BELOW, mutationsTable.getId());
+        exchangesParams.addRule(RelativeLayout.BELOW, R.id.ah_mutations_table_button);
         exchangesTable.setLayoutParams(exchangesParams);
         exchangesTable.setTableName(resources.getString(R.string.ah_exchanges_table_header));
         exchangesTable.setPageSize(TABLE_ROWS);
@@ -179,7 +122,11 @@ public class HomeActivity extends AppCompatActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
-        mainLayout.addView(exchangesTable);
+        mainLayout.addView(exchangesTable, exBtnIx + 1);
+        final RelativeLayout.LayoutParams ebParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        ebParams.addRule(RelativeLayout.BELOW, exchangesTable.getId());
+        ebParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+        btnEx.setLayoutParams(ebParams);
 
         BalancesUiThreadState.instantiate(); // this is the first activity so...
 
@@ -188,22 +135,25 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        onResumeOrRestart();
+    @MenuRes
+    protected int getMenuResource() {
+        return R.menu.menu_home;
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        onResumeOrRestart();
+    @LayoutRes
+    protected int getLayoutId() {
+        return R.layout.activity_home;
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_home, menu);
-        menuHandler.onCreateMenu(menu);
-        return true;
+    protected Consumer<BalancesUiThreadState.Pair> getMenuHandlerListener() {
+        return new Consumer<BalancesUiThreadState.Pair>() {
+            @Override
+            public void accept(BalancesUiThreadState.Pair pair) {
+                UiUtils.refillLinearLayoutWithBalances((LinearLayout) findViewById(R.id.ah_funds_list), pair.balances, pair.totalBalance, HomeActivity.this);
+            }
+        };
     }
 
     @Override
@@ -216,13 +166,6 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        menuHandler.destroy();
-        menuHandler = null;
     }
 
     /** Called when user clicks on Add Funds button */
@@ -240,34 +183,17 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(new Intent(this, ExchangeCurrenciesActivity.class));
     }
 
-    private boolean initMenuHandler(final LinearLayout fundsLayout) {
-        if (menuHandler == null) {
-            menuHandler = new BalancedMenuHandler(getResources(), new Consumer<BalancesUiThreadState.Pair>() {
-                @Override
-                public void accept(BalancesUiThreadState.Pair pair) {
-                    UiUtils.refillLinearLayoutWithBalances(fundsLayout, pair.balances, pair.totalBalance, HomeActivity.this);
-                }
-            });
-            menuHandler.init(this);
-            return true;
-        }
-        return false;
+    /** Called when user clicks on View Mutations button */
+    public void startMutationsTableActivity(View view) {
+        startActivity(new Intent(this, MutationsTableActivity.class));
     }
 
-    private void onResumeOrRestart() {
-        if (menuHandler == null) {
-            mutationsTable.repopulate();
-            exchangesTable.repopulate();
-        }
-        resumeMenuHandler();
-    }
-
-    private void resumeMenuHandler() {
-        final LinearLayout fundsLayout = (LinearLayout) findViewById(R.id.ah_funds_list);
-        if (initMenuHandler(fundsLayout)) {
-            final BalancesUiThreadState.Pair pair = BalancesUiThreadState.getSnapshot();
-            UiUtils.refillLinearLayoutWithBalances(fundsLayout, pair.balances, pair.totalBalance, this);
-        }
+    @Override
+    protected void onResumeOrRestart() {
+        mutationsTable.repopulate();
+        exchangesTable.repopulate();
+        final BalancesUiThreadState.Pair pair = BalancesUiThreadState.getSnapshot();
+        UiUtils.refillLinearLayoutWithBalances((LinearLayout) findViewById(R.id.ah_funds_list), pair.balances, pair.totalBalance, this);
     }
 
 }

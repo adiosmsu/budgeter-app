@@ -56,5 +56,24 @@
             android:text="@string/button_register_exchange"
             android:onClick="startExchangeCurrenciesActivity" />
 
+        <Button
+            android:id="@+id/ah_mutations_table_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ah_exchange_button"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:text="@string/button_mutations_table"
+            android:onClick="startMutationsTableActivity" />
+        <Button
+            android:id="@+id/ah_exchanges_table_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ah_mutations_table_button"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:text="@string/button_exchanges_table"
+            android:onClick="startExchangeCurrenciesActivity" />
+
     </RelativeLayout>
 </ScrollView>

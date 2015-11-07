@@ -51,12 +51,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ru.adios.budgeter.HomeActivity" />
         </activity>
-        <activity android:name=".ExchangesTableActivity"
+        <activity
+            android:name=".ExchangesTableActivity"
             android:label="@string/title_activity_exchanges_table"
             android:parentActivityName=".HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ru.adios.budgeter.HomeActivity" />
+        </activity>
+        <activity android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings">
         </activity>
     </application>
 

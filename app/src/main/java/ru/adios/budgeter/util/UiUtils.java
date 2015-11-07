@@ -35,6 +35,9 @@ import ru.adios.budgeter.api.data.BalanceAccount;
  */
 public final class UiUtils {
 
+    public static final int RED_COLOR = 0xffaf0b0b;
+    public static final int GREEN_COLOR = 0xff2ace1f;
+
     public static void onApplicationStart() {
         //noinspection ResultOfMethodCallIgnored
         Constants.MAIN_HANDLER.toString();
@@ -125,7 +128,7 @@ public final class UiUtils {
 
     public static MenuItem fillStandardMenu(Menu menu, Money totalBalance, Resources resources) {
         // Add funds info
-        final int settingsOrder = menu.getItem(0).getOrder();
+        final int settingsOrder = menu.size() > 0 ? menu.getItem(0).getOrder() : 1;
         final String text = Formatting.toStringMoneyUsingText(totalBalance);
         final MenuItem fundsInfo = menu.add(Menu.NONE, FUNDS_ID, settingsOrder - 1, text);
         fundsInfo.setTitle(text);

@@ -67,5 +67,8 @@
     <string name="mutations_table_header">Explore operations</string>
     <string name="exchanges_table_header">Explore exchanges</string>
     <string name="title_activity_exchanges_table">Exchanges table</string>
+    <string name="button_reset_db">Reset DB</string>
+    <string name="button_success">Success</string>
+    <string name="title_activity_settings">Settings</string>
 
 </resources>

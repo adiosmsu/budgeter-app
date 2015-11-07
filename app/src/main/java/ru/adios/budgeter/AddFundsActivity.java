@@ -1,5 +1,6 @@
 package ru.adios.budgeter;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
@@ -100,6 +101,7 @@ public class AddFundsActivity extends CoreElementActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

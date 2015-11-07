@@ -65,5 +65,7 @@
     <string name="title_activity_mutations_table">Operations table</string>
     <string name="ah_ops_table_col_agent">Where occurred</string>
     <string name="mutations_table_header">Explore operations</string>
+    <string name="exchanges_table_header">Explore exchanges</string>
+    <string name="title_activity_exchanges_table">Exchanges table</string>
 
 </resources>

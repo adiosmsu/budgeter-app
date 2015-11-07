@@ -73,7 +73,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:text="@string/button_exchanges_table"
-            android:onClick="startExchangeCurrenciesActivity" />
+            android:onClick="startExchangesTableActivity" />
 
     </RelativeLayout>
 </ScrollView>

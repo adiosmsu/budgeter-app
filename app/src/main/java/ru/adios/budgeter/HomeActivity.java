@@ -188,6 +188,11 @@ public class HomeActivity extends FundsAwareMenuActivity {
         startActivity(new Intent(this, MutationsTableActivity.class));
     }
 
+    /** Called when user clicks on View exchanges button */
+    public void startExchangesTableActivity(View view) {
+        startActivity(new Intent(this, ExchangesTableActivity.class));
+    }
+
     @Override
     protected void onResumeOrRestart() {
         mutationsTable.repopulate();

@@ -18,7 +18,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import java8.util.Optional;
 import java8.util.function.Consumer;
@@ -36,6 +39,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Michail Kulikov
  * 11/5/15
  */
+@NotThreadSafe
 public class DataTableLayout extends TableLayout {
 
     @ColorInt
@@ -61,21 +65,26 @@ public class DataTableLayout extends TableLayout {
     private Optional<LinearLayout> titleView = Optional.empty();
     private LinearLayout footer;
     private Button pressedButton;
-    private int setSize;
     private int itemsPerInnerRow;
-    private int itemsInLastRow;
+    private int itemsInFirstRow;
     private int headerOffset;
     private int knownWidth;
+    private TextView selectedColumn;
+    private boolean insidePageSize = false;
+    private Optional<List<Integer>> spinnerContents = Optional.empty();
+    private Spinner pageSizeSpinner;
     private final OnClickListener buttonListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             pressedButton.setPressed(false);
             pressedButton.setClickable(true);
+            pressedButton.invalidate();
             final Button thisBtn = (Button) v;
             thisBtn.setClickable(false);
             thisBtn.setPressed(true);
             pressedButton = thisBtn;
             turnToPage(Integer.valueOf(thisBtn.getText().toString()));
+            thisBtn.invalidate();
         }
     };
     private final OnClickListener rowOrderListener = new OnClickListener() {
@@ -104,7 +113,6 @@ public class DataTableLayout extends TableLayout {
     private int dp3;
     private int dp4;
     private int dp5;
-    private TextView selectedColumn;
 
     public DataTableLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -200,15 +208,41 @@ public class DataTableLayout extends TableLayout {
     }
 
     public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
-        int page = 1;
-        if (pageLimit != null && pageLimit.offset > 0) {
-            page = pageLimit.offset / pageSize + 1;
+        checkArgument(pageSize > 0, "Page size must be positive");
+
+        if (insidePageSize) {
+            return;
         }
-        turnToPage(page);
-        if (footer != null) {
-            footer.removeAllViews();
-            populateFooter();
+
+        insidePageSize = true;
+        try {
+            if (pageSize == this.pageSize) {
+                return;
+            }
+
+            this.pageSize = pageSize;
+
+            if (spinnerContents.isPresent()) {
+                final List<Integer> contents = spinnerContents.get();
+                if (!contents.contains(pageSize)) {
+                    contents.add(pageSize);
+                    Collections.sort(contents);
+                    pageSizeSpinner.setSelection(contents.indexOf(pageSize));
+                }
+            }
+
+            int page = 1;
+            if (pageLimit != null && pageLimit.offset > 0) {
+                page = pageLimit.offset / pageSize + 1;
+            }
+            turnToPage(page);
+
+            if (footer != null) {
+                footer.removeAllViews();
+                populateFooter();
+            }
+        } finally {
+            insidePageSize = false;
         }
     }
 
@@ -243,13 +277,12 @@ public class DataTableLayout extends TableLayout {
         setWillNotDraw(false);
 
         if (!isInEditMode()) {
-            setSize = dataStore.getDataHeaders().size();
+            final int setSize = dataStore.getDataHeaders().size();
+            checkArgument(setSize >= rowsPerSet, "Data store returned set size less than rowsPerSet provided in constructor");
             itemsPerInnerRow = setSize / rowsPerSet;
-            checkArgument(itemsPerInnerRow < MAX_ROW_CAPACITY, "Row appears to be too large: %s", MAX_ROW_CAPACITY);
-            itemsInLastRow = setSize % rowsPerSet;
-            if (itemsInLastRow == 0) {
-                itemsInLastRow = itemsPerInnerRow;
-            }
+            checkArgument(itemsPerInnerRow < MAX_ROW_CAPACITY, "Row appears to be too large: %s", itemsPerInnerRow);
+            itemsInFirstRow = setSize % rowsPerSet + itemsPerInnerRow;
+            checkArgument(itemsInFirstRow < MAX_ROW_CAPACITY, "First row appears to be too large: %s, while others are %s", itemsInFirstRow, itemsPerInnerRow);
         }
     }
 
@@ -274,16 +307,19 @@ public class DataTableLayout extends TableLayout {
                     final Context context = getContext();
 
                     if (tableName.isPresent()) {
-                        final Spinner pageSizeSpinner = new Spinner(context, Spinner.MODE_DROPDOWN);
+                        pageSizeSpinner = new Spinner(context, Spinner.MODE_DROPDOWN);
+                        pageSizeSpinner.setMinimumWidth(UiUtils.dpAsPixels(context, 70));
                         pageSizeSpinner.setId(ElementsIdProvider.getNextId());
+                        final List<Integer> contents = getPageSpinnerContents();
+                        spinnerContents = Optional.of(contents);
                         pageSizeSpinner.setAdapter(new ArrayAdapter<>(
                                 context,
                                 android.R.layout.simple_spinner_item,
                                 android.R.id.text1,
-                                getPageSpinnerContents()
+                                contents
                         ));
-                        pageSizeSpinner.setSelection(0);
-                        pageSizeSpinner.setLayoutParams(new LinearLayout.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 2f));
+                        pageSizeSpinner.setSelection(contents.indexOf(pageSize));
+                        pageSizeSpinner.setLayoutParams(new LinearLayout.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT, 2f));
                         pageSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -322,13 +358,24 @@ public class DataTableLayout extends TableLayout {
     private List<Integer> getPageSpinnerContents() {
         final ArrayList<Integer> list = new ArrayList<>(11);
         int curValue = 0, circle = 0, additive = MIN_PAGE_SIZE, min = Math.min(MAX_PAGE_SIZE, count);
+        boolean foundCurPSize = false;
         while (curValue < min) {
             if (circle++ == 3) {
                 additive *= 2;
                 circle = 0;
             }
-            list.add(curValue += additive);
+            final int c = curValue += additive;
+            if (c == pageSize) {
+                foundCurPSize = true;
+            }
+            list.add(c);
         }
+
+        if (!foundCurPSize) {
+            list.add(pageSize);
+            Collections.sort(list);
+        }
+
         return list;
     }
 
@@ -465,33 +512,29 @@ public class DataTableLayout extends TableLayout {
 
     private int addDataRow(Iterable<String> dataSet, int rowId, Optional<Consumer<TextView>> optional) {
         final Context context = getContext();
-        final float weightSum = itemsPerInnerRow * 2f;
-        final float lastColumnWeight = 2f * (itemsPerInnerRow - itemsInLastRow + 1);
 
         if (rowsPerSet > 1) {
-            addView(constructRowSeparator(rowsPerSet));
-            rowId++;
+            addView(constructRowSeparator(rowsPerSet), rowId++);
         }
 
         int i = 0;
-        boolean firstInner = true;
-        TableRow currentRow = constructRow(context, weightSum);
+        boolean firstInner = true, fistRow = true;
+        TableRow currentRow = constructRow(context, itemsInFirstRow * 2f);
         for (final String str : dataSet) {
-            if (i > 0 && i % itemsPerInnerRow == 0) {
+            if (i > 0 && (fistRow ? i % itemsInFirstRow == 0 : i % itemsPerInnerRow == 0)) {
+                i = 0;
+                fistRow = false;
                 addView(currentRow, rowId++);
-                currentRow = constructRow(context, weightSum);
+                currentRow = constructRow(context, itemsPerInnerRow * 2f);
                 firstInner = true;
             }
 
-            final float weight = i < setSize - 1
-                    ? 2f
-                    : lastColumnWeight;
             final TextView textView;
             if (firstInner) {
-                textView = createSpyingColumnForTableRow(str, rowId, weight, lastColumnWeight, context);
+                textView = createSpyingColumnForTableRow(str, rowId, 2f, context);
                 firstInner = false;
             } else {
-                textView = createColumnForTableRow(str, weight, context);
+                textView = createColumnForTableRow(str, 2f, context);
             }
             final Optional<Integer> maxWidth = dataStore.getMaxWidthForData(i);
             if (maxWidth.isPresent()) {
@@ -519,7 +562,7 @@ public class DataTableLayout extends TableLayout {
         return view;
     }
 
-    private TextView createSpyingColumnForTableRow(String text, final int rowId, final float weight, final float lcw, Context context) {
+    private TextView createSpyingColumnForTableRow(String text, final int rowId, final float weight, Context context) {
         final SpyingTextView view = new SpyingTextView(context);
         populateColumn(view, context, weight);
         view.heightCatch = true;
@@ -537,7 +580,7 @@ public class DataTableLayout extends TableLayout {
 
                 for (int i = 0; i < childCount; i++) {
                     final TextView childAt = (TextView) row.getChildAt(i);
-                    childAt.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, maxHeight, i < childCount - 1 ? weight : lcw));
+                    childAt.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, maxHeight, weight));
                 }
 
                 invalidate();
@@ -579,9 +622,15 @@ public class DataTableLayout extends TableLayout {
             final int numButtons = Math.min(maxButtons, numPages);
 
             if (numButtons > 1) {
-                for (int i = Math.max(currentPage - numButtons / 2, 1); i <= Math.min(currentPage + numButtons / 2, numPages); i++) {
-                    footer.addView(createButtonForFooter(currentPage - i, i == currentPage));
+                for (int i = -numButtons; i <= numButtons; i++) {
+                    int page = currentPage + i;
+                    if (page < 1 || page > numPages) {
+                        continue;
+                    }
+                    footer.addView(createButtonForFooter(page, page == currentPage));
                 }
+            } else {
+                footer.addView(createButtonForFooter(1, true));
             }
             footer.invalidate();
         }

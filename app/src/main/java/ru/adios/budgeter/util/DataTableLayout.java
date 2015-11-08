@@ -62,6 +62,7 @@ public class DataTableLayout extends TableLayout {
     private Optional<OrderBy> orderBy = Optional.empty();
     private boolean tablePopulated = false;
 
+    private Optional<TableRow[]> columnsRow;
     private Optional<LinearLayout> titleView = Optional.empty();
     private LinearLayout footer;
     private Button pressedButton;
@@ -134,18 +135,20 @@ public class DataTableLayout extends TableLayout {
     }
 
     public void start() {
-        if (getChildCount() == 0) {
-            populateFraming(dataStore.getDataHeaders());
+        if (!tablePopulated) {
+            if (getChildCount() == 0) {
+                populateFraming(dataStore.getDataHeaders());
+            }
+            loadDataAndPopulateTable();
         }
-        loadDataAndPopulateTable();
     }
 
     public void repopulate() {
-        if (!tablePopulated) {
+        if (tablePopulated) {
+            clearContents();
+        } else {
             removeAllViews();
             populateFraming(dataStore.getDataHeaders());
-        } else {
-            clearContents();
         }
         loadDataAndPopulateTable();
     }
@@ -208,11 +211,10 @@ public class DataTableLayout extends TableLayout {
     }
 
     public void setPageSize(int pageSize) {
-        checkArgument(pageSize > 0, "Page size must be positive");
-
         if (insidePageSize) {
             return;
         }
+        checkArgument(pageSize > 0, "Page size must be positive");
 
         insidePageSize = true;
         try {
@@ -250,27 +252,30 @@ public class DataTableLayout extends TableLayout {
         checkState(!orderResolver.isPresent() || orderBy != null, "User ordering enabled, cannot set no ordering at all");
 
         if ((this.orderBy.isPresent() && !this.orderBy.get().equals(orderBy)) || (!this.orderBy.isPresent() && orderBy != null)) {
-            if (orderResolver.isPresent() && getChildCount() > 0) {
-                final TableRow columnsRow = (TableRow) getChildAt(2);
-                for (int i = 0; i < columnsRow.getChildCount(); i++) {
-                    final TextView col = (TextView) columnsRow.getChildAt(i);
+            if (orderResolver.isPresent() && columnsRow.isPresent()) {
+                final TableRow[] colsRow = columnsRow.get();
 
-                    if (col.getText().toString().equals(orderResolver.get().byField(orderBy.field).orElse(null))) {
-                        if (!col.isSelected()) {
-                            selectOrderByColumn(col);
+                outer: for (final TableRow r : colsRow) {
+                    for (int j = 0; j < r.getChildCount(); j++) {
+                        final TextView col = (TextView) r.getChildAt(j);
+
+                        if (col.getText().toString().equals(orderResolver.get().byField(orderBy.field).orElse(null))) {
+                            if (!col.isSelected()) {
+                                selectOrderByColumn(col);
+                            }
+                            break outer;
                         }
-                        break;
                     }
                 }
             }
+
+            this.orderBy = Optional.ofNullable(orderBy);
 
             if (tablePopulated) {
                 clearContents();
                 loadTableProcedures();
             }
         }
-
-        this.orderBy = Optional.ofNullable(orderBy);
     }
 
     private void init() {
@@ -363,6 +368,7 @@ public class DataTableLayout extends TableLayout {
         final ArrayList<Integer> list = new ArrayList<>(11);
         int curValue = 0, circle = 0, additive = MIN_PAGE_SIZE, min = Math.min(MAX_PAGE_SIZE, count);
         boolean foundCurPSize = false;
+
         while (curValue < min) {
             if (circle++ == 3) {
                 additive *= 2;
@@ -445,6 +451,8 @@ public class DataTableLayout extends TableLayout {
                 }
             }
         }
+
+        final int curHdrOff = headerOffset;
         headerOffset = addDataRow(headers, headerOffset, Optional.<Consumer<TextView>>of(new Consumer<TextView>() {
             @Override
             public void accept(TextView textView) {
@@ -454,6 +462,12 @@ public class DataTableLayout extends TableLayout {
                 textView.setOnClickListener(rowOrderListener);
             }
         }));
+        final int colArrLength = headerOffset - curHdrOff;
+        final TableRow[] rArr = new TableRow[colArrLength];
+        for (int i = 0; i < colArrLength; i++) {
+            rArr[i] = (TableRow) getChildAt(curHdrOff + i);
+        }
+        columnsRow = Optional.of(rArr);
 
         addView(constructRowSeparator(1));
         final TableRow footerRow = constructRow(context, 1f);

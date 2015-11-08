@@ -1,159 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_exchange_currencies"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <android.support.percent.PercentRelativeLayout
+    <include layout="@layout/toolbar"/>
+
+    <ScrollView
+        android:id="@+id/activity_exchange_currencies"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        tools:context="ru.adios.budgeter.ExchangeCurrenciesActivity">
-
-        <TextView
-            android:id="@+id/exchange_currencies_buy_amount_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:text="@string/exchange_currencies_buy_amount_text"/>
-        <fragment
-            android:id="@+id/exchange_currencies_buy_amount_fragment"
-            android:name="ru.adios.budgeter.EnterAmountFragment"
+        android:layout_height="match_parent">
+        <android.support.percent.PercentRelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_buy_amount_text"
-            tools:layout="@layout/fragment_enter_amount" />
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            tools:context="ru.adios.budgeter.ExchangeCurrenciesActivity">
 
-        <TextView
-            android:id="@+id/exchange_currencies_sell_amount_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_buy_amount_fragment"
-            android:text="@string/exchange_currencies_sell_amount_text"/>
-        <fragment
-            android:id="@+id/exchange_currencies_sell_amount_fragment"
-            android:name="ru.adios.budgeter.EnterAmountFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_sell_amount_text"
-            tools:layout="@layout/fragment_enter_amount" />
+            <TextView
+                android:id="@+id/exchange_currencies_buy_amount_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:text="@string/exchange_currencies_buy_amount_text"/>
+            <fragment
+                android:id="@+id/exchange_currencies_buy_amount_fragment"
+                android:name="ru.adios.budgeter.EnterAmountFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_buy_amount_text"
+                tools:layout="@layout/fragment_enter_amount" />
 
-        <TextView
-            android:id="@+id/exchange_currencies_buy_account_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_sell_amount_fragment"
-            android:text="@string/exchange_currencies_buy_account_text"/>
-        <fragment
-            android:id="@+id/exchange_currencies_buy_account_fragment"
-            android:name="ru.adios.budgeter.AccountStandardFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_buy_account_text"
-            tools:layout="@layout/fragment_account_standard"/>
+            <TextView
+                android:id="@+id/exchange_currencies_sell_amount_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_buy_amount_fragment"
+                android:text="@string/exchange_currencies_sell_amount_text"/>
+            <fragment
+                android:id="@+id/exchange_currencies_sell_amount_fragment"
+                android:name="ru.adios.budgeter.EnterAmountFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_sell_amount_text"
+                tools:layout="@layout/fragment_enter_amount" />
 
-        <TextView
-            android:id="@+id/exchange_currencies_sell_account_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_buy_account_fragment"
-            android:text="@string/exchange_currencies_sell_account_text"/>
-        <fragment
-            android:id="@+id/exchange_currencies_sell_account_fragment"
-            android:name="ru.adios.budgeter.AccountStandardFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_sell_account_text"
-            tools:layout="@layout/fragment_account_standard"/>
+            <TextView
+                android:id="@+id/exchange_currencies_buy_account_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_sell_amount_fragment"
+                android:text="@string/exchange_currencies_buy_account_text"/>
+            <fragment
+                android:id="@+id/exchange_currencies_buy_account_fragment"
+                android:name="ru.adios.budgeter.AccountStandardFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_buy_account_text"
+                tools:layout="@layout/fragment_account_standard"/>
 
-        <TextView
-            android:id="@+id/exchange_currencies_natural_rate_text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_widthPercent="50%"
-            android:layout_below="@id/exchange_currencies_sell_account_fragment"
-            android:text="@string/optional_with_colons"/>
-        <TextView
-            android:id="@+id/exchange_currencies_custom_rate_text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/exchange_currencies_natural_rate_text"
-            android:layout_toEndOf="@+id/exchange_currencies_natural_rate_text"
-            app:layout_widthPercent="50%"
-            android:layout_below="@id/exchange_currencies_sell_account_fragment"
-            android:text="@string/optional_with_colons"/>
-        <EditText
-            android:id="@+id/exchange_currencies_natural_rate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_widthPercent="50%"
-            android:layout_below="@id/exchange_currencies_natural_rate_text"
-            android:hint="@string/natural_rate_text"
-            android:inputType="numberDecimal"/>
-        <EditText
-            android:id="@+id/exchange_currencies_custom_rate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_widthPercent="50%"
-            android:layout_below="@id/exchange_currencies_custom_rate_text"
-            android:layout_toRightOf="@+id/exchange_currencies_natural_rate"
-            android:layout_toEndOf="@+id/exchange_currencies_natural_rate"
-            android:hint="@string/custom_rate_text"
-            android:inputType="numberDecimal"/>
+            <TextView
+                android:id="@+id/exchange_currencies_sell_account_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_buy_account_fragment"
+                android:text="@string/exchange_currencies_sell_account_text"/>
+            <fragment
+                android:id="@+id/exchange_currencies_sell_account_fragment"
+                android:name="ru.adios.budgeter.AccountStandardFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_sell_account_text"
+                tools:layout="@layout/fragment_account_standard"/>
 
-        <TextView
-            android:id="@+id/exchange_currencies_agent_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_natural_rate"
-            android:text="@string/op_agent_text"/>
-        <fragment
-            android:id="@+id/exchange_currencies_agent_fragment"
-            android:name="ru.adios.budgeter.FundsAgentFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_agent_text"
-            tools:layout="@layout/fragment_funds_agent"/>
+            <TextView
+                android:id="@+id/exchange_currencies_natural_rate_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_widthPercent="50%"
+                android:layout_below="@id/exchange_currencies_sell_account_fragment"
+                android:text="@string/optional_with_colons"/>
+            <TextView
+                android:id="@+id/exchange_currencies_custom_rate_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/exchange_currencies_natural_rate_text"
+                android:layout_toEndOf="@+id/exchange_currencies_natural_rate_text"
+                app:layout_widthPercent="50%"
+                android:layout_below="@id/exchange_currencies_sell_account_fragment"
+                android:text="@string/optional_with_colons"/>
+            <EditText
+                android:id="@+id/exchange_currencies_natural_rate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_widthPercent="50%"
+                android:layout_below="@id/exchange_currencies_natural_rate_text"
+                android:hint="@string/natural_rate_text"
+                android:inputType="numberDecimal"/>
+            <EditText
+                android:id="@+id/exchange_currencies_custom_rate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_widthPercent="50%"
+                android:layout_below="@id/exchange_currencies_custom_rate_text"
+                android:layout_toRightOf="@+id/exchange_currencies_natural_rate"
+                android:layout_toEndOf="@+id/exchange_currencies_natural_rate"
+                android:hint="@string/custom_rate_text"
+                android:inputType="numberDecimal"/>
 
-        <TextView
-            android:id="@+id/exchange_currencies_datetime_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_agent_fragment"
-            android:text="@string/enter_datetime_text"/>
-        <fragment
-            android:id="@+id/exchange_currencies_datetime_fragment"
-            android:name="ru.adios.budgeter.DateTimeFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_datetime_text"
-            tools:layout="@layout/fragment_date_time"/>
+            <TextView
+                android:id="@+id/exchange_currencies_agent_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_natural_rate"
+                android:text="@string/op_agent_text"/>
+            <fragment
+                android:id="@+id/exchange_currencies_agent_fragment"
+                android:name="ru.adios.budgeter.FundsAgentFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_agent_text"
+                tools:layout="@layout/fragment_funds_agent"/>
 
-        <TextView
-            android:id="@+id/exchange_currencies_info"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:text=""
-            android:textColor="#af0b0b"
-            android:layout_below="@id/exchange_currencies_datetime_fragment"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:visibility="invisible" />
-        <Button
-            android:layout_width="96dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/exchange_currencies_info"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:text="@string/exchange_currencies_finish_button"
-            android:onClick="exchange" />
+            <TextView
+                android:id="@+id/exchange_currencies_datetime_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_agent_fragment"
+                android:text="@string/enter_datetime_text"/>
+            <fragment
+                android:id="@+id/exchange_currencies_datetime_fragment"
+                android:name="ru.adios.budgeter.DateTimeFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_datetime_text"
+                tools:layout="@layout/fragment_date_time"/>
 
-    </android.support.percent.PercentRelativeLayout>
-</ScrollView>
+            <TextView
+                android:id="@+id/exchange_currencies_info"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:text=""
+                android:textColor="#af0b0b"
+                android:layout_below="@id/exchange_currencies_datetime_fragment"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:visibility="invisible" />
+            <Button
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exchange_currencies_info"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:text="@string/exchange_currencies_finish_button"
+                android:onClick="exchange" />
+
+        </android.support.percent.PercentRelativeLayout>
+    </ScrollView>
+</LinearLayout>

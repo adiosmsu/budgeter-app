@@ -63,7 +63,9 @@ public class HomeActivity extends FundsAwareMenuActivity {
         mutationsTable = new DataTableLayout(this, new MutationEventsDataStore(resources) {
             @Override
             public int count() {
-                return TABLE_ROWS;
+                return (BundleProvider.getBundle().fundsMutationEvents().countMutationEvents() == 0)
+                        ? 0
+                        : TABLE_ROWS;
             }
 
             @Override
@@ -97,7 +99,9 @@ public class HomeActivity extends FundsAwareMenuActivity {
         exchangesTable = new DataTableLayout(this, new ExchangesDataStore(resources) {
             @Override
             public int count() {
-                return TABLE_ROWS;
+                return (BundleProvider.getBundle().currencyExchangeEvents().countExchangeEvents() == 0)
+                        ? 0
+                        : TABLE_ROWS;
             }
 
             @Override

@@ -1,46 +1,57 @@
-<android.support.percent.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_add_funds"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="ru.adios.budgeter.AddFundsActivity">
+    android:orientation="vertical">
 
-    <fragment android:name="ru.adios.budgeter.AccountStandardFragment"
+    <include layout="@layout/toolbar"/>
+
+    <android.support.percent.PercentRelativeLayout
+        android:id="@+id/activity_add_funds"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/add_funds_account_fragment"
-        tools:layout="@layout/fragment_account_standard"/>
-    <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/add_funds_amount_fragment"
-        android:layout_below="@id/add_funds_account_fragment"
-        tools:layout="@layout/fragment_enter_amount" />
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context="ru.adios.budgeter.AddFundsActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:text=""
-        android:textColor="#af0b0b"
-        android:id="@+id/add_funds_info"
-        android:layout_below="@id/add_funds_amount_fragment"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:visibility="invisible" />
+        <fragment android:name="ru.adios.budgeter.AccountStandardFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/add_funds_account_fragment"
+            tools:layout="@layout/fragment_account_standard"/>
+        <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/add_funds_amount_fragment"
+            android:layout_below="@id/add_funds_account_fragment"
+            tools:layout="@layout/fragment_enter_amount" />
 
-    <Button
-        android:layout_width="0dp"
-        app:layout_widthPercent="25%"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/add_funds_info"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:text="@string/add_funds_finish_button"
-        android:onClick="addFunds" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text=""
+            android:textColor="#af0b0b"
+            android:id="@+id/add_funds_info"
+            android:layout_below="@id/add_funds_amount_fragment"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="invisible" />
 
-</android.support.percent.PercentRelativeLayout>
+        <Button
+            android:layout_width="0dp"
+            app:layout_widthPercent="25%"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/add_funds_info"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:text="@string/add_funds_finish_button"
+            android:onClick="addFunds" />
+
+    </android.support.percent.PercentRelativeLayout>
+</LinearLayout>
+

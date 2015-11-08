@@ -53,6 +53,14 @@ public final class BalancedMenuHandler {
         UiUtils.fillStandardMenu(menu, tbSnap, resources);
     }
 
+    public void updateMenu(Activity activity) {
+        final Money newSnap = BalancesUiThreadState.totalBalance;
+        if (!newSnap.isEqual(tbSnap)) {
+            tbSnap = newSnap;
+            activity.invalidateOptionsMenu();
+        }
+    }
+
     public void destroy() {
         BalancesUiThreadState.removeListener(balancesListener);
     }

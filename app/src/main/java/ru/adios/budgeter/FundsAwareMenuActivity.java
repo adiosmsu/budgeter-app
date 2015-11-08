@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.MenuRes;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 
 import java8.util.function.Consumer;
@@ -23,6 +24,7 @@ public abstract class FundsAwareMenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(getLayoutId());
+        setSupportActionBar((Toolbar) findViewById(R.id.budgeter_toolbar));
         initMenuHandler();
     }
 
@@ -41,6 +43,8 @@ public abstract class FundsAwareMenuActivity extends AppCompatActivity {
         if (menuHandler == null) {
             initMenuHandler();
             onResumeOrRestart();
+        } else {
+            menuHandler.updateMenu(this);
         }
     }
 
@@ -64,7 +68,7 @@ public abstract class FundsAwareMenuActivity extends AppCompatActivity {
         menuHandler = null;
     }
 
-    protected void initMenuHandler() {
+    private void initMenuHandler() {
         menuHandler = new BalancedMenuHandler(getResources(), getMenuHandlerListener());
         menuHandler.init(this);
     }

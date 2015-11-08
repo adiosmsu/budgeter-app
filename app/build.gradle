@@ -20,13 +20,13 @@ android {
 }
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 23
     buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "ru.adios.budgeter"
         minSdkVersion 16
-        targetSdkVersion 22
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -40,10 +40,12 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.2.1'
-    compile 'com.android.support:percent:22.2.0'
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.android.support:percent:23.1.0'
     compile 'ru.adios.budgeter:core-java6:0.1-SNAPSHOT'
-    compile 'ru.adios.budgeter:jdbcrepo-api-impl-java6:0.1-SNAPSHOT'
+    compile('ru.adios.budgeter:jdbcrepo-api-impl-java6:0.1-SNAPSHOT') {
+        exclude module: 'commons-logging'
+    }
     compile 'org.sqldroid:sqldroid-threadsafe:1.0.4-SNAPSHOT'
     compile 'com.noveogroup.android:android-logger:1.3.5'
 }

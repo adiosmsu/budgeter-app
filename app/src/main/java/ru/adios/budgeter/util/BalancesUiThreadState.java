@@ -32,8 +32,9 @@ public final class BalancesUiThreadState {
 
     private static final ArrayList<Money> balances = new ArrayList<>(10);
     public static Money totalBalance = Money.zero(Units.RUB);
+    // with service for background thread only
     private static final BalanceElementCore balanceElement =
-            new BalanceElementCore(BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService()); // with service for background thread only
+            new BalanceElementCore(BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
 
     static {
         balanceElement.setTotalUnit(Units.RUB);
@@ -50,8 +51,8 @@ public final class BalancesUiThreadState {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(BalancesUiThreadState.class);
-
     private static final HashSet<Consumer<Pair>> listenersSet = new HashSet<>();
+
 
     public static Pair getSnapshot() {
         return new Pair(balances, totalBalance);

@@ -298,6 +298,10 @@ public class DataTableLayout extends TableLayout {
                 count = c;
                 if (c == 0) {
                     insertNoDataRow();
+                    tablePopulated = true;
+                    if (listener.isPresent()) {
+                        listener.get().accept(DataTableLayout.this);
+                    }
                     invalidate();
                     return;
                 }

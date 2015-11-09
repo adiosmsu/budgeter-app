@@ -42,6 +42,7 @@ public class FundsSubjectFragment extends CoreFragment {
 
     public static final String FIELD_SUBJECTS = "subject";
     public static final String FIELD_NEW_SUBJECT_NAME = "new_subject_name";
+    public static final String FIELD_NEW_SUBJECT_DESC = "new_subject_desc";
     public static final String FIELD_NEW_SUBJECT_PARENT_NAME = "new_subject_parent_name";
     public static final String FIELD_NEW_SUBJECT_TYPE = "new_subject_type";
     public static final String BUTTON_NEW_SUBJECT_SUBMIT = "new_subject_submit";
@@ -63,6 +64,12 @@ public class FundsSubjectFragment extends CoreFragment {
                     @Override
                     public void link(String data) {
                         subjectsElement.setName(data);
+                    }
+                }, subjectsErrorHighlighter))
+                .addFieldInfo(FIELD_NEW_SUBJECT_DESC, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_DESCRIPTION, new CoreNotifier.TextLinker() {
+                    @Override
+                    public void link(String data) {
+                        subjectsElement.setDescription(data);
                     }
                 }, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
@@ -134,7 +141,11 @@ public class FundsSubjectFragment extends CoreFragment {
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.subjects_name_input);
         final TextView nameInputInfo = (TextView) inflated.findViewById(R.id.subjects_name_input_info);
+        final EditText descInput = (EditText) inflated.findViewById(R.id.subjects_desc_input);
+        final TextView descInputInfo = (TextView) inflated.findViewById(R.id.subjects_desc_input_info);
+        final TextView descInputOpt = (TextView) inflated.findViewById(R.id.subjects_desc_optional);
         activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_NAME, nameInput, nameInputInfo);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_DESC, descInput, descInputInfo);
         final FrameLayout parentNameLayout = (FrameLayout) inflated.findViewById(R.id.subjects_parent_name_input_layout);
         final DelayingAutoCompleteTextView parentNameInput = (DelayingAutoCompleteTextView) inflated.findViewById(R.id.subjects_parent_name_input);
         parentNameInput.setThreshold(1);
@@ -179,6 +190,9 @@ public class FundsSubjectFragment extends CoreFragment {
                 if (v.getVisibility() == View.VISIBLE) {
                     nameInput.setVisibility(View.VISIBLE);
                     nameInputInfo.setVisibility(View.INVISIBLE);
+                    descInput.setVisibility(View.VISIBLE);
+                    descInputInfo.setVisibility(View.INVISIBLE);
+                    descInputOpt.setVisibility(View.VISIBLE);
                     parentNameLayout.setVisibility(View.VISIBLE);
                     parentNameInputInfo.setVisibility(View.INVISIBLE);
                     typeRadio.setVisibility(View.VISIBLE);
@@ -197,6 +211,9 @@ public class FundsSubjectFragment extends CoreFragment {
             public void accept(FundsMutationSubject subject) {
                 nameInput.setVisibility(View.GONE);
                 nameInputInfo.setVisibility(View.GONE);
+                descInput.setVisibility(View.GONE);
+                descInputInfo.setVisibility(View.GONE);
+                descInputOpt.setVisibility(View.GONE);
                 parentNameLayout.setVisibility(View.GONE);
                 parentNameInputInfo.setVisibility(View.GONE);
                 typeRadio.setVisibility(View.GONE);
@@ -224,6 +241,7 @@ public class FundsSubjectFragment extends CoreFragment {
         @Override
         public void performFeedback(CoreElementActivity activity) {
             activity.textViewFeedback(subjectsElement.getName(), R.id.subjects_name_input);
+            activity.textViewFeedback(subjectsElement.getDescription(), R.id.subjects_desc_input);
             activity.textViewFeedback(subjectsElement.getParentName(), R.id.subjects_parent_name_input);
             activity.radioGroupFeedback(subjectsElement.getType(), R.id.subjects_type_radio);
             activity.hintedArraySpinnerFeedback(subjectSupplier.get(), R.id.subjects_spinner);

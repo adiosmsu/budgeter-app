@@ -31,6 +31,7 @@ public class FundsAgentFragment extends CoreFragment {
 
     public static final String FIELD_AGENTS = "agent";
     public static final String FIELD_NEW_AGENT_NAME = "new_agent_name";
+    public static final String FIELD_NEW_AGENT_DESC = "new_agent_desc";
     public static final String BUTTON_NEW_AGENT_SUBMIT = "new_agent_submit";
 
     public static CollectibleFragmentInfoProvider<FundsMutationAgent, AgentAdditionElementCore> getInfoProvider(@IdRes int fragmentId,
@@ -47,6 +48,12 @@ public class FundsAgentFragment extends CoreFragment {
                     @Override
                     public void link(String data) {
                         agentCore.setName(data);
+                    }
+                }, agentsErrorHighlighter))
+                .addFieldInfo(FIELD_NEW_AGENT_DESC, new CoreElementActivity.CoreElementFieldInfo(AgentAdditionElementCore.FIELD_DESCRIPTION, new CoreNotifier.TextLinker() {
+                    @Override
+                    public void link(String data) {
+                        agentCore.setDescription(data);
                     }
                 }, agentsErrorHighlighter))
                 .build();
@@ -79,7 +86,11 @@ public class FundsAgentFragment extends CoreFragment {
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.agents_name_input);
         final TextView nameInputInfo = (TextView) inflated.findViewById(R.id.agents_name_input_info);
+        final EditText descInput = (EditText) inflated.findViewById(R.id.agents_desc_input);
+        final TextView descInputInfo = (TextView) inflated.findViewById(R.id.agents_desc_input_info);
+        final TextView descInputOpt = (TextView) inflated.findViewById(R.id.agents_desc_optional);
         activity.addFieldFragmentInfo(id, FIELD_NEW_AGENT_NAME, nameInput, nameInputInfo);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_AGENT_DESC, descInput, descInputInfo);
 
         final Button submitButton = (Button) inflated.findViewById(R.id.agents_submit_button);
 
@@ -92,6 +103,9 @@ public class FundsAgentFragment extends CoreFragment {
                 if (v.getVisibility() == View.VISIBLE) {
                     nameInput.setVisibility(View.VISIBLE);
                     nameInputInfo.setVisibility(View.INVISIBLE);
+                    descInput.setVisibility(View.VISIBLE);
+                    descInputInfo.setVisibility(View.INVISIBLE);
+                    descInputOpt.setVisibility(View.VISIBLE);
                     submitButton.setVisibility(View.VISIBLE);
                     v.setVisibility(View.INVISIBLE);
                     inflated.invalidate();
@@ -106,6 +120,9 @@ public class FundsAgentFragment extends CoreFragment {
             public void accept(FundsMutationAgent agent) {
                 nameInput.setVisibility(View.GONE);
                 nameInputInfo.setVisibility(View.GONE);
+                descInput.setVisibility(View.GONE);
+                descInputInfo.setVisibility(View.GONE);
+                descInputOpt.setVisibility(View.GONE);
                 submitButton.setVisibility(View.GONE);
                 addButton.setVisibility(View.VISIBLE);
                 UiUtils.addToHintedSpinner(agent, agentsSpinner, CONTAINER_FACTORY);
@@ -145,6 +162,7 @@ public class FundsAgentFragment extends CoreFragment {
         @Override
         public void performFeedback(CoreElementActivity activity) {
             activity.textViewFeedback(agentsElement.getName(), R.id.agents_name_input);
+            activity.textViewFeedback(agentsElement.getDescription(), R.id.agents_desc_input);
             activity.hintedArraySpinnerFeedback(agentSupplier.get(), R.id.agents_spinner);
         }
 

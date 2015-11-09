@@ -54,7 +54,7 @@
         android:id="@+id/agents_submit_button"
         android:layout_width="0dp"
         app:layout_widthPercent="30%"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/agents_spinner_info"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
@@ -70,6 +70,42 @@
         android:text=""
         android:textColor="#af0b0b"
         android:layout_below="@id/agents_name_input"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/agents_desc_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="70%"
+        android:hint="@string/agent_desc_hint"
+        android:layout_below="@id/agents_name_input_info"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:inputType="text"
+        android:visibility="gone" />
+    <TextView
+        android:id="@+id/agents_desc_optional"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/agents_desc_input"
+        android:layout_toEndOf="@id/agents_desc_input"
+        android:layout_alignTop="@id/agents_desc_input"
+        android:layout_alignBottom="@id/agents_desc_input"
+        android:gravity="center_vertical"
+        android:textAppearance="@android:style/TextAppearance.Medium"
+        app:layout_widthPercent="30%"
+        android:layout_below="@id/agents_name_input_info"
+        android:text="@string/optional_with_colons"
+        android:visibility="gone" />
+    <TextView
+        android:id="@+id/agents_desc_input_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#af0b0b"
+        android:layout_below="@id/agents_desc_input"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:visibility="gone" />

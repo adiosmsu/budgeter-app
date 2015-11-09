@@ -452,7 +452,7 @@ public class DataTableLayout extends TableLayout {
             }
         }
 
-        final int curHdrOff = headerOffset;
+        final int curHdrOff = headerOffset + 1;
         headerOffset = addDataRow(headers, headerOffset, Optional.<Consumer<TextView>>of(new Consumer<TextView>() {
             @Override
             public void accept(TextView textView) {

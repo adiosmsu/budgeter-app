@@ -81,5 +81,7 @@
     <string name="settings_failed_postponed_message_start">Failed postponed</string>
     <string name="error_occurred_phraze">Error occurred</string>
     <string name="common_done">Done</string>
+    <string name="agent_desc_hint">Agent description</string>
+    <string name="subjects_desc_hint">Subject description</string>
 
 </resources>

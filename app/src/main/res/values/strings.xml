@@ -83,5 +83,6 @@
     <string name="common_done">Done</string>
     <string name="agent_desc_hint">Agent description</string>
     <string name="subjects_desc_hint">Subject description</string>
+    <string name="accounts_desc_hint">Account description</string>
 
 </resources>

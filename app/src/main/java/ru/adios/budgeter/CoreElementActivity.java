@@ -4,8 +4,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v7.app.ActionBar;
+import android.text.Editable;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -84,11 +86,20 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
 
     private void innerTextViewFeedback(String text, TextView textView) {
         final CharSequence innerText = textView.getText();
-        if (innerText == null || !innerText.equals(text)) {
-            if (text == null) {
-                textView.setText("");
+        if (((innerText == null || innerText.length() == 0) && text != null && text.length() > 0)
+                || (innerText != null && innerText.length() > 0 && !innerText.toString().equals(text))) {
+            if (text == null || text.isEmpty()) {
+                if (textView instanceof EditText) {
+                    ((EditText)textView).getText().clear();
+                } else {
+                    textView.setText("");
+                }
             } else {
-                textView.setText(text);
+                if (innerText instanceof Editable) {
+                    setTextToEditable(text, (Editable) innerText);
+                } else {
+                    textView.setText(text);
+                }
             }
 
             textView.invalidate();
@@ -105,14 +116,39 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
 
     private void innerDecimalTextViewFeedback(BigDecimal decimal, TextView textView) {
         if (decimal == null) {
-            textView.setText("");
-            textView.invalidate();
-        } else {
-            final String decimalText = decimal.toPlainString();
-            if (!decimalText.equals(textView.getText())) {
-                textView.setText(decimalText);
+            if (textView.length() > 0) {
+                if (textView instanceof EditText) {
+                    ((EditText)textView).getText().clear();
+                } else {
+                    textView.setText("");
+                }
                 textView.invalidate();
             }
+        } else {
+            final String decimalText = decimal.toPlainString();
+            final CharSequence text = textView.getText();
+            if (!decimalText.equals(text.toString())) {
+                if (text instanceof Editable) {
+                    setTextToEditable(decimalText, (Editable) text);
+                } else {
+                    textView.setText(decimalText);
+                }
+                textView.invalidate();
+            }
+        }
+    }
+
+    private static void setTextToEditable(String textNew, Editable ediText) {
+        final int l = ediText.length();
+        final int dl = textNew.length();
+        if (dl <= l) {
+            ediText.replace(0, dl, textNew, 0, dl);
+            if (dl != l) {
+                ediText.delete(dl, l);
+            }
+        } else {
+            ediText.replace(0, l, textNew, 0, l);
+            ediText.append(textNew, l, dl);
         }
     }
 

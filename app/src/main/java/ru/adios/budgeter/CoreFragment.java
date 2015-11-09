@@ -1,7 +1,7 @@
 package ru.adios.budgeter;
 
-import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -13,12 +13,12 @@ public abstract class CoreFragment extends Fragment {
 
     /**
      * Overridden to fail early.
-     * @param activity activity of CoreElementActivity type.
+     * @param context activity of CoreElementActivity type.
      */
     @Override
-    public void onAttach(Activity activity) {
-        checkState(activity instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", activity);
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        checkState(context instanceof CoreElementActivity, "Activity must extend CoreElementActivity: %s", context);
+        super.onAttach(context);
     }
 
 }

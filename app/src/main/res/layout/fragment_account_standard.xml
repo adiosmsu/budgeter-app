@@ -84,6 +84,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:visibility="gone" />
+
     <EditText
         android:id="@+id/accounts_amount_optional_input"
         android:layout_width="0dp"
@@ -115,12 +116,49 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/accounts_desc_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="70%"
+        android:hint="@string/accounts_desc_hint"
+        android:layout_below="@id/accounts_amount_optional_input_info"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:inputType="text"
+        android:visibility="gone" />
+    <TextView
+        android:id="@+id/accounts_desc_optional"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/accounts_desc_input"
+        android:layout_toEndOf="@id/accounts_desc_input"
+        android:layout_alignTop="@id/accounts_desc_input"
+        android:layout_alignBottom="@id/accounts_desc_input"
+        android:gravity="center_vertical"
+        android:textAppearance="@android:style/TextAppearance.Medium"
+        app:layout_widthPercent="30%"
+        android:layout_below="@id/accounts_amount_optional_input_info"
+        android:text="@string/optional_with_colons"
+        android:visibility="gone" />
+    <TextView
+        android:id="@+id/accounts_desc_input_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#af0b0b"
+        android:layout_below="@id/accounts_desc_input"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:visibility="gone" />
+
     <Button
         android:id="@+id/accounts_submit_button"
         android:layout_width="0dp"
         app:layout_widthPercent="30%"
         android:layout_height="wrap_content"
-        android:layout_below="@id/accounts_amount_optional_input_info"
+        android:layout_below="@id/accounts_desc_input_info"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:text="@string/accounts_submit_button"

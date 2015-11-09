@@ -44,6 +44,7 @@ public class AccountStandardFragment extends CoreFragment {
     public static final String FIELD_NEW_ACCOUNT_NAME = "new_account_name";
     public static final String FIELD_NEW_ACCOUNT_CURRENCY = "new_account_currency";
     public static final String FIELD_NEW_ACCOUNT_AMOUNT = "new_account_amount";
+    public static final String FIELD_NEW_ACCOUNT_DESC = "new_account_desc";
     public static final String BUTTON_NEW_ACCOUNT_SUBMIT = "new_account_submit";
 
     public static InfoProviderBuilder getInfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<BalanceAccount> accountSupplier) {
@@ -105,6 +106,12 @@ public class AccountStandardFragment extends CoreFragment {
                             accountsElement.setName(data);
                         }
                     }, accountsErrorHighlighter))
+                    .addFieldInfo(FIELD_NEW_ACCOUNT_DESC, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_DESCRIPTION, new CoreNotifier.TextLinker() {
+                        @Override
+                        public void link(String data) {
+                            accountsElement.setDescription(data);
+                        }
+                    }, accountsErrorHighlighter))
                     .addFieldInfo(FIELD_NEW_ACCOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_UNIT, new CoreNotifier.CurrencyLinker() {
                         @Override
                         public void link(CurrencyUnit data) {
@@ -141,6 +148,7 @@ public class AccountStandardFragment extends CoreFragment {
         @Override
         public void performFeedback(CoreElementActivity activity) {
             activity.textViewFeedback(accountsElement.getName(), fragmentId, R.id.accounts_name_input);
+            activity.textViewFeedback(accountsElement.getDescription(), fragmentId, R.id.accounts_desc_input);
             activity.currenciesSpinnerFeedback(accountsElement.getUnit(), fragmentId, R.id.accounts_currency_input);
             activity.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), fragmentId, R.id.accounts_amount_optional_input);
             activity.hintedArraySpinnerFeedback(accountSupplier.get(), fragmentId, R.id.accounts_spinner);
@@ -170,10 +178,8 @@ public class AccountStandardFragment extends CoreFragment {
             final BigDecimal dec = newAccountOptionalAmount.object.get();
             if (!dec.equals(BigDecimal.ZERO)) {
                 final FundsAdditionElementCore core = new FundsAdditionElementCore(BundleProvider.getBundle().treasury());
-                core.setAccount(accountsElement.getName());
+                core.setAccount(accountResult.submitResult);
                 core.setAmountDecimal(dec);
-                //noinspection ConstantConditions
-                core.setAmountUnit(accountsElement.getUnit());
                 return core.submit();
             }
 
@@ -241,7 +247,11 @@ public class AccountStandardFragment extends CoreFragment {
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.accounts_name_input);
         final TextView nameInputInfo = (TextView) inflated.findViewById(R.id.accounts_name_input_info);
+        final EditText descInput = (EditText) inflated.findViewById(R.id.accounts_desc_input);
+        final TextView descInputInfo = (TextView) inflated.findViewById(R.id.accounts_desc_input_info);
+        final TextView descInputOpt = (TextView) inflated.findViewById(R.id.accounts_desc_optional);
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_NAME, nameInput, nameInputInfo);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_DESC, descInput, descInputInfo);
         final Spinner currencyInput = (Spinner) inflated.findViewById(R.id.accounts_currency_input);
         HintedArrayAdapter.adaptStringSpinner(currencyInput, activity, Constants.CURRENCIES_DROPDOWN);
         final TextView currencyInputInfo = (TextView) inflated.findViewById(R.id.accounts_currency_input_info);
@@ -262,6 +272,9 @@ public class AccountStandardFragment extends CoreFragment {
                 if (v.getVisibility() == View.VISIBLE) {
                     nameInput.setVisibility(View.VISIBLE);
                     nameInputInfo.setVisibility(View.INVISIBLE);
+                    descInput.setVisibility(View.VISIBLE);
+                    descInputInfo.setVisibility(View.INVISIBLE);
+                    descInputOpt.setVisibility(View.VISIBLE);
                     currencyInput.setVisibility(View.VISIBLE);
                     currencyInputInfo.setVisibility(View.INVISIBLE);
                     amountInput.setVisibility(View.VISIBLE);
@@ -281,6 +294,9 @@ public class AccountStandardFragment extends CoreFragment {
             public void accept(BalanceAccount account) {
                 nameInput.setVisibility(View.GONE);
                 nameInputInfo.setVisibility(View.GONE);
+                descInput.setVisibility(View.GONE);
+                descInputInfo.setVisibility(View.GONE);
+                descInputOpt.setVisibility(View.GONE);
                 currencyInput.setVisibility(View.GONE);
                 currencyInputInfo.setVisibility(View.GONE);
                 amountInput.setVisibility(View.GONE);

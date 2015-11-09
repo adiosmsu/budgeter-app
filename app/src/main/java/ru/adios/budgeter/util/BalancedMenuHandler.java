@@ -55,7 +55,7 @@ public final class BalancedMenuHandler {
 
     public void updateMenu(Activity activity) {
         final Money newSnap = BalancesUiThreadState.totalBalance;
-        if (!newSnap.isEqual(tbSnap)) {
+        if (!newSnap.equals(tbSnap)) {
             tbSnap = newSnap;
             activity.invalidateOptionsMenu();
         }

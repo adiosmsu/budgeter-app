@@ -74,5 +74,12 @@
     <string name="settings_db_reset_dialog_text">This will clear out all your data. Are you sure?</string>
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
+    <string name="button_process_postponed">Process postponed</string>
+    <string name="attention_exclamation">Attention!</string>
+    <string name="work_finished_phraze">Work finished</string>
+    <string name="settings_succeeded_postponed_message_start">Succeeded postponed</string>
+    <string name="settings_failed_postponed_message_start">Failed postponed</string>
+    <string name="error_occurred_phraze">Error occurred</string>
+    <string name="common_done">Done</string>
 
 </resources>

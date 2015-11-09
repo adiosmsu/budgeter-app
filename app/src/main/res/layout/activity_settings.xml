@@ -24,15 +24,46 @@
             android:layout_alignParentStart="true"
             android:text="@string/button_reset_db"
             android:onClick="resetDb" />
-
-        <TextView
-            android:id="@+id/settings_reset_db_button_info"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
             android:layout_toRightOf="@id/settings_reset_db_button"
             android:layout_toEndOf="@id/settings_reset_db_button"
-            android:visibility="invisible" />
+            android:layout_alignBottom="@id/settings_reset_db_button"
+            android:layout_alignTop="@id/settings_reset_db_button"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/settings_reset_db_button_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/settings_process_postponed_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/settings_reset_db_button"
+            android:text="@string/button_process_postponed"
+            android:onClick="processPostponed" />
+        <ProgressBar
+            android:id="@+id/settings_postponed_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/settings_reset_db_button"
+            android:layout_toRightOf="@id/settings_process_postponed_button"
+            android:layout_toEndOf="@id/settings_process_postponed_button"
+            android:layout_alignBottom="@id/settings_process_postponed_button"
+            android:layout_alignTop="@id/settings_process_postponed_button"
+            android:indeterminate="false"
+            android:max="100"
+            android:padding="4dip"
+            android:visibility="invisible"/>
 
     </RelativeLayout>
 </LinearLayout>

@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 import java8.util.Optional;
+import ru.adios.budgeter.DateTimeUtils;
+import ru.adios.budgeter.api.UtcDay;
 
 /**
  * Created by Michail Kulikov
@@ -18,10 +20,15 @@ import java8.util.Optional;
 public final class Formatting {
 
     private static final DateTimeFormatter DATE_TIME_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
+    private static final DateTimeFormatter DATE_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy");
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("###.####");
 
     public static String toStringRusDateTimeShort(TemporalAccessor dateTime) {
         return DATE_TIME_RUS_SHORT.format(dateTime);
+    }
+
+    public static String toStringRusDay(UtcDay day) {
+        return DATE_RUS_SHORT.format(DateTimeUtils.convertToCurrentZone(day.inner));
     }
 
     public static String toStringExchangeRate(BigDecimal rate) {

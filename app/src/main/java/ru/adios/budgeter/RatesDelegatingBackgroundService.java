@@ -1,6 +1,7 @@
 package ru.adios.budgeter;
 
 import android.os.AsyncTask;
+import android.os.Build;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -17,6 +18,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import java8.util.Optional;
+import java8.util.function.Consumer;
 import ru.adios.budgeter.api.CurrencyRatesRepository;
 import ru.adios.budgeter.api.UtcDay;
 import ru.adios.budgeter.api.data.ConversionRate;
@@ -248,7 +250,7 @@ public final class RatesDelegatingBackgroundService implements CurrencyRatesRepo
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                exchangeService.processAllPostponedEvents();
+                exchangeService.processAllPostponedEvents(Optional.<Consumer<Integer>>empty(), Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);
                 return null;
             }
 

@@ -46,6 +46,15 @@
                 android:text="@string/button_add_funds"
                 android:onClick="startAddFundsActivity" />
             <Button
+                android:id="@+id/ah_add_price_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/ah_funds_list"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:text="@string/button_add_price"
+                android:onClick="startAddPriceActivity" />
+            <Button
                 android:id="@+id/ah_mutate_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

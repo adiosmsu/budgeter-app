@@ -84,5 +84,13 @@
     <string name="agent_desc_hint">Agent description</string>
     <string name="subjects_desc_hint">Subject description</string>
     <string name="accounts_desc_hint">Account description</string>
+    <string name="title_activity_add_price">Add Price</string>
+    <string name="price_subject_text">Product/service to price</string>
+    <string name="price_agent_text">Place where product/service is priced</string>
+    <string name="price_price_text">Enter the price</string>
+    <string name="price_finish_button">Add price</string>
+    <string name="price_add_success">Price add succeeded!</string>
+    <string name="button_add_price">Add price</string>
+    <string name="price_date_text">Enter date of the price</string>
 
 </resources>

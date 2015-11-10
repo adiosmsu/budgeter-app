@@ -183,6 +183,11 @@ public class HomeActivity extends FundsAwareMenuActivity {
         startActivity(new Intent(this, AddFundsActivity.class));
     }
 
+    /** Called when user clicks on Add Price button */
+    public void startAddPriceActivity(View view) {
+        startActivity(new Intent(this, AddPriceActivity.class));
+    }
+
     /** Called when user clicks on Mutate Funds button */
     public void startFundsMutationActivity(View view) {
         startActivity(new Intent(this, FundsMutationActivity.class));

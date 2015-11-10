@@ -19,6 +19,7 @@ import javax.annotation.concurrent.Immutable;
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.DateTimeUtils;
 import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.api.UtcDay;
 import ru.adios.budgeter.widgets.DateEditView;
 import ru.adios.budgeter.widgets.TimeEditView;
 
@@ -140,17 +141,34 @@ public final class Feedbacking {
 
     public static void dateTimeFeedback(OffsetDateTime dateTime, DateEditView dateEditView, TimeEditView timeEditView) {
         if (dateTime != null) {
-            final OffsetDateTime date = DateTimeUtils.cutTime(dateTime);
-            final OffsetTime time = dateTime.toOffsetTime();
+            dateFeedback(dateTime, dateEditView, true);
+            timeFeedback(dateTime.toOffsetTime(), timeEditView);
+        }
+    }
+
+    public static void dateFeedback(UtcDay day, DateEditView dateEditView) {
+        if (day != null) {
+            dateFeedback(day.inner, dateEditView, false);
+        }
+    }
+
+    public static void dateFeedback(OffsetDateTime date, DateEditView dateEditView, boolean cutTime) {
+        if (date != null) {
+            if (cutTime) {
+                date = DateTimeUtils.cutTime(date);
+            }
 
             if (!date.equals(dateEditView.getDate())) {
                 dateEditView.setDate(date);
                 dateEditView.invalidate();
             }
-            if (!time.equals(timeEditView.getTime())) {
-                timeEditView.setTime(time);
-                timeEditView.invalidate();
-            }
+        }
+    }
+
+    public static void timeFeedback(OffsetTime time, TimeEditView timeEditView) {
+        if (time != null && !time.equals(timeEditView.getTime())) {
+            timeEditView.setTime(time);
+            timeEditView.invalidate();
         }
     }
 

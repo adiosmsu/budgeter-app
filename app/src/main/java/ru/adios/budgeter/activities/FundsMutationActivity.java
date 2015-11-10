@@ -141,26 +141,26 @@ public class FundsMutationActivity extends CoreElementActivity {
         super.onCreate(savedInstanceState);
 
         mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_QUANTITY, findViewById(R.id.funds_mutation_quantity_info));
-        CoreNotifier.addLink(this, findViewById(R.id.funds_mutation_quantity), new CoreNotifier.NumberLinker() {
+        CoreNotifier.addLink(this, fundsMutationQuantity, new CoreNotifier.NumberLinker() {
             @Override
             public void link(Number data) {
                 mutationElement.setQuantity(data.intValue());
             }
         });
         mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_DIRECTION, findViewById(R.id.funds_mutation_direction_radio_info));
-        CoreNotifier.addLink(this, findViewById(R.id.funds_mutation_direction_radio), new CoreNotifier.NumberLinker() {
+        CoreNotifier.addLink(this, fundsMutationDirectionRadio, new CoreNotifier.NumberLinker() {
             @Override
             public void link(Number data) {
                 mutationElement.setDirection(FundsMutator.MutationDirection.values()[data.intValue()]);
             }
         });
-        CoreNotifier.addLink(this, findViewById(R.id.funds_mutation_natural_rate), new CoreNotifier.DecimalLinker() {
+        CoreNotifier.addLink(this, fundsMutationNaturalRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
                 mutationElement.setNaturalRate(data);
             }
         });
-        CoreNotifier.addLink(this, findViewById(R.id.funds_mutation_custom_rate), new CoreNotifier.DecimalLinker() {
+        CoreNotifier.addLink(this, fundsMutationCustomRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
                 mutationElement.setCustomRate(data);

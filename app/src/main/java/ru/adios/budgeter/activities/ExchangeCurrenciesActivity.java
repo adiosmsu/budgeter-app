@@ -131,13 +131,13 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        CoreNotifier.addLink(this, findViewById(R.id.exchange_currencies_natural_rate), new CoreNotifier.DecimalLinker() {
+        CoreNotifier.addLink(this, exchangeCurrenciesNaturalRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
                 exchangeElement.setNaturalRate(data);
             }
         });
-        CoreNotifier.addLink(this, findViewById(R.id.exchange_currencies_custom_rate), new CoreNotifier.DecimalLinker() {
+        CoreNotifier.addLink(this, exchangeCurrenciesCustomRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
                 exchangeElement.setCustomRate(data);

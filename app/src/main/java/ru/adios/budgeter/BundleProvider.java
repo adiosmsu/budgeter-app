@@ -2,6 +2,8 @@ package ru.adios.budgeter;
 
 import android.os.Environment;
 
+import com.google.common.base.Preconditions;
+
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -53,7 +55,7 @@ public final class BundleProvider {
         return BundleContainer.BUNDLE;
     }
 
-    public static volatile String DEFAULT_URL = "jdbc:sqlite:" + Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases/budget.db";
+    public static volatile String DEFAULT_PATH = Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases/budget.db";
 
     public static void setNewDatabase(String url) {
         synchronized (BundleProvider.class) {
@@ -68,15 +70,18 @@ public final class BundleProvider {
     }
 
     private static String getDefaultUrl() {
-        final String path = Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases";
-        final File dbDir = new File(path);
+        final String defaultFilePath = DEFAULT_PATH;
+        Preconditions.checkState(defaultFilePath.contains("/budget.db"), "No budget.db in default URL");
+
+        final String dirPath = defaultFilePath.substring(0, defaultFilePath.indexOf("/budget.db"));
+        final File dbDir = new File(dirPath);
         if (!dbDir.exists()) {
             final boolean mk = dbDir.mkdir();
             if (!mk) {
-                throw new IllegalStateException("Unable to create " + path);
+                throw new IllegalStateException("Unable to create " + dirPath);
             }
         }
-        return DEFAULT_URL;
+        return "jdbc:sqlite:" + defaultFilePath;
     }
 
     private static SingleConnectionDataSource createDataSource(String url) {

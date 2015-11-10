@@ -102,6 +102,7 @@ public class MutationsTableActivity extends FundsAwareMenuActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
+        table.setSaveEnabled(false);
 
         mainLayout.addView(table);
         table.start();

@@ -95,6 +95,7 @@ public class HomeActivity extends FundsAwareMenuActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
+        mutationsTable.setSaveEnabled(false);
         mainLayout.addView(mutationsTable, muBtnIx);
         final RelativeLayout.LayoutParams mbParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mbParams.addRule(RelativeLayout.BELOW, mutationsTable.getId());
@@ -131,6 +132,7 @@ public class HomeActivity extends FundsAwareMenuActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
+        exchangesTable.setSaveEnabled(false);
         mainLayout.addView(exchangesTable, exBtnIx + 1);
         final RelativeLayout.LayoutParams ebParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         ebParams.addRule(RelativeLayout.BELOW, exchangesTable.getId());

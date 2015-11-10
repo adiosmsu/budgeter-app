@@ -148,7 +148,7 @@ public class FundsSubjectFragment extends CoreFragment {
         activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_DESC, descInput, descInputInfo);
         final FrameLayout parentNameLayout = (FrameLayout) inflated.findViewById(R.id.subjects_parent_name_input_layout);
         final DelayingAutoCompleteTextView parentNameInput = (DelayingAutoCompleteTextView) inflated.findViewById(R.id.subjects_parent_name_input);
-        parentNameInput.setThreshold(1);
+        parentNameInput.setThreshold(2);
         parentNameInput.setAdapter(new ModedRequestingAutoCompleteAdapter<>(
                 activity,
                 new ModedRequestingAutoCompleteAdapter.Requester<FundsMutationSubject>() {

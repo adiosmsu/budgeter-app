@@ -3,10 +3,9 @@ package ru.adios.budgeter.util;
 import android.support.annotation.IdRes;
 import android.text.Editable;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import org.joda.money.CurrencyUnit;
@@ -121,15 +120,15 @@ public final class CoreNotifier {
                     view.invalidate();
                 }
             });
-        } else if (view instanceof Spinner) {
-            final Spinner sp = (Spinner) view;
+        } else if (view instanceof AdapterView) {
+            final AdapterView sp = (AdapterView) view;
             sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (activity.isFeedbackCommencing())
                         return;
 
-                    final SpinnerAdapter adapter = sp.getAdapter();
+                    final Adapter adapter = sp.getAdapter();
                     if (adapter.getCount() > position || (adapter.getCount() == position && adapter instanceof HintedArrayAdapter)) {
                         linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
                         sp.invalidate();

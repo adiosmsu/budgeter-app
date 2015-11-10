@@ -1,17 +1,19 @@
 package ru.adios.budgeter.widgets;
 
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.UiThread;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.TextView;
+
+import com.google.common.base.Preconditions;
 
 import org.threeten.bp.Clock;
 import org.threeten.bp.DateTimeException;
@@ -22,6 +24,7 @@ import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import ru.adios.budgeter.util.GeneralUtils;
@@ -35,6 +38,8 @@ public class DateEditView extends TextView {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d yyyy").withLocale(getResources().getConfiguration().locale);
 
+    private DatePickerDialogFragment curDialog;
+
     public DateEditView(Context context) {
         super(context);
     }
@@ -47,17 +52,37 @@ public class DateEditView extends TextView {
         super(context, attrs, defStyleAttr);
     }
 
-    public final void init(final Activity activity) {
+    public final void init(final AppCompatActivity activity, Bundle savedInstanceState) {
+        Preconditions.checkState(getId() != NO_ID, "Set id first!");
+
+        if (savedInstanceState != null) {
+            try {
+                curDialog = (DatePickerDialogFragment) activity.getSupportFragmentManager().getFragment(savedInstanceState, getIdForTx());
+                curDialog.setDateEditView(this);
+            } catch (RuntimeException ignore) {}
+        }
+
         setDate(OffsetDateTime.now());
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                final FragmentTransaction ft = activity.getFragmentManager().beginTransaction();
+                final FragmentTransaction ft = activity.getSupportFragmentManager().beginTransaction();
                 final DatePickerDialogFragment fragment = new DatePickerDialogFragment();
                 fragment.setDateEditView(DateEditView.this);
                 fragment.show(ft, "date_edit_view_dialog");
+                curDialog = fragment;
             }
         });
+    }
+
+    private String getIdForTx() {
+        return "date_edit_picker_fragment_" + getId();
+    }
+
+    public final void retain(AppCompatActivity activity, Bundle outState) {
+        if (curDialog != null) {
+            activity.getSupportFragmentManager().putFragment(outState, getIdForTx(), curDialog);
+        }
     }
 
     public final String formatDate(OffsetDateTime date) {
@@ -98,11 +123,13 @@ public class DateEditView extends TextView {
             this.dateEditView = dateEditView;
         }
 
+        @Nonnull
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    final OffsetDateTime of = OffsetDateTime.of(year, monthOfYear + 1, dayOfMonth, 0, 0, 0, 0, ZoneOffset.systemDefault().getRules().getOffset(Clock.systemDefaultZone().instant()));
+                    final OffsetDateTime of = OffsetDateTime.of(year, monthOfYear + 1, dayOfMonth, 0, 0, 0, 0,
+                            ZoneOffset.systemDefault().getRules().getOffset(Clock.systemDefaultZone().instant()));
                     dateEditView.setDate(of);
                 }
             };
@@ -114,6 +141,15 @@ public class DateEditView extends TextView {
             }
 
             return new DatePickerDialog(getActivity(), dateSetListener, date.getYear(), date.getMonth().getValue() - 1, date.getDayOfMonth());
+        }
+
+        @Override
+        public void onDetach() {
+            super.onDetach();
+            final DatePickerDialogFragment me = dateEditView.curDialog;
+            if (me != null) {
+                dateEditView.curDialog = null;
+            }
         }
 
     }

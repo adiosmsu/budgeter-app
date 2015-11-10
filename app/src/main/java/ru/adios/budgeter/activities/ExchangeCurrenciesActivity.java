@@ -36,9 +36,11 @@ import ru.adios.budgeter.util.UiUtils;
 @UiThread
 public class ExchangeCurrenciesActivity extends CoreElementActivity {
 
+    public static final String KEY_HIGHLIGHTER = "ex_cur_act_high";
+
     private final ExchangeCurrenciesElementCore exchangeElement =
             new ExchangeCurrenciesElementCore(Constants.ACCOUNTER, BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
-    private final CoreErrorHighlighter exchangeHighlighter = new CoreErrorHighlighter();
+    private final CoreErrorHighlighter exchangeHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
 
     private final CollectedFragmentsInfoProvider infoProvider =
             new CollectedFragmentsInfoProvider.Builder(this)

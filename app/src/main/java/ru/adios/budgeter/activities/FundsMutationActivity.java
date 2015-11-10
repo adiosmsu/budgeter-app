@@ -43,9 +43,13 @@ import ru.adios.budgeter.util.UiUtils;
 @UiThread
 public class FundsMutationActivity extends CoreElementActivity {
 
+    public static final String KEY_HIGHLIGHTER = "fu_ma_act_high";
+    public static final String KEY_COST = "fu_ma_cost_key";
+    public static final String KEY_PAY = "fu_ma_pay_key";
+
     private final FundsMutationElementCore mutationElement =
             new FundsMutationElementCore(Constants.ACCOUNTER, BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
-    private final CoreErrorHighlighter mutationHighlighter = new CoreErrorHighlighter();
+    private final CoreErrorHighlighter mutationHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
 
     private final CollectedFragmentsInfoProvider infoProvider =
             new CollectedFragmentsInfoProvider.Builder(this)
@@ -114,12 +118,15 @@ public class FundsMutationActivity extends CoreElementActivity {
                     .addProvider(DateTimeFragment.getInfoProvider(R.id.funds_mutation_datetime_fragment, mutationHighlighter, FundsMutationElementCore.FIELD_TIMESTAMP, mutationElement))
                     .build();
 
-    private final CheckedChangeListener paidMoneyListener = new CheckedChangeListener(R.id.funds_mutation_paid_amount_fragment);
-    private final CheckedChangeListener costListener = new CheckedChangeListener(R.id.funds_mutation_subject_cost_fragment);
+    private final CheckedChangeListener paidMoneyListener = new CheckedChangeListener(R.id.funds_mutation_paid_amount_fragment, false);
+    private final CheckedChangeListener costListener = new CheckedChangeListener(R.id.funds_mutation_subject_cost_fragment, true);
     private TextView fundsMutationNaturalRate;
     private TextView fundsMutationCustomRate;
     private TextView fundsMutationQuantity;
     private RadioGroup fundsMutationDirectionRadio;
+
+    private boolean costShown = true;
+    private boolean payShown = true;
 
     @Override
     protected final FragmentsInfoProvider getInfoProvider() {
@@ -139,6 +146,26 @@ public class FundsMutationActivity extends CoreElementActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(KEY_COST)) {
+                costShown = savedInstanceState.getBoolean(KEY_COST);
+            }
+            if (savedInstanceState.containsKey(KEY_PAY)) {
+                payShown = savedInstanceState.getBoolean(KEY_PAY);
+            }
+        }
+
+        if (costShown) {
+            findViewById(R.id.funds_mutation_subject_cost_fragment).setVisibility(View.VISIBLE);
+        } else {
+            hideFrag(findViewById(R.id.funds_mutation_subject_cost_fragment));
+        }
+        if (payShown) {
+            findViewById(R.id.funds_mutation_paid_amount_fragment).setVisibility(View.VISIBLE);
+        } else {
+            hideFrag(findViewById(R.id.funds_mutation_paid_amount_fragment));
+        }
 
         mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_QUANTITY, findViewById(R.id.funds_mutation_quantity_info));
         CoreNotifier.addLink(this, fundsMutationQuantity, new CoreNotifier.NumberLinker() {
@@ -177,6 +204,13 @@ public class FundsMutationActivity extends CoreElementActivity {
         setGlobalInfoViewPerFragment(R.id.funds_mutation_subject_fragment, FundsSubjectFragment.BUTTON_NEW_SUBJECT_SUBMIT, infoView);
         setGlobalInfoViewPerFragment(R.id.funds_mutation_relevant_balance_fragment, AccountStandardFragment.BUTTON_NEW_ACCOUNT_SUBMIT, infoView);
         setGlobalInfoViewPerFragment(R.id.funds_mutation_agent_fragment, FundsAgentFragment.BUTTON_NEW_AGENT_SUBMIT, infoView);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_COST, costShown);
+        outState.putBoolean(KEY_PAY, payShown);
     }
 
     @Override
@@ -256,25 +290,41 @@ public class FundsMutationActivity extends CoreElementActivity {
 
         @IdRes
         private final int fragId;
+        private boolean costOrPay;
 
-        public CheckedChangeListener(@IdRes int fragId) {
+        public CheckedChangeListener(@IdRes int fragId, boolean costOrPay) {
             this.fragId = fragId;
+            this.costOrPay = costOrPay;
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             final View paFragment = findViewById(fragId);
             if (isChecked) {
-                paFragment.setVisibility(View.INVISIBLE);
-                ((TextView) paFragment.findViewById(R.id.amount_decimal)).setText(null);
-                final Spinner curSp = (Spinner) paFragment.findViewById(R.id.amount_currency);
-                curSp.setSelection(curSp.getAdapter().getCount());
+                if (costOrPay) {
+                    costShown = false;
+                } else {
+                    payShown = false;
+                }
+                hideFrag(paFragment);
             } else {
+                if (costOrPay) {
+                    costShown = true;
+                } else {
+                    payShown = true;
+                }
                 paFragment.setVisibility(View.VISIBLE);
             }
             paFragment.invalidate();
         }
 
+    }
+
+    private void hideFrag(View paFragment) {
+        paFragment.setVisibility(View.INVISIBLE);
+        ((TextView) paFragment.findViewById(R.id.amount_decimal)).setText(null);
+        final Spinner curSp = (Spinner) paFragment.findViewById(R.id.amount_currency);
+        curSp.setSelection(curSp.getAdapter().getCount());
     }
 
 }

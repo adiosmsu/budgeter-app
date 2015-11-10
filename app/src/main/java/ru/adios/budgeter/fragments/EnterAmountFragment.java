@@ -35,8 +35,12 @@ public class EnterAmountFragment extends CoreFragment {
     public static final String FIELD_AMOUNT_DECIMAL = "amount_decimal";
     public static final String FIELD_AMOUNT_CURRENCY = "amount_currency";
 
-    public static CollectibleFragmentInfoProvider getInfoProvider(@IdRes final int fragmentId, final MoneySettable monSet, final CoreErrorHighlighter highlighter, String decCoreName, String unitCoreName) {
-        return new CollectibleFragmentInfoProvider.Builder(fragmentId, new Feedbacker(fragmentId, monSet))
+    public static CollectibleFragmentInfoProvider getInfoProvider(@IdRes final int fragmentId,
+                                                                  final MoneySettable monSet,
+                                                                  final CoreErrorHighlighter highlighter,
+                                                                  String decCoreName,
+                                                                  String unitCoreName) {
+        return new CollectibleFragmentInfoProvider.Builder(fragmentId, new Feedbacker(fragmentId, monSet), highlighter)
                 .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(decCoreName, new CoreNotifier.DecimalLinker() {
                     @Override
                     public void link(BigDecimal data) {

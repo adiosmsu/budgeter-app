@@ -33,9 +33,11 @@ import ru.adios.budgeter.widgets.DateEditView;
 
 public class AddPriceActivity extends CoreElementActivity {
 
+    public static final String KEY_HIGHLIGHTER = "add_price_act_high";
+
     private final PriceAdditionElementCore priceElement =
             new PriceAdditionElementCore(BundleProvider.getBundle().subjectPrices(), BundleProvider.getBundle().fundsMutationSubjects());
-    private final CoreErrorHighlighter priceHighlighter = new CoreErrorHighlighter();
+    private final CoreErrorHighlighter priceHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
 
     private final CollectedFragmentsInfoProvider infoProvider = new CollectedFragmentsInfoProvider.Builder(this)
             .addProvider(
@@ -92,7 +94,8 @@ public class AddPriceActivity extends CoreElementActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        dateView.init(this);
+        dateView = (DateEditView) findViewById(R.id.price_date);
+        dateView.init(this, savedInstanceState);
         priceHighlighter.addElementInfo(PriceAdditionElementCore.FIELD_DAY, findViewById(R.id.price_date_info));
         CoreNotifier.addLink(this, dateView, new CoreNotifier.ArbitraryLinker() {
             @Override
@@ -110,6 +113,12 @@ public class AddPriceActivity extends CoreElementActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        dateView.retain(this, outState);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
@@ -123,16 +132,6 @@ public class AddPriceActivity extends CoreElementActivity {
     @Override
     protected void activityInnerFeedback() {
         Feedbacking.dateFeedback(priceElement.getDay(), dateView);
-    }
-
-    @Override
-    protected void clearViewReferences() {
-        dateView = null;
-    }
-
-    @Override
-    protected void collectEssentialViews() {
-        dateView = (DateEditView) findViewById(R.id.price_date);
     }
 
     @Override

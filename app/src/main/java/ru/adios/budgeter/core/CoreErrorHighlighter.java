@@ -1,9 +1,11 @@
 package ru.adios.budgeter.core;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,7 +21,7 @@ import ru.adios.budgeter.Submitter;
  * Created by adios on 01.10.15.
  */
 @NotThreadSafe
-public final class CoreErrorHighlighter {
+public final class CoreErrorHighlighter implements CoreElementActivity.Retainer {
 
     private static final String GLOBAL_INFO_VIEW_NAME = "$reserved:globalInfoView";
 
@@ -31,10 +33,16 @@ public final class CoreErrorHighlighter {
 
     }
 
+    private final String id;
+
     private final HashMap<String, View> elementNameToView = new HashMap<>();
     private final HashMap<Integer, ViewWorker> viewWorkers = new HashMap<>();
     private final HashSet<String> idleViews = new HashSet<>();
     private View globalInfoView;
+
+    public CoreErrorHighlighter(String id) {
+        this.id = id;
+    }
 
     public void addElementInfo(@Nonnull String name, @Nonnull View view) {
         if (name.equals(GLOBAL_INFO_VIEW_NAME)) {
@@ -51,6 +59,20 @@ public final class CoreErrorHighlighter {
     public void setGlobalInfoView(View globalInfoView) {
         this.globalInfoView = globalInfoView;
         idleViews.add(GLOBAL_INFO_VIEW_NAME);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArray(id, idleViews.toArray(new String[idleViews.size()]));
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        final String[] stringArray = savedInstanceState.getStringArray(id);
+        if (stringArray != null) {
+            idleViews.clear();
+            idleViews.addAll(Arrays.asList(stringArray));
+        }
     }
 
     public <T> void processSubmitResultUsingHandler(Handler handler, final Submitter.Result<T> result) {

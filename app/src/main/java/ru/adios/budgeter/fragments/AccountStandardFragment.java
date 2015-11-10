@@ -60,6 +60,9 @@ public class AccountStandardFragment extends CoreFragment {
     public static final String FIELD_NEW_ACCOUNT_DESC = "new_account_desc";
     public static final String BUTTON_NEW_ACCOUNT_SUBMIT = "new_account_submit";
 
+    public static final String KEY_HIGHLIGHTER = "acc_frag_highlighter";
+    public static final String KEY_OPT_AMOUNT = "acc_frag_opt_amount";
+
     public static InfoProviderBuilder getInfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<BalanceAccount> accountSupplier) {
         return new InfoProviderBuilder(fragmentId, context, accountSupplier);
     }
@@ -68,7 +71,7 @@ public class AccountStandardFragment extends CoreFragment {
 
         private final Mutable<Optional<BigDecimal>> newAccountOptionalAmount = new Mutable<>(Optional.of(BigDecimal.ZERO));
         private final AccountsElementCore accountsElement = new AccountsElementCore(BundleProvider.getBundle().treasury());
-        private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter();
+        private final CoreErrorHighlighter accountsErrorHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
         private final HybridAccountCore hybridAccountCore = new HybridAccountCore(accountsElement, newAccountOptionalAmount);
 
         private final Context context;
@@ -78,9 +81,32 @@ public class AccountStandardFragment extends CoreFragment {
         private Consumer<BalanceAccount> callback;
         private CoreElementActivity.CoreElementFieldInfo accountFieldInfo;
 
-        public InfoProviderBuilder(@IdRes int fragmentId, Context context, Supplier<BalanceAccount> accountSupplier) {
+        public InfoProviderBuilder(@IdRes int fragmentId, Context context, final Supplier<BalanceAccount> accountSupplier) {
             this.context = context;
-            mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(fragmentId, new Feedbacker(fragmentId, accountsElement, newAccountOptionalAmount, accountSupplier));
+            mainBuilder = new CollectibleFragmentInfoProvider.Builder<>(
+                    fragmentId,
+                    new Feedbacker(fragmentId, accountsElement, newAccountOptionalAmount, accountSupplier),
+                    accountsErrorHighlighter,
+                    new CoreElementActivity.Retainer() {
+                        @Override
+                        public void onSaveInstanceState(Bundle outState) {
+                            final Optional<BigDecimal> o = newAccountOptionalAmount.object;
+                            if (o.isPresent()) {
+                                outState.putString(KEY_OPT_AMOUNT, o.get().toPlainString());
+                            } else {
+                                outState.putString(KEY_OPT_AMOUNT, null);
+                            }
+                        }
+
+                        @Override
+                        public void onRestoreInstanceState(Bundle savedInstanceState) {
+                            final String oaVal = savedInstanceState.getString(KEY_OPT_AMOUNT);
+                            newAccountOptionalAmount.object = oaVal != null
+                                    ? Optional.of(new BigDecimal(oaVal))
+                                    : Optional.<BigDecimal>empty();
+                        }
+                    }
+            );
         }
 
         public InfoProviderBuilder setNewAccountSubmitButtonCallback(@Nullable Consumer<BalanceAccount> callback) {
@@ -259,6 +285,8 @@ public class AccountStandardFragment extends CoreFragment {
     }
 
 
+    private boolean editOpen = false;
+
     public AccountStandardFragment() {
         // Required empty public constructor
     }
@@ -308,18 +336,9 @@ public class AccountStandardFragment extends CoreFragment {
             @Override
             public void onClick(View v) {
                 if (v.getVisibility() == View.VISIBLE) {
-                    nameInput.setVisibility(View.VISIBLE);
-                    nameInputInfo.setVisibility(View.INVISIBLE);
-                    descInput.setVisibility(View.VISIBLE);
-                    descInputInfo.setVisibility(View.INVISIBLE);
-                    descInputOpt.setVisibility(View.VISIBLE);
-                    currencyInput.setVisibility(View.VISIBLE);
-                    currencyInputInfo.setVisibility(View.INVISIBLE);
-                    amountInput.setVisibility(View.VISIBLE);
-                    amountInputHint.setVisibility(View.VISIBLE);
-                    amountInputInfo.setVisibility(View.INVISIBLE);
-                    submitButton.setVisibility(View.VISIBLE);
-                    v.setVisibility(View.INVISIBLE);
+                    editOpen = true;
+                    showEdit(v, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                            currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton);
                     inflated.invalidate();
                 }
             }
@@ -330,24 +349,63 @@ public class AccountStandardFragment extends CoreFragment {
         activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_ACCOUNT_SUBMIT, new Consumer<BalanceAccount>() {
             @Override
             public void accept(BalanceAccount account) {
-                nameInput.setVisibility(View.GONE);
-                nameInputInfo.setVisibility(View.GONE);
-                descInput.setVisibility(View.GONE);
-                descInputInfo.setVisibility(View.GONE);
-                descInputOpt.setVisibility(View.GONE);
-                currencyInput.setVisibility(View.GONE);
-                currencyInputInfo.setVisibility(View.GONE);
-                amountInput.setVisibility(View.GONE);
-                amountInputHint.setVisibility(View.GONE);
-                amountInputInfo.setVisibility(View.GONE);
-                submitButton.setVisibility(View.GONE);
-                addButton.setVisibility(View.VISIBLE);
+                editOpen = false;
+                hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                        currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
                 UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.getFactory(getResources()));
                 inflated.invalidate();
             }
         });
 
+        if (editOpen) {
+            showEdit(addButton, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                    currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton);
+        } else {
+            hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                    currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
+        }
+
         return inflated;
+    }
+
+    private void hideEdit(EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
+                          TextView descInputOpt, Spinner currencyInput, TextView currencyInputInfo, EditText amountInput,
+                          TextView amountInputHint, TextView amountInputInfo, Button submitButton, Button addButton) {
+        nameInput.setVisibility(View.GONE);
+        nameInputInfo.setVisibility(View.GONE);
+        descInput.setVisibility(View.GONE);
+        descInputInfo.setVisibility(View.GONE);
+        descInputOpt.setVisibility(View.GONE);
+        currencyInput.setVisibility(View.GONE);
+        currencyInputInfo.setVisibility(View.GONE);
+        amountInput.setVisibility(View.GONE);
+        amountInputHint.setVisibility(View.GONE);
+        amountInputInfo.setVisibility(View.GONE);
+        submitButton.setVisibility(View.GONE);
+        addButton.setVisibility(View.VISIBLE);
+    }
+
+    private void showEdit(View v, EditText nameInput, TextView nameInputInfo, EditText descInput,
+                          TextView descInputInfo, TextView descInputOpt, Spinner currencyInput, TextView currencyInputInfo,
+                          EditText amountInput, TextView amountInputHint, TextView amountInputInfo, Button submitButton) {
+        nameInput.setVisibility(View.VISIBLE);
+        nameInputInfo.setVisibility(View.INVISIBLE);
+        descInput.setVisibility(View.VISIBLE);
+        descInputInfo.setVisibility(View.INVISIBLE);
+        descInputOpt.setVisibility(View.VISIBLE);
+        currencyInput.setVisibility(View.VISIBLE);
+        currencyInputInfo.setVisibility(View.INVISIBLE);
+        amountInput.setVisibility(View.VISIBLE);
+        amountInputHint.setVisibility(View.VISIBLE);
+        amountInputInfo.setVisibility(View.INVISIBLE);
+        submitButton.setVisibility(View.VISIBLE);
+        v.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setRetainInstance(true);
+        super.onCreate(savedInstanceState);
     }
 
     private static final class Mutable<T> {

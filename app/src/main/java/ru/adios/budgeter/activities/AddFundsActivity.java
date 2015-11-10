@@ -34,8 +34,10 @@ import ru.adios.budgeter.util.UiUtils;
 @UiThread
 public class AddFundsActivity extends CoreElementActivity {
 
+    public static final String KEY_HIGHLIGHTER = "add_funds_act_high";
+
     private final FundsAdditionElementCore additionElement = new FundsAdditionElementCore(BundleProvider.getBundle().treasury());
-    private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter();
+    private final CoreErrorHighlighter addFundsErrorHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
     private final CollectibleFragmentInfoProvider<BalanceAccount, AccountStandardFragment.HybridAccountCore> accountsInfoProvider =
             AccountStandardFragment.getInfoProviderBuilder(R.id.add_funds_account_fragment, this, new Supplier<BalanceAccount>() {
                 @Override

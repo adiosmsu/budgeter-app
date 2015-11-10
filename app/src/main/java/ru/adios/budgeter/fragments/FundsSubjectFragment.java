@@ -60,15 +60,23 @@ public class FundsSubjectFragment extends CoreFragment {
 
     private static final String NO_SUCH_PARENT_ERROR = "No such parent";
 
-    public static CollectedFragmentsInfoProvider.InfoProvider<FundsMutationSubject, SubjectAdditionElementCore> getInfoProvider(@IdRes final int fragmentId,
-                                                                                                                                final Activity activity,
-                                                                                                                                @Nullable Consumer<FundsMutationSubject> subjectSubmitSuccessCallback,
-                                                                                                                                CoreElementActivity.CoreElementFieldInfo subjectFieldInfo,
-                                                                                                                                Supplier<FundsMutationSubject> feedbackAccountSupplier) {
-        final SubjectAdditionElementCore subjectsElement = new SubjectAdditionElementCore(BundleProvider.getBundle().fundsMutationSubjects());
-        final CoreErrorHighlighter subjectsErrorHighlighter = new CoreErrorHighlighter();
+    public static final String KEY_HIGHLIGHTER = "subj_frag_highlighter";
 
-        return new CollectibleFragmentInfoProvider.Builder<FundsMutationSubject, SubjectAdditionElementCore>(fragmentId, new Feedbacker(fragmentId, subjectsElement, feedbackAccountSupplier))
+    public static CollectedFragmentsInfoProvider.InfoProvider<FundsMutationSubject, SubjectAdditionElementCore> getInfoProvider(
+            @IdRes final int fragmentId,
+            final Activity activity,
+            @Nullable Consumer<FundsMutationSubject> subjectSubmitSuccessCallback,
+            CoreElementActivity.CoreElementFieldInfo subjectFieldInfo,
+            Supplier<FundsMutationSubject> feedbackAccountSupplier
+    ) {
+        final SubjectAdditionElementCore subjectsElement = new SubjectAdditionElementCore(BundleProvider.getBundle().fundsMutationSubjects());
+        final CoreErrorHighlighter subjectsErrorHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
+
+        return new CollectibleFragmentInfoProvider.Builder<FundsMutationSubject, SubjectAdditionElementCore>(
+                fragmentId,
+                new Feedbacker(fragmentId, subjectsElement, feedbackAccountSupplier),
+                subjectsErrorHighlighter
+        )
                 .addButtonInfo(BUTTON_NEW_SUBJECT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(subjectsElement, subjectSubmitSuccessCallback, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_SUBJECTS, subjectFieldInfo)
                 .addFieldInfo(FIELD_NEW_SUBJECT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
@@ -125,8 +133,16 @@ public class FundsSubjectFragment extends CoreFragment {
     }
 
 
+    private boolean editOpen = false;
+
     public FundsSubjectFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setRetainInstance(true);
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -140,7 +156,14 @@ public class FundsSubjectFragment extends CoreFragment {
 
         // main spinner init
         final Spinner subjectsSpinner = (Spinner) inflated.findViewById(R.id.subjects_spinner);
-        UiUtils.prepareHintedSpinnerAsync(subjectsSpinner, activity, id, FIELD_SUBJECTS, inflated, R.id.subjects_spinner_info, BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
+        UiUtils.prepareHintedSpinnerAsync(
+                subjectsSpinner,
+                activity,
+                id,
+                FIELD_SUBJECTS,
+                inflated,
+                R.id.subjects_spinner_info,
+                BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
                 new Function<FundsMutationSubject, HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<FundsMutationSubject> apply(FundsMutationSubject subject) {
@@ -199,17 +222,9 @@ public class FundsSubjectFragment extends CoreFragment {
             @Override
             public void onClick(View v) {
                 if (v.getVisibility() == View.VISIBLE) {
-                    nameInput.setVisibility(View.VISIBLE);
-                    nameInputInfo.setVisibility(View.INVISIBLE);
-                    descInput.setVisibility(View.VISIBLE);
-                    descInputInfo.setVisibility(View.INVISIBLE);
-                    descInputOpt.setVisibility(View.VISIBLE);
-                    parentNameLayout.setVisibility(View.VISIBLE);
-                    parentNameInputInfo.setVisibility(View.INVISIBLE);
-                    typeRadio.setVisibility(View.VISIBLE);
-                    typeRadioInfo.setVisibility(View.INVISIBLE);
-                    submitButton.setVisibility(View.VISIBLE);
-                    v.setVisibility(View.INVISIBLE);
+                    editOpen = true;
+                    showEdit(v, nameInput, nameInputInfo, descInput,
+                            descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton);
                     inflated.invalidate();
                 }
             }
@@ -220,23 +235,55 @@ public class FundsSubjectFragment extends CoreFragment {
         activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_SUBJECT_SUBMIT, new Consumer<FundsMutationSubject>() {
             @Override
             public void accept(FundsMutationSubject subject) {
-                nameInput.setVisibility(View.GONE);
-                nameInputInfo.setVisibility(View.GONE);
-                descInput.setVisibility(View.GONE);
-                descInputInfo.setVisibility(View.GONE);
-                descInputOpt.setVisibility(View.GONE);
-                parentNameLayout.setVisibility(View.GONE);
-                parentNameInputInfo.setVisibility(View.GONE);
-                typeRadio.setVisibility(View.GONE);
-                typeRadioInfo.setVisibility(View.GONE);
-                submitButton.setVisibility(View.GONE);
-                addButton.setVisibility(View.VISIBLE);
+                editOpen = false;
+                hideEdit(nameInput, nameInputInfo, descInput,
+                        descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton);
                 UiUtils.addToHintedSpinner(subject, subjectsSpinner, FundsMutationSubjectContainer.FACTORY);
                 inflated.invalidate();
             }
         });
 
+        if (editOpen) {
+            showEdit(addButton, nameInput, nameInputInfo, descInput,
+                    descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton);
+        } else {
+            hideEdit(nameInput, nameInputInfo, descInput,
+                    descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton);
+        }
+
         return inflated;
+    }
+
+    private void hideEdit(EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
+                          TextView descInputOpt, FrameLayout parentNameLayout, TextView parentNameInputInfo, RadioGroup typeRadio,
+                          TextView typeRadioInfo, Button submitButton, Button addButton) {
+        nameInput.setVisibility(View.GONE);
+        nameInputInfo.setVisibility(View.GONE);
+        descInput.setVisibility(View.GONE);
+        descInputInfo.setVisibility(View.GONE);
+        descInputOpt.setVisibility(View.GONE);
+        parentNameLayout.setVisibility(View.GONE);
+        parentNameInputInfo.setVisibility(View.GONE);
+        typeRadio.setVisibility(View.GONE);
+        typeRadioInfo.setVisibility(View.GONE);
+        submitButton.setVisibility(View.GONE);
+        addButton.setVisibility(View.VISIBLE);
+    }
+
+    private void showEdit(View v, EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
+                          TextView descInputOpt, FrameLayout parentNameLayout, TextView parentNameInputInfo, RadioGroup typeRadio,
+                          TextView typeRadioInfo, Button submitButton) {
+        nameInput.setVisibility(View.VISIBLE);
+        nameInputInfo.setVisibility(View.INVISIBLE);
+        descInput.setVisibility(View.VISIBLE);
+        descInputInfo.setVisibility(View.INVISIBLE);
+        descInputOpt.setVisibility(View.VISIBLE);
+        parentNameLayout.setVisibility(View.VISIBLE);
+        parentNameInputInfo.setVisibility(View.INVISIBLE);
+        typeRadio.setVisibility(View.VISIBLE);
+        typeRadioInfo.setVisibility(View.INVISIBLE);
+        submitButton.setVisibility(View.VISIBLE);
+        v.setVisibility(View.INVISIBLE);
     }
 
     private static final class Feedbacker extends AbstractCollectibleFeedbacker {

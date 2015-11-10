@@ -44,14 +44,20 @@ public class FundsAgentFragment extends CoreFragment {
     public static final String FIELD_NEW_AGENT_DESC = "new_agent_desc";
     public static final String BUTTON_NEW_AGENT_SUBMIT = "new_agent_submit";
 
+    public static final String KEY_HIGHLIGHTER = "agent_frag_highlighter";
+
     public static CollectibleFragmentInfoProvider<FundsMutationAgent, AgentAdditionElementCore> getInfoProvider(@IdRes int fragmentId,
                                                                                                                 @Nullable Consumer<FundsMutationAgent> agentSubmitSuccessCallback,
                                                                                                                 CoreElementActivity.CoreElementFieldInfo agentFieldInfo,
                                                                                                                 Supplier<FundsMutationAgent> feedbackAgentSupplier) {
         final AgentAdditionElementCore agentCore = new AgentAdditionElementCore(BundleProvider.getBundle().fundsMutationAgents());
-        final CoreErrorHighlighter agentsErrorHighlighter = new CoreErrorHighlighter();
+        final CoreErrorHighlighter agentsErrorHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
 
-        return new CollectibleFragmentInfoProvider.Builder<FundsMutationAgent, AgentAdditionElementCore>(fragmentId, new Feedbacker(fragmentId, agentCore, feedbackAgentSupplier))
+        return new CollectibleFragmentInfoProvider.Builder<FundsMutationAgent, AgentAdditionElementCore>(
+                fragmentId,
+                new Feedbacker(fragmentId, agentCore, feedbackAgentSupplier),
+                agentsErrorHighlighter
+        )
                 .addButtonInfo(BUTTON_NEW_AGENT_SUBMIT, new CoreElementActivity.CoreElementSubmitInfo<>(agentCore, agentSubmitSuccessCallback, agentsErrorHighlighter))
                 .addFieldInfo(FIELD_AGENTS, agentFieldInfo)
                 .addFieldInfo(FIELD_NEW_AGENT_NAME, new CoreElementActivity.CoreElementFieldInfo(AgentAdditionElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
@@ -69,8 +75,17 @@ public class FundsAgentFragment extends CoreFragment {
                 .build();
     }
 
+
+    private boolean editOpen = false;
+
     public FundsAgentFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setRetainInstance(true);
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -111,13 +126,8 @@ public class FundsAgentFragment extends CoreFragment {
             @Override
             public void onClick(View v) {
                 if (v.getVisibility() == View.VISIBLE) {
-                    nameInput.setVisibility(View.VISIBLE);
-                    nameInputInfo.setVisibility(View.INVISIBLE);
-                    descInput.setVisibility(View.VISIBLE);
-                    descInputInfo.setVisibility(View.INVISIBLE);
-                    descInputOpt.setVisibility(View.VISIBLE);
-                    submitButton.setVisibility(View.VISIBLE);
-                    v.setVisibility(View.INVISIBLE);
+                    editOpen = true;
+                    showEdit(v, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt, submitButton);
                     inflated.invalidate();
                 }
             }
@@ -128,19 +138,41 @@ public class FundsAgentFragment extends CoreFragment {
         activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_AGENT_SUBMIT, new Consumer<FundsMutationAgent>() {
             @Override
             public void accept(FundsMutationAgent agent) {
-                nameInput.setVisibility(View.GONE);
-                nameInputInfo.setVisibility(View.GONE);
-                descInput.setVisibility(View.GONE);
-                descInputInfo.setVisibility(View.GONE);
-                descInputOpt.setVisibility(View.GONE);
-                submitButton.setVisibility(View.GONE);
-                addButton.setVisibility(View.VISIBLE);
+                editOpen = false;
+                hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt, submitButton, addButton);
                 UiUtils.addToHintedSpinner(agent, agentsSpinner, CONTAINER_FACTORY);
                 inflated.invalidate();
             }
         });
 
+        if (editOpen) {
+            showEdit(addButton, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt, submitButton);
+        } else {
+            hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt, submitButton, addButton);
+        }
+
         return inflated;
+    }
+
+    private void hideEdit(EditText nameInput, TextView nameInputInfo,
+                          EditText descInput, TextView descInputInfo, TextView descInputOpt, Button submitButton, Button addButton) {
+        nameInput.setVisibility(View.GONE);
+        nameInputInfo.setVisibility(View.GONE);
+        descInput.setVisibility(View.GONE);
+        descInputInfo.setVisibility(View.GONE);
+        descInputOpt.setVisibility(View.GONE);
+        submitButton.setVisibility(View.GONE);
+        addButton.setVisibility(View.VISIBLE);
+    }
+
+    private void showEdit(View v, EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo, TextView descInputOpt, Button submitButton) {
+        nameInput.setVisibility(View.VISIBLE);
+        nameInputInfo.setVisibility(View.INVISIBLE);
+        descInput.setVisibility(View.VISIBLE);
+        descInputInfo.setVisibility(View.INVISIBLE);
+        descInputOpt.setVisibility(View.VISIBLE);
+        submitButton.setVisibility(View.VISIBLE);
+        v.setVisibility(View.INVISIBLE);
     }
 
     private static final FundsMutationAgentContainerFactory CONTAINER_FACTORY = new FundsMutationAgentContainerFactory();

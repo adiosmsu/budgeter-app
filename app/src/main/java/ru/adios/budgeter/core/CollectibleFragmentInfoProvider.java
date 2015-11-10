@@ -1,11 +1,14 @@
 package ru.adios.budgeter.core;
 
+import android.os.Bundle;
 import android.support.annotation.IdRes;
 
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import java8.util.Optional;
 import ru.adios.budgeter.Submitter;
 
 /**
@@ -22,10 +25,18 @@ public final class CollectibleFragmentInfoProvider<T, Sub extends Submitter<T>> 
         private final Feedbacker feedbacker;
         private final ImmutableMap.Builder<String, CoreElementActivity.CoreElementSubmitInfo<T, Sub>> submitterButtonsMapBuilder = ImmutableMap.builder();
         private final ImmutableMap.Builder<String, CoreElementActivity.CoreElementFieldInfo> fieldsInfoMapBuilder = ImmutableMap.builder();
+        private final CoreErrorHighlighter highlighter;
+        private final Optional<CoreElementActivity.Retainer> optRetainer;
 
-        public Builder(int id, Feedbacker feedbacker) {
+        public Builder(int id, Feedbacker feedbacker, CoreErrorHighlighter highlighter, @Nullable CoreElementActivity.Retainer retainer) {
             this.id = id;
             this.feedbacker = feedbacker;
+            this.highlighter = highlighter;
+            this.optRetainer = Optional.ofNullable(retainer);
+        }
+
+        public Builder(int id, Feedbacker feedbacker, CoreErrorHighlighter highlighter) {
+            this(id, feedbacker, highlighter, null);
         }
 
         public Builder<T, Sub> addButtonInfo(String buttonName, CoreElementActivity.CoreElementSubmitInfo<T, Sub> submitInfo) {
@@ -39,7 +50,7 @@ public final class CollectibleFragmentInfoProvider<T, Sub extends Submitter<T>> 
         }
 
         public CollectibleFragmentInfoProvider<T, Sub> build() {
-            return new CollectibleFragmentInfoProvider<>(id, submitterButtonsMapBuilder.build(), fieldsInfoMapBuilder.build(), feedbacker);
+            return new CollectibleFragmentInfoProvider<>(id, submitterButtonsMapBuilder.build(), fieldsInfoMapBuilder.build(), highlighter, feedbacker, optRetainer);
         }
 
     }
@@ -48,16 +59,22 @@ public final class CollectibleFragmentInfoProvider<T, Sub extends Submitter<T>> 
     private final int id;
     private final ImmutableMap<String, CoreElementActivity.CoreElementSubmitInfo<T, Sub>> submitterButtonsMap;
     private final ImmutableMap<String, CoreElementActivity.CoreElementFieldInfo> fieldInfoMap;
+    private final CoreErrorHighlighter highlighter;
     private final Feedbacker feedbacker;
+    private final Optional<CoreElementActivity.Retainer> optRetainer;
 
     private CollectibleFragmentInfoProvider(int id,
                                             ImmutableMap<String, CoreElementActivity.CoreElementSubmitInfo<T, Sub>> submitterButtonsMap,
                                             ImmutableMap<String, CoreElementActivity.CoreElementFieldInfo> fieldInfoMap,
-                                            Feedbacker feedbacker) {
+                                            CoreErrorHighlighter highlighter,
+                                            Feedbacker feedbacker,
+                                            Optional<CoreElementActivity.Retainer> optRetainer) {
         this.id = id;
         this.submitterButtonsMap = submitterButtonsMap;
         this.fieldInfoMap = fieldInfoMap;
+        this.highlighter = highlighter;
         this.feedbacker = feedbacker;
+        this.optRetainer = optRetainer;
     }
 
     @Override
@@ -86,6 +103,22 @@ public final class CollectibleFragmentInfoProvider<T, Sub extends Submitter<T>> 
     @Override
     public void clearViewReferences() {
         feedbacker.clearViewReferences();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        highlighter.onSaveInstanceState(outState);
+        if (optRetainer.isPresent()) {
+            optRetainer.get().onSaveInstanceState(outState);
+        }
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        highlighter.onRestoreInstanceState(savedInstanceState);
+        if (optRetainer.isPresent()) {
+            optRetainer.get().onRestoreInstanceState(savedInstanceState);
+        }
     }
 
     @Override

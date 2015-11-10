@@ -52,6 +52,9 @@ public abstract class FundsAwareMenuActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(getMenuResource(), menu);
+        if (menuHandler == null) {
+            initMenuHandler();
+        }
         menuHandler.onCreateMenu(menu);
         return true;
     }

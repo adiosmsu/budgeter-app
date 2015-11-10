@@ -1,5 +1,6 @@
 package ru.adios.budgeter.core;
 
+import android.os.Bundle;
 import android.support.annotation.IdRes;
 
 import com.google.common.collect.ImmutableCollection;
@@ -75,6 +76,20 @@ public final class CollectedFragmentsInfoProvider implements CoreElementActivity
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        for (final InfoProvider infoProvider : dataMap.values()) {
+            infoProvider.onSaveInstanceState(outState);
+        }
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        for (final InfoProvider infoProvider : dataMap.values()) {
+            infoProvider.onRestoreInstanceState(savedInstanceState);
+        }
+    }
+
+    @Override
     public void collectEssentialViews(CoreElementActivity activity) {
         for (final InfoProvider infoProvider : dataMap.values()) {
             infoProvider.collectEssentialViews(activity);
@@ -91,7 +106,7 @@ public final class CollectedFragmentsInfoProvider implements CoreElementActivity
         return infoProvider;
     }
 
-    public interface InfoProvider<T, Sub extends Submitter<T>> {
+    public interface InfoProvider<T, Sub extends Submitter<T>> extends CoreElementActivity.Retainer {
 
         @IdRes
         int getFragmentId();

@@ -1,8 +1,8 @@
 package ru.adios.budgeter.core;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.support.annotation.UiThread;
+import android.support.v4.app.Fragment;
 
 import static com.google.common.base.Preconditions.checkState;
 

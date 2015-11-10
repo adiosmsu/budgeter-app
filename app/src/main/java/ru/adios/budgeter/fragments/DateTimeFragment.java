@@ -1,5 +1,6 @@
 package ru.adios.budgeter.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.UiThread;
@@ -31,8 +32,15 @@ public class DateTimeFragment extends CoreFragment {
     public static final String FIELD_DATE = "date";
     public static final String FIELD_TIME = "time";
 
-    public static CollectibleFragmentInfoProvider getInfoProvider(@IdRes final int fragmentId, final CoreErrorHighlighter highlighter, String fieldCoreName, final TimestampSettable tsSet) {
-        return new CollectibleFragmentInfoProvider.Builder(fragmentId, new Feedbacker(fragmentId, tsSet))
+    public static CollectibleFragmentInfoProvider getInfoProvider(@IdRes final int fragmentId,
+                                                                  final CoreErrorHighlighter highlighter,
+                                                                  String fieldCoreName,
+                                                                  final TimestampSettable tsSet) {
+        return new CollectibleFragmentInfoProvider.Builder(
+                fragmentId,
+                new Feedbacker(fragmentId, tsSet),
+                highlighter
+        )
                 .addFieldInfo(FIELD_DATE, new CoreElementActivity.CoreElementFieldInfo(fieldCoreName, new CoreNotifier.ArbitraryLinker() {
                     @Override
                     public void link(Object data) {
@@ -99,8 +107,19 @@ public class DateTimeFragment extends CoreFragment {
 
     }
 
+
+    private CoreElementActivity activity;
+    private DateEditView dateView;
+    private TimeEditView timeView;
+
     public DateTimeFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (CoreElementActivity) context;
     }
 
     @Override
@@ -110,15 +129,28 @@ public class DateTimeFragment extends CoreFragment {
         final CoreElementActivity activity = (CoreElementActivity) getActivity();
 
         // Register listeners in parent activity and initialize elements
-        final DateEditView dateView = (DateEditView) inflated.findViewById(R.id.enter_date);
-        final TimeEditView timeView = (TimeEditView) inflated.findViewById(R.id.enter_time);
-        dateView.init(activity);
-        timeView.init(activity);
+        dateView = (DateEditView) inflated.findViewById(R.id.enter_date);
+        timeView = (TimeEditView) inflated.findViewById(R.id.enter_time);
+        dateView.init(activity, savedInstanceState);
+        timeView.init(activity, savedInstanceState);
         final int id = getId();
         activity.addFieldFragmentInfo(id, FIELD_DATE, dateView, inflated.findViewById(R.id.enter_datetime_info));
         activity.addFieldFragmentInfo(id, FIELD_TIME, timeView, inflated.findViewById(R.id.enter_datetime_info));
 
         return inflated;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        dateView.retain(activity, outState);
+        timeView.retain(activity, outState);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        activity = null;
     }
 
 }

@@ -42,8 +42,11 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
         }
         collectEssentialViews();
         cleared = false;
-        getInfoProvider().collectEssentialViews(this);
-        coreFeedback();
+        final FragmentsInfoProvider infoProvider = getInfoProvider();
+        infoProvider.collectEssentialViews(this);
+        if (savedInstanceState != null) {
+            infoProvider.onRestoreInstanceState(savedInstanceState);
+        }
     }
 
     @Override
@@ -64,6 +67,13 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
             cleared = false;
         }
         getInfoProvider().collectEssentialViews(this);
+        coreFeedback();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        getInfoProvider().onSaveInstanceState(outState);
     }
 
     protected abstract FragmentsInfoProvider getInfoProvider();
@@ -161,7 +171,7 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
         core.unlock();
     }
 
-    public interface FragmentsInfoProvider {
+    public interface FragmentsInfoProvider extends Retainer {
 
         CoreElementSubmitInfo getSubmitInfo(@IdRes int fragmentId, String buttonName);
 
@@ -203,6 +213,14 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
             this.successRunnable = successRunnable;
             this.errorHighlighter = errorHighlighter;
         }
+
+    }
+
+    public interface Retainer {
+
+        void onSaveInstanceState(Bundle outState);
+
+        void onRestoreInstanceState(Bundle savedInstanceState);
 
     }
 

@@ -14,7 +14,7 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="@dimen/activity_vertical_margin"
-        tools:context="ru.adios.budgeter.SettingsActivity">
+        tools:context="ru.adios.budgeter.activities.SettingsActivity">
 
         <Button
             android:id="@+id/settings_reset_db_button"

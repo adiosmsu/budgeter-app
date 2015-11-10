@@ -5,16 +5,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ru.adios.budgeter.DateTimeFragment">
+    tools:context="ru.adios.budgeter.fragments.DateTimeFragment">
 
-    <ru.adios.budgeter.util.DateEditView
+    <ru.adios.budgeter.widgets.DateEditView
         android:id="@+id/enter_date"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_widthPercent="70%"
         tools:ignore="TextFields"
         style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
-    <ru.adios.budgeter.util.TimeEditView
+    <ru.adios.budgeter.widgets.TimeEditView
         android:id="@+id/enter_time"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

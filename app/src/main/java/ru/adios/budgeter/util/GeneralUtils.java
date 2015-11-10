@@ -6,10 +6,15 @@ import org.threeten.bp.ZoneOffset;
 import java.lang.reflect.Array;
 import java.util.List;
 
+import javax.annotation.concurrent.Immutable;
+
+import ru.adios.budgeter.adapters.HintedArrayAdapter;
+
 /**
  * Created by Michail Kulikov
  * 10/8/15
  */
+@Immutable
 public final class GeneralUtils {
 
     public static <T> T[] arrayPlusValue(T[] original, T newValue) {

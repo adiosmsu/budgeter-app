@@ -20,7 +20,7 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin"
             android:paddingBottom="@dimen/activity_vertical_margin"
-            tools:context="ru.adios.budgeter.ExchangeCurrenciesActivity">
+            tools:context="ru.adios.budgeter.activities.ExchangeCurrenciesActivity">
 
             <TextView
                 android:id="@+id/exchange_currencies_buy_amount_text"
@@ -31,7 +31,7 @@
                 android:text="@string/exchange_currencies_buy_amount_text"/>
             <fragment
                 android:id="@+id/exchange_currencies_buy_amount_fragment"
-                android:name="ru.adios.budgeter.EnterAmountFragment"
+                android:name="ru.adios.budgeter.fragments.EnterAmountFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exchange_currencies_buy_amount_text"
@@ -45,7 +45,7 @@
                 android:text="@string/exchange_currencies_sell_amount_text"/>
             <fragment
                 android:id="@+id/exchange_currencies_sell_amount_fragment"
-                android:name="ru.adios.budgeter.EnterAmountFragment"
+                android:name="ru.adios.budgeter.fragments.EnterAmountFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exchange_currencies_sell_amount_text"
@@ -59,7 +59,7 @@
                 android:text="@string/exchange_currencies_buy_account_text"/>
             <fragment
                 android:id="@+id/exchange_currencies_buy_account_fragment"
-                android:name="ru.adios.budgeter.AccountStandardFragment"
+                android:name="ru.adios.budgeter.fragments.AccountStandardFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exchange_currencies_buy_account_text"
@@ -73,7 +73,7 @@
                 android:text="@string/exchange_currencies_sell_account_text"/>
             <fragment
                 android:id="@+id/exchange_currencies_sell_account_fragment"
-                android:name="ru.adios.budgeter.AccountStandardFragment"
+                android:name="ru.adios.budgeter.fragments.AccountStandardFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exchange_currencies_sell_account_text"
@@ -122,7 +122,7 @@
                 android:text="@string/op_agent_text"/>
             <fragment
                 android:id="@+id/exchange_currencies_agent_fragment"
-                android:name="ru.adios.budgeter.FundsAgentFragment"
+                android:name="ru.adios.budgeter.fragments.FundsAgentFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exchange_currencies_agent_text"
@@ -136,7 +136,7 @@
                 android:text="@string/enter_datetime_text"/>
             <fragment
                 android:id="@+id/exchange_currencies_datetime_fragment"
-                android:name="ru.adios.budgeter.DateTimeFragment"
+                android:name="ru.adios.budgeter.fragments.DateTimeFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exchange_currencies_datetime_text"

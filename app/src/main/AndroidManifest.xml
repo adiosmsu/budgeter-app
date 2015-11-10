@@ -11,7 +11,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
         <activity
-            android:name=".HomeActivity"
+            android:name=".activities.HomeActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,46 +20,46 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AddFundsActivity"
+            android:name=".activities.AddFundsActivity"
             android:label="@string/title_activity_add_funds"
-            android:parentActivityName=".HomeActivity" >
+            android:parentActivityName=".activities.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ru.adios.budgeter.HomeActivity" />
+                android:value=".activities.HomeActivity" />
         </activity>
         <activity
-            android:name=".FundsMutationActivity"
+            android:name=".activities.FundsMutationActivity"
             android:label="@string/title_activity_funds_mutation"
-            android:parentActivityName=".HomeActivity" >
+            android:parentActivityName=".activities.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ru.adios.budgeter.HomeActivity" />
+                android:value=".activities.HomeActivity" />
         </activity>
         <activity
-            android:name=".ExchangeCurrenciesActivity"
+            android:name=".activities.ExchangeCurrenciesActivity"
             android:label="@string/title_activity_exchange_currencies"
-            android:parentActivityName=".HomeActivity" >
+            android:parentActivityName=".activities.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ru.adios.budgeter.HomeActivity" />
+                android:value=".activities.HomeActivity" />
         </activity>
         <activity
-            android:name=".MutationsTableActivity"
+            android:name=".activities.MutationsTableActivity"
             android:label="@string/title_activity_mutations_table"
-            android:parentActivityName=".HomeActivity" >
+            android:parentActivityName=".activities.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ru.adios.budgeter.HomeActivity" />
+                android:value=".activities.HomeActivity" />
         </activity>
         <activity
-            android:name=".ExchangesTableActivity"
+            android:name=".activities.ExchangesTableActivity"
             android:label="@string/title_activity_exchanges_table"
-            android:parentActivityName=".HomeActivity" >
+            android:parentActivityName=".activities.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ru.adios.budgeter.HomeActivity" />
+                android:value=".activities.HomeActivity" />
         </activity>
-        <activity android:name=".SettingsActivity"
+        <activity android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings">
         </activity>
     </application>

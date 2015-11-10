@@ -17,14 +17,14 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="@dimen/activity_vertical_margin"
-        tools:context="ru.adios.budgeter.AddFundsActivity">
+        tools:context="ru.adios.budgeter.activities.AddFundsActivity">
 
-        <fragment android:name="ru.adios.budgeter.AccountStandardFragment"
+        <fragment android:name="ru.adios.budgeter.fragments.AccountStandardFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/add_funds_account_fragment"
             tools:layout="@layout/fragment_account_standard"/>
-        <fragment android:name="ru.adios.budgeter.EnterAmountFragment"
+        <fragment android:name="ru.adios.budgeter.fragments.EnterAmountFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/add_funds_amount_fragment"

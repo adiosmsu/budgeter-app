@@ -21,18 +21,25 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.Immutable;
+
 import java8.util.function.Function;
 import java8.util.stream.Collectors;
 import java8.util.stream.Stream;
 import ru.adios.budgeter.Constants;
-import ru.adios.budgeter.CoreElementActivity;
+import ru.adios.budgeter.ElementsIdProvider;
 import ru.adios.budgeter.R;
+import ru.adios.budgeter.adapters.BalanceAccountContainer;
+import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.api.data.BalanceAccount;
+import ru.adios.budgeter.core.CoreElementActivity;
+import ru.adios.budgeter.widgets.FlexibleNotifyingSpinner;
 
 /**
  * Created by Michail Kulikov
  * 9/29/15
  */
+@Immutable
 public final class UiUtils {
 
     public static final int RED_COLOR = 0xffaf0b0b;

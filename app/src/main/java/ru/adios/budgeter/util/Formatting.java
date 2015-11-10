@@ -9,6 +9,8 @@ import org.threeten.bp.temporal.TemporalAccessor;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
+import javax.annotation.concurrent.Immutable;
+
 import java8.util.Optional;
 import ru.adios.budgeter.DateTimeUtils;
 import ru.adios.budgeter.api.UtcDay;
@@ -17,6 +19,7 @@ import ru.adios.budgeter.api.UtcDay;
  * Created by Michail Kulikov
  * 9/25/15
  */
+@Immutable
 public final class Formatting {
 
     private static final DateTimeFormatter DATE_TIME_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");

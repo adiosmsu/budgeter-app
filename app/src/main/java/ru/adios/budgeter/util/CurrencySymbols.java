@@ -15,12 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import java8.util.Optional;
 
 /**
  * Created by Michail Kulikov
  * 11/4/15
  */
+@ThreadSafe
 public final class CurrencySymbols {
 
     private static final class MapLazySingletonHolder {

@@ -2,17 +2,20 @@ package ru.adios.budgeter.util;
 
 import android.app.Activity;
 import android.content.res.Resources;
+import android.support.annotation.UiThread;
 import android.view.Menu;
 
 import org.joda.money.Money;
 
 import java8.util.Optional;
 import java8.util.function.Consumer;
+import ru.adios.budgeter.BalancesUiThreadState;
 
 /**
  * Created by Michail Kulikov
  * 10/14/15
  */
+@UiThread
 public final class BalancedMenuHandler {
 
     private Money tbSnap;

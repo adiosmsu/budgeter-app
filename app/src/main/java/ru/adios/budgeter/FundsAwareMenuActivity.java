@@ -3,18 +3,19 @@ package ru.adios.budgeter;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.MenuRes;
+import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 
 import java8.util.function.Consumer;
 import ru.adios.budgeter.util.BalancedMenuHandler;
-import ru.adios.budgeter.util.BalancesUiThreadState;
 
 /**
  * Created by Michail Kulikov
  * 11/7/15
  */
+@UiThread
 public abstract class FundsAwareMenuActivity extends AppCompatActivity {
 
     private BalancedMenuHandler menuHandler;

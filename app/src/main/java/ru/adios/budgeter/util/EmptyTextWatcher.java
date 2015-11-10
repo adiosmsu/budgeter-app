@@ -3,11 +3,14 @@ package ru.adios.budgeter.util;
 import android.text.Editable;
 import android.text.TextWatcher;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Default empty implementations.
  *
  * Created by adios on 30.09.15.
  */
+@Immutable
 public abstract class EmptyTextWatcher implements TextWatcher {
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

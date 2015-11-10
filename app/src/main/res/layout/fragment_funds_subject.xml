@@ -5,9 +5,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ru.adios.budgeter.FundsSubjectFragment">
+    tools:context="ru.adios.budgeter.fragments.FundsSubjectFragment">
 
-    <ru.adios.budgeter.util.FlexibleNotifyingSpinner
+    <ru.adios.budgeter.widgets.FlexibleNotifyingSpinner
         android:id="@+id/subjects_spinner"
         android:layout_width="0dp"
         app:layout_widthPercent="70%"
@@ -70,7 +70,7 @@
         android:visibility="gone">
         <!--android:visibility="visible">-->
 
-        <ru.adios.budgeter.util.DelayingAutoCompleteTextView
+        <ru.adios.budgeter.widgets.DelayingAutoCompleteTextView
             android:id="@+id/subjects_parent_name_input"
             android:inputType="none"
             android:layout_width="match_parent"

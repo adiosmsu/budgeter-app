@@ -6,13 +6,17 @@ import com.google.common.collect.ImmutableMap;
 
 import org.joda.money.CurrencyUnit;
 
+import javax.annotation.concurrent.Immutable;
+
 import ru.adios.budgeter.api.Accounter;
 import ru.adios.budgeter.api.Units;
+import ru.adios.budgeter.services.RatesDelegatingBackgroundService;
 
 /**
  * Created by Michail Kulikov
  * 9/24/15
  */
+@Immutable
 public final class Constants {
 
     public static final Handler MAIN_HANDLER = new Handler();

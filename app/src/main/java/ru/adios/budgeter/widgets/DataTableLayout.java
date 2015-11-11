@@ -3,11 +3,14 @@ package ru.adios.budgeter.widgets;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,6 +22,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,12 +62,7 @@ public class DataTableLayout extends TableLayout {
     private Optional<Consumer<DataTableLayout>> listener = Optional.empty();
     private Optional<String> tableName = Optional.empty();
     private Optional<OrderResolver> orderResolver = Optional.empty();
-    private int pageSize = DEFAULT_PAGE_SIZE;
-    private int currentPage;
-    private OptLimit pageLimit;
-    private Optional<OrderBy> orderBy = Optional.empty();
     private boolean tablePopulated = false;
-
     private Optional<TableRow[]> columnsRow;
     private Optional<LinearLayout> titleView = Optional.empty();
     private LinearLayout footer;
@@ -86,7 +85,7 @@ public class DataTableLayout extends TableLayout {
             thisBtn.setClickable(false);
             thisBtn.setPressed(true);
             pressedButton = thisBtn;
-            turnToPage(Integer.valueOf(thisBtn.getText().toString()));
+            turnToPage(Integer.valueOf(thisBtn.getText().toString()), true);
             thisBtn.invalidate();
         }
     };
@@ -111,6 +110,13 @@ public class DataTableLayout extends TableLayout {
         }
     };
 
+    // -------------TRANSIENT STATE-----------------------
+    private int pageSize = DEFAULT_PAGE_SIZE;
+    private int currentPage;
+    private OptLimit pageLimit;
+    private Optional<OrderBy> orderBy = Optional.empty();
+    // ---------------------------------------------------
+
     private int dp1;
     private int dp2;
     private int dp3;
@@ -128,7 +134,6 @@ public class DataTableLayout extends TableLayout {
         checkArgument(dataStore != null, "dataStore is null");
         this.rowsPerSet = rowsPerSet;
         this.dataStore = dataStore;
-        setId(ElementsIdProvider.getNextId());
         init();
     }
 
@@ -213,6 +218,10 @@ public class DataTableLayout extends TableLayout {
     }
 
     public void setPageSize(int pageSize) {
+        setPageSizeInternal(pageSize, true);
+    }
+
+    private void setPageSizeInternal(int pageSize, boolean turnThePage) {
         if (insidePageSize) {
             return;
         }
@@ -226,20 +235,15 @@ public class DataTableLayout extends TableLayout {
 
             this.pageSize = pageSize;
 
-            if (spinnerContents.isPresent()) {
-                final List<Integer> contents = spinnerContents.get();
-                if (!contents.contains(pageSize)) {
-                    contents.add(pageSize);
-                    Collections.sort(contents);
-                    pageSizeSpinner.setSelection(contents.indexOf(pageSize));
-                }
-            }
+            updateSpinnerContents(pageSize);
 
-            int page = 1;
-            if (pageLimit != null && pageLimit.offset > 0) {
-                page = pageLimit.offset / pageSize + 1;
+            if (turnThePage) {
+                int page = 1;
+                if (pageLimit != null && pageLimit.offset > 0) {
+                    page = pageLimit.offset / pageSize + 1;
+                }
+                turnToPage(page, true);
             }
-            turnToPage(page);
 
             if (footer != null) {
                 footer.removeAllViews();
@@ -250,7 +254,22 @@ public class DataTableLayout extends TableLayout {
         }
     }
 
+    private void updateSpinnerContents(int newPageSize) {
+        if (spinnerContents.isPresent()) {
+            final List<Integer> contents = spinnerContents.get();
+            if (!contents.contains(newPageSize)) {
+                contents.add(newPageSize);
+                Collections.sort(contents);
+                pageSizeSpinner.setSelection(contents.indexOf(newPageSize));
+            }
+        }
+    }
+
     public void setOrderBy(OrderBy orderBy) {
+        setOrderByInternal(orderBy, true);
+    }
+
+    private void setOrderByInternal(OrderBy orderBy, boolean doReloadIfNeeded) {
         checkState(!orderResolver.isPresent() || orderBy != null, "User ordering enabled, cannot set no ordering at all");
 
         if ((this.orderBy.isPresent() && !this.orderBy.get().equals(orderBy)) || (!this.orderBy.isPresent() && orderBy != null)) {
@@ -273,11 +292,37 @@ public class DataTableLayout extends TableLayout {
 
             this.orderBy = Optional.ofNullable(orderBy);
 
-            if (tablePopulated) {
+            if (tablePopulated && doReloadIfNeeded) {
                 clearContents();
                 loadTableProcedures();
             }
         }
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        return new SavedState(superState, pageSize, currentPage, orderBy);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        SavedState savedState = (SavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+
+        setOrderByInternal(savedState.orderBy.orElse(null), false);
+        setPageSizeInternal(savedState.pageSize, false);
+        turnToPage(savedState.currentPage, true);
+    }
+
+    @Override
+    protected void dispatchSaveInstanceState(SparseArray<Parcelable> container) {
+        super.dispatchFreezeSelfOnly(container);
+    }
+
+    @Override
+    protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
+        super.dispatchThawSelfOnly(container);
     }
 
     private void init() {
@@ -313,7 +358,7 @@ public class DataTableLayout extends TableLayout {
                     return;
                 }
 
-                turnToPage(1);
+                turnToPage(1, false);
                 if (c > pageSize) {
                     final Context context = getContext();
 
@@ -391,13 +436,13 @@ public class DataTableLayout extends TableLayout {
         return list;
     }
 
-    private void turnToPage(int numPage) {
+    private void turnToPage(int numPage, boolean reloadTable) {
         checkArgument(numPage > 0, "page number must be positive");
         currentPage = numPage;
         pageLimit = numPage == 1
                 ? OptLimit.createLimit(pageSize)
                 : OptLimit.create(pageSize, pageSize * (numPage - 1));
-        if (tablePopulated) {
+        if (tablePopulated && reloadTable) {
             clearContents();
             loadTableProcedures();
         }
@@ -504,6 +549,7 @@ public class DataTableLayout extends TableLayout {
             selectedColumn.invalidate();
         }
         col.setSelected(true);
+        col.invalidate();
         selectedColumn = col;
     }
 
@@ -748,6 +794,49 @@ public class DataTableLayout extends TableLayout {
         Optional<OrderBy> byColumnName(String columnName, Order order);
 
         Optional<String> byField(OrderedField field);
+
+    }
+
+    protected static class SavedState extends BaseSavedState {
+
+        protected final int pageSize;
+        protected final int currentPage;
+        protected final Optional<OrderBy> orderBy;
+
+        private SavedState(Parcelable superState, int pageSize, int currentPage, Optional<OrderBy> orderBy) {
+            super(superState);
+            this.pageSize = pageSize;
+            this.currentPage = currentPage;
+            this.orderBy = orderBy;
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            pageSize = in.readInt();
+            currentPage = in.readInt();
+            final Serializable obAct = in.readSerializable();
+            orderBy = obAct != null ? Optional.of((OrderBy) obAct) : Optional.<OrderBy>empty();
+        }
+
+        @Override
+        public void writeToParcel(Parcel destination, int flags) {
+            super.writeToParcel(destination, flags);
+            destination.writeInt(pageSize);
+            destination.writeInt(currentPage);
+            destination.writeSerializable(orderBy.orElse(null));
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {
+
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+
+        };
 
     }
 

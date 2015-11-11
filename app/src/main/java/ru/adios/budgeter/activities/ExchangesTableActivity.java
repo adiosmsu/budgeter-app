@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
+import ru.adios.budgeter.ElementsIdProvider;
 import ru.adios.budgeter.FundsAwareMenuActivity;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.api.CurrencyExchangeEventRepository;
@@ -29,6 +30,8 @@ import ru.adios.budgeter.widgets.ExchangesDataStore;
 
 @UiThread
 public class ExchangesTableActivity extends FundsAwareMenuActivity {
+
+    private static final int TABLE_ID = ElementsIdProvider.getNextId();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +103,7 @@ public class ExchangesTableActivity extends FundsAwareMenuActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
-        table.setSaveEnabled(false);
+        table.setId(TABLE_ID);
 
         mainLayout.addView(table);
         table.start();

@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
+import ru.adios.budgeter.ElementsIdProvider;
 import ru.adios.budgeter.FundsAwareMenuActivity;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.api.FundsMutationEventRepository;
@@ -30,6 +31,8 @@ import ru.adios.budgeter.widgets.MutationEventsDataStore;
 
 @UiThread
 public class MutationsTableActivity extends FundsAwareMenuActivity {
+
+    private static final int TABLE_ID = ElementsIdProvider.getNextId();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +105,7 @@ public class MutationsTableActivity extends FundsAwareMenuActivity {
                 dataTableLayout.setVisibility(View.VISIBLE);
             }
         });
-        table.setSaveEnabled(false);
+        table.setId(TABLE_ID);
 
         mainLayout.addView(table);
         table.start();

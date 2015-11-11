@@ -15,6 +15,7 @@ import java8.util.Optional;
 import java8.util.function.Consumer;
 import ru.adios.budgeter.BalancesUiThreadState;
 import ru.adios.budgeter.BundleProvider;
+import ru.adios.budgeter.ElementsIdProvider;
 import ru.adios.budgeter.FundsAwareMenuActivity;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.api.CurrencyExchangeEventRepository;
@@ -30,6 +31,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @UiThread
 public class HomeActivity extends FundsAwareMenuActivity {
+
+    private static final int OPS_TABLE_ID = ElementsIdProvider.getNextId();
+    private static final int EXS_TABLE_ID = ElementsIdProvider.getNextId();
 
     static {
         UiUtils.onApplicationStart();
@@ -96,9 +100,10 @@ public class HomeActivity extends FundsAwareMenuActivity {
             }
         });
         mutationsTable.setSaveEnabled(false);
+        mutationsTable.setId(OPS_TABLE_ID);
         mainLayout.addView(mutationsTable, muBtnIx);
         final RelativeLayout.LayoutParams mbParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        mbParams.addRule(RelativeLayout.BELOW, mutationsTable.getId());
+        mbParams.addRule(RelativeLayout.BELOW, OPS_TABLE_ID);
         mbParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
         btnMu.setLayoutParams(mbParams);
 
@@ -133,9 +138,10 @@ public class HomeActivity extends FundsAwareMenuActivity {
             }
         });
         exchangesTable.setSaveEnabled(false);
+        exchangesTable.setId(EXS_TABLE_ID);
         mainLayout.addView(exchangesTable, exBtnIx + 1);
         final RelativeLayout.LayoutParams ebParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        ebParams.addRule(RelativeLayout.BELOW, exchangesTable.getId());
+        ebParams.addRule(RelativeLayout.BELOW, EXS_TABLE_ID);
         ebParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
         btnEx.setLayoutParams(ebParams);
 

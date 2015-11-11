@@ -47,6 +47,8 @@ public class FundsMutationActivity extends CoreElementActivity {
     public static final String KEY_HIGHLIGHTER = "fu_ma_act_high";
     public static final String KEY_COST = "fu_ma_cost_key";
     public static final String KEY_PAY = "fu_ma_pay_key";
+    public static final String KEY_NATURAL_RATE = "fu_ma_nr_key";
+    public static final String KEY_CUSTOM_RATE = "fu_ma_cr_key";
 
     private final FundsMutationElementCore mutationElement =
             new FundsMutationElementCore(Constants.ACCOUNTER, BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
@@ -126,8 +128,12 @@ public class FundsMutationActivity extends CoreElementActivity {
     private TextView fundsMutationQuantity;
     private RadioGroup fundsMutationDirectionRadio;
 
+    // transient state
     private boolean costShown = true;
     private boolean payShown = true;
+    private BigDecimal naturalRateVal;
+    private BigDecimal customRateVal;
+    // end of transient state
 
     @Override
     protected final FragmentsInfoProvider getInfoProvider() {
@@ -155,6 +161,14 @@ public class FundsMutationActivity extends CoreElementActivity {
             if (savedInstanceState.containsKey(KEY_PAY)) {
                 payShown = savedInstanceState.getBoolean(KEY_PAY);
             }
+            final String nrStr = savedInstanceState.getString(KEY_NATURAL_RATE);
+            if (nrStr != null) {
+                naturalRateVal = new BigDecimal(nrStr);
+            }
+            final String crStr = savedInstanceState.getString(KEY_CUSTOM_RATE);
+            if (crStr != null) {
+                customRateVal = new BigDecimal(crStr);
+            }
         }
 
         if (costShown) {
@@ -166,6 +180,15 @@ public class FundsMutationActivity extends CoreElementActivity {
             findViewById(R.id.funds_mutation_paid_amount_fragment).setVisibility(View.VISIBLE);
         } else {
             hideFrag(findViewById(R.id.funds_mutation_paid_amount_fragment));
+        }
+
+        if (naturalRateVal != null) {
+            fundsMutationNaturalRate.setText(naturalRateVal.toPlainString());
+            mutationElement.setNaturalRate(naturalRateVal);
+        }
+        if (customRateVal != null) {
+            fundsMutationCustomRate.setText(customRateVal.toPlainString());
+            mutationElement.setCustomRate(customRateVal);
         }
 
         mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_QUANTITY, findViewById(R.id.funds_mutation_quantity_info));
@@ -185,12 +208,14 @@ public class FundsMutationActivity extends CoreElementActivity {
         CoreNotifier.addLink(this, fundsMutationNaturalRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
+                naturalRateVal = data;
                 mutationElement.setNaturalRate(data);
             }
         });
         CoreNotifier.addLink(this, fundsMutationCustomRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
+                customRateVal = data;
                 mutationElement.setCustomRate(data);
             }
         });
@@ -212,6 +237,8 @@ public class FundsMutationActivity extends CoreElementActivity {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_COST, costShown);
         outState.putBoolean(KEY_PAY, payShown);
+        outState.putString(KEY_NATURAL_RATE, naturalRateVal != null ? naturalRateVal.toPlainString() : null);
+        outState.putString(KEY_CUSTOM_RATE, customRateVal != null ? customRateVal.toPlainString() : null);
     }
 
     @Override

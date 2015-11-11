@@ -38,6 +38,8 @@ import ru.adios.budgeter.util.UiUtils;
 public class ExchangeCurrenciesActivity extends CoreElementActivity {
 
     public static final String KEY_HIGHLIGHTER = "ex_cur_act_high";
+    public static final String KEY_NATURAL_RATE = "ex_cur_nr_key";
+    public static final String KEY_CUSTOM_RATE = "ex_cur_cr_key";
 
     private final ExchangeCurrenciesElementCore exchangeElement =
             new ExchangeCurrenciesElementCore(Constants.ACCOUNTER, BundleProvider.getBundle().treasury(), Constants.CURRENCIES_EXCHANGE_SERVICE.getExchangeService());
@@ -111,6 +113,11 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
     private TextView exchangeCurrenciesNaturalRate;
     private TextView exchangeCurrenciesCustomRate;
 
+    // transient state
+    private BigDecimal naturalRateVal;
+    private BigDecimal customRateVal;
+    // end of transient state
+
     {
         exchangeElement.setPersonalMoneyExchange(true);
     }
@@ -134,15 +141,37 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (savedInstanceState != null) {
+            final String nrStr = savedInstanceState.getString(KEY_NATURAL_RATE);
+            if (nrStr != null) {
+                naturalRateVal = new BigDecimal(nrStr);
+            }
+            final String crStr = savedInstanceState.getString(KEY_CUSTOM_RATE);
+            if (crStr != null) {
+                customRateVal = new BigDecimal(crStr);
+            }
+        }
+
+        if (naturalRateVal != null) {
+            exchangeCurrenciesNaturalRate.setText(naturalRateVal.toPlainString());
+            exchangeElement.setNaturalRate(naturalRateVal);
+        }
+        if (customRateVal != null) {
+            exchangeCurrenciesCustomRate.setText(customRateVal.toPlainString());
+            exchangeElement.setCustomRate(customRateVal);
+        }
+
         CoreNotifier.addLink(this, exchangeCurrenciesNaturalRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
+                naturalRateVal = data;
                 exchangeElement.setNaturalRate(data);
             }
         });
         CoreNotifier.addLink(this, exchangeCurrenciesCustomRate, new CoreNotifier.DecimalLinker() {
             @Override
             public void link(BigDecimal data) {
+                customRateVal = data;
                 exchangeElement.setCustomRate(data);
             }
         });
@@ -152,6 +181,13 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
         setGlobalInfoViewPerFragment(R.id.exchange_currencies_buy_account_fragment, AccountStandardFragment.BUTTON_NEW_ACCOUNT_SUBMIT, infoView);
         setGlobalInfoViewPerFragment(R.id.exchange_currencies_sell_account_fragment, AccountStandardFragment.BUTTON_NEW_ACCOUNT_SUBMIT, infoView);
         setGlobalInfoViewPerFragment(R.id.exchange_currencies_agent_fragment, FundsAgentFragment.BUTTON_NEW_AGENT_SUBMIT, infoView);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_NATURAL_RATE, naturalRateVal != null ? naturalRateVal.toPlainString() : null);
+        outState.putString(KEY_CUSTOM_RATE, customRateVal != null ? customRateVal.toPlainString() : null);
     }
 
     @Override

@@ -107,6 +107,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
                     @Override
                     public boolean link(final String data) {
+                        final String prev = subjectsElement.getParentName();
                         new AsyncTask<SubjectAdditionElementCore, Void, Optional<FundsMutationSubject>>() {
                             @Override
                             protected Optional<FundsMutationSubject> doInBackground(SubjectAdditionElementCore[] params) {
@@ -128,12 +129,10 @@ public class FundsSubjectFragment extends CoreFragment {
                                         infoView.setVisibility(View.INVISIBLE);
                                         infoView.invalidate();
                                     }
-                                } else {
-                                    if (infoView.getVisibility() != View.VISIBLE) {
-                                        infoView.setVisibility(View.VISIBLE);
-                                        infoView.setText(NO_SUCH_PARENT_ERROR);
-                                        infoView.invalidate();
-                                    }
+                                } else if (prev != null && infoView.getVisibility() != View.VISIBLE) {
+                                    infoView.setVisibility(View.VISIBLE);
+                                    infoView.setText(NO_SUCH_PARENT_ERROR);
+                                    infoView.invalidate();
                                 }
                             }
                         }.execute(subjectsElement);

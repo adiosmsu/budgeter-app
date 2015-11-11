@@ -128,11 +128,16 @@ public final class CoreNotifier {
             });
         } else if (view instanceof AdapterView) {
             final AdapterView sp = (AdapterView) view;
+            final AdapterView.OnItemSelectedListener oldListener = sp.getOnItemSelectedListener();
             sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (activity.isFeedbackCommencing())
                         return;
+
+                    if (oldListener != null) {
+                        oldListener.onItemSelected(parent, view, position, id);
+                    }
 
                     final Adapter adapter = sp.getAdapter();
                     if (adapter.getCount() > position || (adapter.getCount() == position && adapter instanceof HintedArrayAdapter)) {
@@ -165,7 +170,7 @@ public final class CoreNotifier {
         }
     }
 
-    private static void linkViewValueWithCore(Object o, Linker linker, CoreElementActivity activity) {
+    public static void linkViewValueWithCore(Object o, Linker linker, CoreElementActivity activity) {
         if (linker instanceof DecimalLinker) {
             final String decStr = getStringFromObject(o);
             if (decStr.length() > 0) {

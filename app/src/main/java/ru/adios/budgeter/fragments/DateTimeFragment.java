@@ -73,40 +73,6 @@ public class DateTimeFragment extends CoreFragment {
                 .build();
     }
 
-    public static final class Feedbacker extends AbstractCollectibleFeedbacker {
-
-        @IdRes
-        private final int fragmentId;
-        private final TimestampSettable tsSet;
-
-        private Feedbacker(@IdRes int fragmentId, TimestampSettable tsSet) {
-            this.fragmentId = fragmentId;
-            this.tsSet = tsSet;
-        }
-
-        private DateEditView enterDate;
-        private TimeEditView enterTime;
-
-        @Override
-        public void clearViewReferencesOptimal() {
-            enterDate = null;
-            enterTime = null;
-        }
-
-        @Override
-        public void performFeedbackSafe() {
-            Feedbacking.dateTimeFeedback(tsSet.getTimestamp(), enterDate, enterTime);
-        }
-
-        @Override
-        public void collectEssentialViewsOptimal(CoreElementActivity activity) {
-            final View fragmentLayout = activity.findViewById(fragmentId);
-            enterDate = (DateEditView) fragmentLayout.findViewById(R.id.enter_date);
-            enterTime = (TimeEditView) fragmentLayout.findViewById(R.id.enter_time);
-        }
-
-    }
-
 
     private CoreElementActivity activity;
     private DateEditView dateView;
@@ -151,6 +117,41 @@ public class DateTimeFragment extends CoreFragment {
     public void onDetach() {
         super.onDetach();
         activity = null;
+    }
+
+
+    public static final class Feedbacker extends AbstractCollectibleFeedbacker {
+
+        @IdRes
+        private final int fragmentId;
+        private final TimestampSettable tsSet;
+
+        private Feedbacker(@IdRes int fragmentId, TimestampSettable tsSet) {
+            this.fragmentId = fragmentId;
+            this.tsSet = tsSet;
+        }
+
+        private DateEditView enterDate;
+        private TimeEditView enterTime;
+
+        @Override
+        public void clearViewReferencesOptimal() {
+            enterDate = null;
+            enterTime = null;
+        }
+
+        @Override
+        public void performFeedbackSafe() {
+            Feedbacking.dateTimeFeedback(tsSet.getTimestamp(), enterDate, enterTime);
+        }
+
+        @Override
+        public void collectEssentialViewsOptimal(CoreElementActivity activity) {
+            final View fragmentLayout = activity.findViewById(fragmentId);
+            enterDate = (DateEditView) fragmentLayout.findViewById(R.id.enter_date);
+            enterTime = (TimeEditView) fragmentLayout.findViewById(R.id.enter_time);
+        }
+
     }
 
 }

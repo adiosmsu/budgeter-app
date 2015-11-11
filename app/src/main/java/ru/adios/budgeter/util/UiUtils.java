@@ -8,6 +8,7 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -23,6 +24,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import java8.util.Optional;
+import java8.util.OptionalInt;
 import java8.util.function.Function;
 import java8.util.stream.Collectors;
 import java8.util.stream.Stream;
@@ -33,6 +36,7 @@ import ru.adios.budgeter.adapters.BalanceAccountContainer;
 import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.core.CoreElementActivity;
+import ru.adios.budgeter.core.CoreNotifier;
 import ru.adios.budgeter.widgets.FlexibleNotifyingSpinner;
 
 /**
@@ -69,7 +73,9 @@ public final class UiUtils {
                                                      final View mainFragmentView,
                                                      final @IdRes int spinnerInfoId,
                                                      Stream<T> stream,
-                                                     Function<T, HintedArrayAdapter.ObjectContainer<T>> converter) {
+                                                     Function<T, HintedArrayAdapter.ObjectContainer<T>> converter,
+                                                     final OptionalInt selection,
+                                                     final Optional<AdapterView.OnItemSelectedListener> listenerOptional) {
         HintedArrayAdapter.adaptStringSpinner(spinner, activity, new String[] {}); // empty it first 'cause we need to do our task in background
         new AsyncTask<Object, Void, List<HintedArrayAdapter.ObjectContainer<T>>>() {
             @Override
@@ -88,9 +94,21 @@ public final class UiUtils {
 
             @Override
             protected void onPostExecute(List<HintedArrayAdapter.ObjectContainer<T>> res) {
-                // fill spinner with data and schedule it for redrawing
-                HintedArrayAdapter.adaptArbitraryContainedSpinner(spinner, activity, res);
-                activity.addFieldFragmentInfo(fragmentId, fieldName, spinner, mainFragmentView.findViewById(spinnerInfoId));
+                HintedArrayAdapter.adaptArbitraryContainedSpinner(spinner, activity, res); // fill spinner with data and schedule it for redrawing
+                if (selection.isPresent()) {
+                    spinner.setSelection(selection.getAsInt()); // if fragment saved spinner state, apply it
+                }
+                if (listenerOptional.isPresent()) {
+                    spinner.setOnItemSelectedListener(listenerOptional.get()); // apply fragment's spinner state listener if it was supplied
+                }
+                final CoreNotifier.Linker linker =
+                        activity.addFieldFragmentInfo(fragmentId, fieldName, spinner, mainFragmentView.findViewById(spinnerInfoId)); // bind spinner with activity structure
+
+                // if state saved by fragment was applied, link it with core to prevent feedback nullifying it
+                if (selection.isPresent()) {
+                    CoreNotifier.linkViewValueWithCore(spinner.getSelectedItem(), linker, activity);
+                }
+
                 spinner.invalidate();
             }
         }.execute(stream, converter);

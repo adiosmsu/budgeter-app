@@ -56,6 +56,31 @@ public class EnterAmountFragment extends CoreFragment {
                 .build();
     }
 
+
+    public EnterAmountFragment() {
+        // Required empty public constructor
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        final View inflated = inflater.inflate(R.layout.fragment_enter_amount, container, false);
+
+        final CoreElementActivity activity = (CoreElementActivity) getActivity();
+
+        // Init currencies choice
+        final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
+        HintedArrayAdapter.adaptStringSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
+
+        // Register listeners in parent activity
+        final int id = getId();
+        activity.addFieldFragmentInfo(id, FIELD_AMOUNT_DECIMAL, inflated.findViewById(R.id.amount_decimal), inflated.findViewById(R.id.amount_decimal_info));
+        activity.addFieldFragmentInfo(id, FIELD_AMOUNT_CURRENCY, currencySpinner, inflated.findViewById(R.id.amount_currency_info));
+
+        return inflated;
+    }
+
+
     public static final class Feedbacker extends AbstractCollectibleFeedbacker {
 
         @IdRes
@@ -89,29 +114,6 @@ public class EnterAmountFragment extends CoreFragment {
             amountCurrency = (Spinner) fragmentLayout.findViewById(R.id.amount_currency);
         }
 
-    }
-
-    public EnterAmountFragment() {
-        // Required empty public constructor
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        final View inflated = inflater.inflate(R.layout.fragment_enter_amount, container, false);
-
-        final CoreElementActivity activity = (CoreElementActivity) getActivity();
-
-        // Init currencies choice
-        final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
-        HintedArrayAdapter.adaptStringSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
-
-        // Register listeners in parent activity
-        final int id = getId();
-        activity.addFieldFragmentInfo(id, FIELD_AMOUNT_DECIMAL, inflated.findViewById(R.id.amount_decimal), inflated.findViewById(R.id.amount_decimal_info));
-        activity.addFieldFragmentInfo(id, FIELD_AMOUNT_CURRENCY, currencySpinner, inflated.findViewById(R.id.amount_currency_info));
-
-        return inflated;
     }
 
 }

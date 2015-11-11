@@ -7,6 +7,7 @@ import android.support.annotation.UiThread;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -14,6 +15,8 @@ import android.widget.TextView;
 
 import javax.annotation.Nullable;
 
+import java8.util.Optional;
+import java8.util.OptionalInt;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
@@ -30,6 +33,7 @@ import ru.adios.budgeter.core.CoreErrorHighlighter;
 import ru.adios.budgeter.core.CoreFragment;
 import ru.adios.budgeter.core.CoreNotifier;
 import ru.adios.budgeter.core.Feedbacking;
+import ru.adios.budgeter.util.EmptyOnItemSelectedListener;
 import ru.adios.budgeter.util.UiUtils;
 
 
@@ -77,6 +81,7 @@ public class FundsAgentFragment extends CoreFragment {
 
 
     private boolean editOpen = false;
+    private int selectedAgent = -1;
 
     public FundsAgentFragment() {
         // Required empty public constructor
@@ -99,13 +104,28 @@ public class FundsAgentFragment extends CoreFragment {
 
         // main spinner init
         final Spinner agentsSpinner = (Spinner) inflated.findViewById(R.id.agents_spinner);
-        UiUtils.prepareHintedSpinnerAsync(agentsSpinner, activity, id, FIELD_AGENTS, inflated, R.id.agents_spinner_info, BundleProvider.getBundle().fundsMutationAgents().streamAll(),
+        UiUtils.prepareHintedSpinnerAsync(
+                agentsSpinner,
+                activity,
+                id, FIELD_AGENTS,
+                inflated,
+                R.id.agents_spinner_info,
+                BundleProvider.getBundle().fundsMutationAgents().streamAll(),
                 new Function<FundsMutationAgent, HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>() {
                     @Override
                     public HintedArrayAdapter.ObjectContainer<FundsMutationAgent> apply(FundsMutationAgent agent) {
                         return CONTAINER_FACTORY.create(agent);
                     }
-                }
+                },
+                selectedAgent >= 0 ? OptionalInt.of(selectedAgent) : OptionalInt.empty(),
+                Optional.<AdapterView.OnItemSelectedListener>of(
+                        new EmptyOnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                selectedAgent = position;
+                            }
+                        }
+                )
         );
 
         // hidden parts

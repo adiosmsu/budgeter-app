@@ -8,6 +8,7 @@ import android.support.annotation.UiThread;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import javax.annotation.Nullable;
 
 import java8.util.Optional;
+import java8.util.OptionalInt;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
@@ -42,6 +44,7 @@ import ru.adios.budgeter.core.CoreErrorHighlighter;
 import ru.adios.budgeter.core.CoreFragment;
 import ru.adios.budgeter.core.CoreNotifier;
 import ru.adios.budgeter.core.Feedbacking;
+import ru.adios.budgeter.util.EmptyOnItemSelectedListener;
 import ru.adios.budgeter.util.UiUtils;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -169,6 +172,161 @@ public class AccountStandardFragment extends CoreFragment {
         }
     }
 
+
+
+    private boolean editOpen = false;
+    private int selectedAccount = -1;
+
+    public AccountStandardFragment() {
+        // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setRetainInstance(true);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        final View inflated = inflater.inflate(R.layout.fragment_account_standard, container, false);
+
+        final CoreElementActivity activity = (CoreElementActivity) getActivity();
+        final int id = getId();
+
+        // main spinner init
+        final Spinner accountsSpinner = (Spinner) inflated.findViewById(R.id.accounts_spinner);
+        UiUtils.prepareHintedSpinnerAsync(
+                accountsSpinner,
+                activity,
+                id,
+                FIELD_ACCOUNT,
+                inflated,
+                R.id.accounts_spinner_info,
+                BundleProvider.getBundle().treasury().streamRegisteredAccounts(),
+                new Function<BalanceAccount, HintedArrayAdapter.ObjectContainer<BalanceAccount>>() {
+                    @Override
+                    public HintedArrayAdapter.ObjectContainer<BalanceAccount> apply(BalanceAccount balanceAccount) {
+                        return new BalanceAccountContainer(balanceAccount, getResources());
+                    }
+                },
+                selectedAccount >= 0 ? OptionalInt.of(selectedAccount) : OptionalInt.empty(),
+                Optional.<AdapterView.OnItemSelectedListener>of(
+                        new EmptyOnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                selectedAccount = position;
+                            }
+                        }
+                )
+        );
+
+        // hidden parts
+        final EditText nameInput = (EditText) inflated.findViewById(R.id.accounts_name_input);
+        final TextView nameInputInfo = (TextView) inflated.findViewById(R.id.accounts_name_input_info);
+        final EditText descInput = (EditText) inflated.findViewById(R.id.accounts_desc_input);
+        final TextView descInputInfo = (TextView) inflated.findViewById(R.id.accounts_desc_input_info);
+        final TextView descInputOpt = (TextView) inflated.findViewById(R.id.accounts_desc_optional);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_NAME, nameInput, nameInputInfo);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_DESC, descInput, descInputInfo);
+        final Spinner currencyInput = (Spinner) inflated.findViewById(R.id.accounts_currency_input);
+        HintedArrayAdapter.adaptStringSpinner(currencyInput, activity, Constants.CURRENCIES_DROPDOWN);
+        final TextView currencyInputInfo = (TextView) inflated.findViewById(R.id.accounts_currency_input_info);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_CURRENCY, currencyInput, currencyInputInfo);
+        final EditText amountInput = (EditText) inflated.findViewById(R.id.accounts_amount_optional_input);
+        final TextView amountInputHint = (TextView) inflated.findViewById(R.id.accounts_amount_optional_input_hint);
+        final TextView amountInputInfo = (TextView) inflated.findViewById(R.id.accounts_amount_optional_input_info);
+        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_AMOUNT, amountInput, amountInputInfo);
+
+        final Button submitButton = (Button) inflated.findViewById(R.id.accounts_submit_button);
+
+        // button roundness and listener to show hidden interface
+        final Button addButton = (Button) inflated.findViewById(R.id.accounts_add_button);
+        UiUtils.makeButtonSquaredByHeight(addButton);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.getVisibility() == View.VISIBLE) {
+                    editOpen = true;
+                    showEdit(v, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                            currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton);
+                    inflated.invalidate();
+                }
+            }
+        });
+        addButton.invalidate();
+
+        // add submit button logic
+        activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_ACCOUNT_SUBMIT, new Consumer<BalanceAccount>() {
+            @Override
+            public void accept(BalanceAccount account) {
+                editOpen = false;
+                hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                        currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
+                UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.getFactory(getResources()));
+                inflated.invalidate();
+            }
+        });
+
+        if (editOpen) {
+            showEdit(addButton, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                    currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton);
+        } else {
+            hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
+                    currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
+        }
+
+        return inflated;
+    }
+
+    private void hideEdit(EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
+                          TextView descInputOpt, Spinner currencyInput, TextView currencyInputInfo, EditText amountInput,
+                          TextView amountInputHint, TextView amountInputInfo, Button submitButton, Button addButton) {
+        nameInput.setVisibility(View.GONE);
+        nameInputInfo.setVisibility(View.GONE);
+        descInput.setVisibility(View.GONE);
+        descInputInfo.setVisibility(View.GONE);
+        descInputOpt.setVisibility(View.GONE);
+        currencyInput.setVisibility(View.GONE);
+        currencyInputInfo.setVisibility(View.GONE);
+        amountInput.setVisibility(View.GONE);
+        amountInputHint.setVisibility(View.GONE);
+        amountInputInfo.setVisibility(View.GONE);
+        submitButton.setVisibility(View.GONE);
+        addButton.setVisibility(View.VISIBLE);
+    }
+
+    private void showEdit(View v, EditText nameInput, TextView nameInputInfo, EditText descInput,
+                          TextView descInputInfo, TextView descInputOpt, Spinner currencyInput, TextView currencyInputInfo,
+                          EditText amountInput, TextView amountInputHint, TextView amountInputInfo, Button submitButton) {
+        nameInput.setVisibility(View.VISIBLE);
+        nameInputInfo.setVisibility(View.INVISIBLE);
+        descInput.setVisibility(View.VISIBLE);
+        descInputInfo.setVisibility(View.INVISIBLE);
+        descInputOpt.setVisibility(View.VISIBLE);
+        currencyInput.setVisibility(View.VISIBLE);
+        currencyInputInfo.setVisibility(View.INVISIBLE);
+        amountInput.setVisibility(View.VISIBLE);
+        amountInputHint.setVisibility(View.VISIBLE);
+        amountInputInfo.setVisibility(View.INVISIBLE);
+        submitButton.setVisibility(View.VISIBLE);
+        v.setVisibility(View.INVISIBLE);
+    }
+
+
+    private static final class Mutable<T> {
+
+        T object;
+
+        boolean lockOn = false;
+
+        private Mutable(T object) {
+            this.object = object;
+        }
+
+    }
+
     public static final class Feedbacker extends AbstractCollectibleFeedbacker {
 
         @IdRes
@@ -280,142 +438,6 @@ public class AccountStandardFragment extends CoreFragment {
         @Override
         public void submitAndStoreResult() {
             storedResult = submit();
-        }
-
-    }
-
-
-    private boolean editOpen = false;
-
-    public AccountStandardFragment() {
-        // Required empty public constructor
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        final View inflated = inflater.inflate(R.layout.fragment_account_standard, container, false);
-
-        final CoreElementActivity activity = (CoreElementActivity) getActivity();
-        final int id = getId();
-
-        // main spinner init
-        final Spinner accountsSpinner = (Spinner) inflated.findViewById(R.id.accounts_spinner);
-        UiUtils.prepareHintedSpinnerAsync(accountsSpinner, activity, id, FIELD_ACCOUNT, inflated, R.id.accounts_spinner_info, BundleProvider.getBundle().treasury().streamRegisteredAccounts(),
-                new Function<BalanceAccount, HintedArrayAdapter.ObjectContainer<BalanceAccount>>() {
-                    @Override
-                    public HintedArrayAdapter.ObjectContainer<BalanceAccount> apply(BalanceAccount balanceAccount) {
-                        return new BalanceAccountContainer(balanceAccount, getResources());
-                    }
-                }
-        );
-
-        // hidden parts
-        final EditText nameInput = (EditText) inflated.findViewById(R.id.accounts_name_input);
-        final TextView nameInputInfo = (TextView) inflated.findViewById(R.id.accounts_name_input_info);
-        final EditText descInput = (EditText) inflated.findViewById(R.id.accounts_desc_input);
-        final TextView descInputInfo = (TextView) inflated.findViewById(R.id.accounts_desc_input_info);
-        final TextView descInputOpt = (TextView) inflated.findViewById(R.id.accounts_desc_optional);
-        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_NAME, nameInput, nameInputInfo);
-        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_DESC, descInput, descInputInfo);
-        final Spinner currencyInput = (Spinner) inflated.findViewById(R.id.accounts_currency_input);
-        HintedArrayAdapter.adaptStringSpinner(currencyInput, activity, Constants.CURRENCIES_DROPDOWN);
-        final TextView currencyInputInfo = (TextView) inflated.findViewById(R.id.accounts_currency_input_info);
-        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_CURRENCY, currencyInput, currencyInputInfo);
-        final EditText amountInput = (EditText) inflated.findViewById(R.id.accounts_amount_optional_input);
-        final TextView amountInputHint = (TextView) inflated.findViewById(R.id.accounts_amount_optional_input_hint);
-        final TextView amountInputInfo = (TextView) inflated.findViewById(R.id.accounts_amount_optional_input_info);
-        activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_AMOUNT, amountInput, amountInputInfo);
-
-        final Button submitButton = (Button) inflated.findViewById(R.id.accounts_submit_button);
-
-        // button roundness and listener to show hidden interface
-        final Button addButton = (Button) inflated.findViewById(R.id.accounts_add_button);
-        UiUtils.makeButtonSquaredByHeight(addButton);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v.getVisibility() == View.VISIBLE) {
-                    editOpen = true;
-                    showEdit(v, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
-                            currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton);
-                    inflated.invalidate();
-                }
-            }
-        });
-        addButton.invalidate();
-
-        // add submit button logic
-        activity.addSubmitFragmentInfo(id, submitButton, BUTTON_NEW_ACCOUNT_SUBMIT, new Consumer<BalanceAccount>() {
-            @Override
-            public void accept(BalanceAccount account) {
-                editOpen = false;
-                hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
-                        currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
-                UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.getFactory(getResources()));
-                inflated.invalidate();
-            }
-        });
-
-        if (editOpen) {
-            showEdit(addButton, nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
-                    currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton);
-        } else {
-            hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
-                    currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
-        }
-
-        return inflated;
-    }
-
-    private void hideEdit(EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
-                          TextView descInputOpt, Spinner currencyInput, TextView currencyInputInfo, EditText amountInput,
-                          TextView amountInputHint, TextView amountInputInfo, Button submitButton, Button addButton) {
-        nameInput.setVisibility(View.GONE);
-        nameInputInfo.setVisibility(View.GONE);
-        descInput.setVisibility(View.GONE);
-        descInputInfo.setVisibility(View.GONE);
-        descInputOpt.setVisibility(View.GONE);
-        currencyInput.setVisibility(View.GONE);
-        currencyInputInfo.setVisibility(View.GONE);
-        amountInput.setVisibility(View.GONE);
-        amountInputHint.setVisibility(View.GONE);
-        amountInputInfo.setVisibility(View.GONE);
-        submitButton.setVisibility(View.GONE);
-        addButton.setVisibility(View.VISIBLE);
-    }
-
-    private void showEdit(View v, EditText nameInput, TextView nameInputInfo, EditText descInput,
-                          TextView descInputInfo, TextView descInputOpt, Spinner currencyInput, TextView currencyInputInfo,
-                          EditText amountInput, TextView amountInputHint, TextView amountInputInfo, Button submitButton) {
-        nameInput.setVisibility(View.VISIBLE);
-        nameInputInfo.setVisibility(View.INVISIBLE);
-        descInput.setVisibility(View.VISIBLE);
-        descInputInfo.setVisibility(View.INVISIBLE);
-        descInputOpt.setVisibility(View.VISIBLE);
-        currencyInput.setVisibility(View.VISIBLE);
-        currencyInputInfo.setVisibility(View.INVISIBLE);
-        amountInput.setVisibility(View.VISIBLE);
-        amountInputHint.setVisibility(View.VISIBLE);
-        amountInputInfo.setVisibility(View.INVISIBLE);
-        submitButton.setVisibility(View.VISIBLE);
-        v.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        setRetainInstance(true);
-        super.onCreate(savedInstanceState);
-    }
-
-    private static final class Mutable<T> {
-
-        private T object;
-
-        private boolean lockOn = false;
-
-        private Mutable(T object) {
-            this.object = object;
         }
 
     }

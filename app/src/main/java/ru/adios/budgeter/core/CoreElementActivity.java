@@ -103,7 +103,7 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
 
     protected void activityInnerFeedback() {}
 
-    public final void addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
+    public final CoreNotifier.Linker addFieldFragmentInfo(@IdRes int fragmentId, String fragmentFieldName, View fieldView, View fieldInfoView) {
         checkNotNull(fieldView, "fieldView is null");
         checkNotNull(fieldInfoView, "fieldInfoView is null");
         checkFragmentAllowance(fragmentId);
@@ -112,6 +112,7 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
         if (fieldInfo != null) {
             fieldInfo.errorHighlighter.addElementInfo(fieldInfo.coreFieldName, fieldInfoView);
             CoreNotifier.addLink(this, fieldView, fieldInfo.linker);
+            return fieldInfo.linker;
         } else {
             throw new IllegalArgumentException(getClass().getSimpleName() + " isn't aware of fragmentFieldName: " + fragmentFieldName);
         }

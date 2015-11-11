@@ -23,6 +23,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import java8.util.Optional;
+import java8.util.OptionalInt;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
@@ -42,6 +43,7 @@ import ru.adios.budgeter.core.CoreErrorHighlighter;
 import ru.adios.budgeter.core.CoreFragment;
 import ru.adios.budgeter.core.CoreNotifier;
 import ru.adios.budgeter.core.Feedbacking;
+import ru.adios.budgeter.util.EmptyOnItemSelectedListener;
 import ru.adios.budgeter.util.UiUtils;
 import ru.adios.budgeter.widgets.DelayingAutoCompleteTextView;
 
@@ -138,6 +140,7 @@ public class FundsSubjectFragment extends CoreFragment {
 
 
     private boolean editOpen = false;
+    private int selectedSubject = -1;
 
     public FundsSubjectFragment() {
         // Required empty public constructor
@@ -173,7 +176,16 @@ public class FundsSubjectFragment extends CoreFragment {
                     public HintedArrayAdapter.ObjectContainer<FundsMutationSubject> apply(FundsMutationSubject subject) {
                         return new FundsMutationSubjectContainer(subject);
                     }
-                }
+                },
+                selectedSubject >= 0 ? OptionalInt.of(selectedSubject) : OptionalInt.empty(),
+                Optional.<AdapterView.OnItemSelectedListener>of(
+                        new EmptyOnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                selectedSubject = position;
+                            }
+                        }
+                )
         );
 
         // hidden parts

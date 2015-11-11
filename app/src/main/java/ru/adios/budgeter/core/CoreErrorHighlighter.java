@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
 
 /**
@@ -189,8 +190,9 @@ public final class CoreErrorHighlighter implements CoreElementActivity.Retainer 
 
     private static void enrichView(View view, String text) {
         if (view instanceof TextView) {
-            ((TextView) view).setText(text);
-            ((TextView) view).setTextAppearance(view.getContext(), android.R.style.TextAppearance_Small);
+            final TextView textView = (TextView) view;
+            textView.setText(text);
+            textView.setTextAppearance(view.getContext(), R.style.TextAppearanceError_Small);
         }
     }
 

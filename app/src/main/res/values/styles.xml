@@ -6,4 +6,18 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="TextAppearanceError">
+        <item name="android:textColor">#af0b0b</item>
+        <item name="android:textColorHighlight">#ff0000</item>
+        <item name="android:textColorHint">#da540b</item>
+        <item name="android:textColorLink">#993a06</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+    <style name="TextAppearanceError.Small">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#af0b0b</item>
+    </style>
+
+
 </resources>

@@ -58,6 +58,10 @@ public final class UiUtils {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, sizeInDp, r.getDisplayMetrics());
     }
 
+    public static int pixelsAsDp(Context context, int sizeInPixels) {
+        return (int) (sizeInPixels / context.getResources().getDisplayMetrics().density);
+    }
+
     public static <T> void prepareHintedSpinnerAsync(final Spinner spinner,
                                                      final CoreElementActivity activity,
                                                      final @IdRes int fragmentId,

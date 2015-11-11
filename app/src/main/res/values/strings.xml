@@ -92,5 +92,10 @@
     <string name="price_add_success">Price add succeeded!</string>
     <string name="button_add_price">Add price</string>
     <string name="price_date_text">Enter date of the price</string>
+    <string name="funds_add_success">Funds addition succeeded!</string>
+    <string name="register_exchange_success">Registering exchange succeeded!</string>
+    <string name="register_exchange_failure">Registering exchange failed - check out field errors</string>
+    <string name="register_mutation_success">Registering operation succeeded!</string>
+    <string name="register_mutation_failure">Registering operation failed - check out field errors</string>
 
 </resources>

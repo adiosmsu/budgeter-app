@@ -12,6 +12,7 @@ import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.math.BigDecimal;
 
@@ -266,6 +267,11 @@ public class FundsMutationActivity extends CoreElementActivity {
                 if (result.isSuccessful() && result.submitResult != null) {
                     UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner), getResources());
                     BalancesUiThreadState.addMoney(mutationElement.getSubmittedMoney(), FundsMutationActivity.this);
+                    Toast.makeText(getApplicationContext(), R.string.register_mutation_success, Toast.LENGTH_SHORT)
+                            .show();
+                } else {
+                    Toast.makeText(getApplicationContext(), R.string.register_mutation_failure, Toast.LENGTH_SHORT)
+                            .show();
                 }
 
 

@@ -70,7 +70,8 @@ public class DataTableLayout extends TableLayout {
     private int itemsPerInnerRow;
     private int itemsInFirstRow;
     private int headerOffset;
-    private int knownWidth;
+    private int knownWidth; // in pixels
+    private int knownButtonWidth = 120; // in pixels
     private TextView selectedColumn;
     private boolean insidePageSize = false;
     private Optional<List<Integer>> spinnerContents = Optional.empty();
@@ -78,17 +79,19 @@ public class DataTableLayout extends TableLayout {
     private final OnClickListener buttonListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            pressedButton.setPressed(false);
-            pressedButton.setClickable(true);
-            pressedButton.invalidate();
-            final Button thisBtn = (Button) v;
-            thisBtn.setClickable(false);
-            thisBtn.setPressed(true);
-            pressedButton = thisBtn;
-            turnToPage(Integer.valueOf(thisBtn.getText().toString()), true);
-            thisBtn.invalidate();
+            final int w = v.getWidth();
+            if (w > 0 && w != knownButtonWidth) {
+                knownButtonWidth = w;
+            }
+            turnToPage(Integer.valueOf(((TextView) v).getText().toString()), false);
+            if (tablePopulated) {
+                footer.removeAllViews();
+                populateFooter();
+            }
+            doTableReload();
         }
     };
+
     private final OnClickListener rowOrderListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -325,6 +328,16 @@ public class DataTableLayout extends TableLayout {
         super.dispatchThawSelfOnly(container);
     }
 
+    private void setNewPressedPageButton(Button thisBtn) {
+        if (pressedButton != null) {
+            pressedButton.setPressed(false);
+            pressedButton.setClickable(true);
+        }
+        thisBtn.setClickable(false);
+        thisBtn.setPressed(true);
+        pressedButton = thisBtn;
+    }
+
     private void init() {
         setWillNotDraw(false);
 
@@ -358,7 +371,9 @@ public class DataTableLayout extends TableLayout {
                     return;
                 }
 
-                turnToPage(1, false);
+                if (currentPage == 0) {
+                    turnToPage(1, false);
+                }
                 if (c > pageSize) {
                     final Context context = getContext();
 
@@ -442,7 +457,13 @@ public class DataTableLayout extends TableLayout {
         pageLimit = numPage == 1
                 ? OptLimit.createLimit(pageSize)
                 : OptLimit.create(pageSize, pageSize * (numPage - 1));
-        if (tablePopulated && reloadTable) {
+        if (reloadTable) {
+            doTableReload();
+        }
+    }
+
+    private void doTableReload() {
+        if (tablePopulated) {
             clearContents();
             loadTableProcedures();
         }
@@ -523,6 +544,7 @@ public class DataTableLayout extends TableLayout {
         fp.span = itemsPerInnerRow;
         footer.setLayoutParams(fp);
         footer.setBackgroundResource(R.drawable.cell_shape);
+        footer.setGravity(Gravity.CENTER);
         footer.setOrientation(HORIZONTAL);
         footer.setVisibility(GONE);
         footerRow.addView(footer);
@@ -683,17 +705,32 @@ public class DataTableLayout extends TableLayout {
 
     private void populateFooter() {
         if (knownWidth > 0 && footer != null && footer.getVisibility() == VISIBLE && footer.getChildCount() == 0) {
-            final int maxButtons = knownWidth / UiUtils.dpAsPixels(getContext(), 20);
+            final int maxButtons = knownWidth / knownButtonWidth;
             final int numPages = count / pageSize + 1;
             final int numButtons = Math.min(maxButtons, numPages);
 
             if (numButtons > 1) {
-                for (int i = -numButtons; i <= numButtons; i++) {
-                    int page = currentPage + i;
-                    if (page < 1 || page > numPages) {
+                int from = currentPage - numButtons / 2;
+                int till = currentPage + numButtons / 2;
+                if (from < 1) {
+                    till += (1 - from);
+                    from = 1;
+                } else if (till > numPages) {
+                    from -= (till - numPages);
+                    till = numPages;
+                }
+                int i = 0;
+                for (int page = from; page <= till; page++) {
+                    if (page < 1) {
                         continue;
                     }
+                    if (page > numPages) {
+                        break;
+                    }
                     footer.addView(createButtonForFooter(page, page == currentPage));
+                    if (++i >= numButtons) {
+                        break;
+                    }
                 }
             } else {
                 footer.addView(createButtonForFooter(1, true));
@@ -706,9 +743,7 @@ public class DataTableLayout extends TableLayout {
         final Button button = new Button(getContext());
         button.setText(String.valueOf(pageNum));
         if (pressed) {
-            button.setClickable(false);
-            button.setPressed(true);
-            pressedButton = button;
+            setNewPressedPageButton(button);
         }
         button.setOnClickListener(buttonListener);
         return button;
@@ -759,6 +794,12 @@ public class DataTableLayout extends TableLayout {
     @Override
     protected void onDraw(Canvas canvas) {
         knownWidth = getWidth();
+        if (footer != null && footer.getChildCount() > 0) {
+            final int w = footer.getChildAt(0).getWidth();
+            if (w > 0 && w != knownButtonWidth) {
+                knownButtonWidth = w;
+            }
+        }
         populateFooter();
         super.onDraw(canvas);
     }

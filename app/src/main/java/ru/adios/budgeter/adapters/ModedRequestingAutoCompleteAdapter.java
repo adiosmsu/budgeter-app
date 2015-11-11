@@ -1,12 +1,13 @@
 package ru.adios.budgeter.adapters;
 
 import android.content.Context;
-import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * RequestingAutoCompleteAdapter that supports decorating request text.
@@ -14,7 +15,7 @@ import javax.annotation.concurrent.Immutable;
  * Created by Michail Kulikov
  * 10/15/15
  */
-@UiThread
+@NotThreadSafe
 public final class ModedRequestingAutoCompleteAdapter<T> extends RequestingAutoCompleteAdapter<T> {
 
     private static final String PERCENT = "%";
@@ -24,6 +25,7 @@ public final class ModedRequestingAutoCompleteAdapter<T> extends RequestingAutoC
     public static final RequestDecorator SQL_LIKE_ENDS_WITH_DECORATOR = new StaticRequestDecorator(PERCENT, EMPTY_STR);
     public static final RequestDecorator SQL_ILIKE_DECORATOR = new StaticRequestDecorator(PERCENT, PERCENT);
 
+    @WorkerThread
     public interface Requester<T> {
 
         List<T> doActualRequest(String constraint);
@@ -102,6 +104,7 @@ public final class ModedRequestingAutoCompleteAdapter<T> extends RequestingAutoC
     }
 
     @Override
+    @WorkerThread
     protected List<T> doRequest(String constraint) {
         return requester.doActualRequest(transform(constraint));
     }

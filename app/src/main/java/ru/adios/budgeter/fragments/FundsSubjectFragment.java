@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import java8.util.Optional;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
@@ -94,30 +95,33 @@ public class FundsSubjectFragment extends CoreFragment {
                 .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
                     @Override
                     public void link(final String data) {
-                        new AsyncTask<SubjectAdditionElementCore, Void, Boolean>() {
+                        new AsyncTask<SubjectAdditionElementCore, Void, Optional<FundsMutationSubject>>() {
                             @Override
-                            protected Boolean doInBackground(SubjectAdditionElementCore[] params) {
+                            protected Optional<FundsMutationSubject> doInBackground(SubjectAdditionElementCore[] params) {
                                 final SubjectAdditionElementCore e = params[0];
-                                return e.setParentName(data);
+                                return e.setParentName(data, true);
                             }
 
                             @Override
-                            protected void onPostExecute(Boolean result) {
+                            protected void onPostExecute(Optional<FundsMutationSubject> result) {
                                 final TextView infoView = (TextView) activity.findViewById(fragmentId).findViewById(R.id.subjects_parent_name_input_info);
                                 if (infoView == null) {
                                     return;
                                 }
 
-                                if (result) {
+                                if (result.isPresent()) {
+                                    subjectsElement.setParentId(result.get().id.getAsLong());
                                     if (infoView.getVisibility() == View.VISIBLE && NO_SUCH_PARENT_ERROR.equals(infoView.getText())) {
                                         infoView.setText("");
                                         infoView.setVisibility(View.INVISIBLE);
                                         infoView.invalidate();
                                     }
                                 } else {
-                                    infoView.setVisibility(View.VISIBLE);
-                                    infoView.setText(NO_SUCH_PARENT_ERROR);
-                                    infoView.invalidate();
+                                    if (infoView.getVisibility() != View.VISIBLE) {
+                                        infoView.setVisibility(View.VISIBLE);
+                                        infoView.setText(NO_SUCH_PARENT_ERROR);
+                                        infoView.invalidate();
+                                    }
                                 }
                             }
                         }.execute(subjectsElement);
@@ -183,6 +187,7 @@ public class FundsSubjectFragment extends CoreFragment {
         final FrameLayout parentNameLayout = (FrameLayout) inflated.findViewById(R.id.subjects_parent_name_input_layout);
         final DelayingAutoCompleteTextView parentNameInput = (DelayingAutoCompleteTextView) inflated.findViewById(R.id.subjects_parent_name_input);
         parentNameInput.setThreshold(2);
+        parentNameInput.setAutoCompleteDelayMillis(2000);
         parentNameInput.setAdapter(new ModedRequestingAutoCompleteAdapter<>(
                 activity,
                 new ModedRequestingAutoCompleteAdapter.Requester<FundsMutationSubject>() {

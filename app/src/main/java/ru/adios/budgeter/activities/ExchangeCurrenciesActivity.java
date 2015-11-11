@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.math.BigDecimal;
 
@@ -202,6 +203,11 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                     BalancesUiThreadState.addMoney(core.getBuyMoneySettable().getAmount(), ExchangeCurrenciesActivity.this);
                     UiUtils.replaceAccountInSpinner(core.getSellAccount(), (Spinner) findViewById(R.id.exchange_currencies_sell_account_fragment).findViewById(R.id.accounts_spinner), getResources());
                     BalancesUiThreadState.addMoney(core.getSellMoneySettable().getAmount().negated(), ExchangeCurrenciesActivity.this);
+                    Toast.makeText(getApplicationContext(), R.string.register_exchange_success, Toast.LENGTH_SHORT)
+                            .show();
+                } else {
+                    Toast.makeText(getApplicationContext(), R.string.register_exchange_failure, Toast.LENGTH_SHORT)
+                            .show();
                 }
 
                 finishSubmit(core, R.id.activity_exchange_currencies);

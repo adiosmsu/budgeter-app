@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import org.joda.money.Money;
 
@@ -141,6 +142,8 @@ public class AddFundsActivity extends CoreElementActivity {
                     UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner), getResources());
                     //noinspection ConstantConditions
                     BalancesUiThreadState.addMoney(Money.of(additionElement.getAmountUnit(), additionElement.getAmountDecimal()), AddFundsActivity.this);
+                    Toast.makeText(getApplicationContext(), R.string.funds_add_success, Toast.LENGTH_SHORT)
+                            .show();
                 }
 
                 finishSubmit(core, R.id.activity_add_funds);

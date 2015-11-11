@@ -25,8 +25,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @UiThread
 public abstract class CoreElementActivity extends FundsAwareMenuActivity {
 
+    private static final String KEY_INIT = "core_el_ac_init";
+
     private boolean feedbackCommencing = false;
     private boolean cleared = true;
+    private boolean coresInitialized = false;
 
     public final boolean isFeedbackCommencing() {
         return feedbackCommencing;
@@ -35,17 +38,24 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
         collectEssentialViews();
         cleared = false;
+
         final FragmentsInfoProvider infoProvider = getInfoProvider();
         infoProvider.collectEssentialViews(this);
+
         if (savedInstanceState != null) {
             infoProvider.onRestoreInstanceState(savedInstanceState);
+            if (savedInstanceState.containsKey(KEY_INIT)) {
+                coresInitialized = savedInstanceState.getBoolean(KEY_INIT);
+            }
         }
     }
 
@@ -67,12 +77,16 @@ public abstract class CoreElementActivity extends FundsAwareMenuActivity {
             cleared = false;
         }
         getInfoProvider().collectEssentialViews(this);
-        coreFeedback();
+        if (!coresInitialized) {
+            coreFeedback();
+            coresInitialized = true;
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_INIT, coresInitialized);
         getInfoProvider().onSaveInstanceState(outState);
     }
 

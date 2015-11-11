@@ -3,9 +3,11 @@ package ru.adios.budgeter.fragments;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.UiThread;
+import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -24,6 +26,9 @@ import ru.adios.budgeter.core.CoreErrorHighlighter;
 import ru.adios.budgeter.core.CoreFragment;
 import ru.adios.budgeter.core.CoreNotifier;
 import ru.adios.budgeter.core.Feedbacking;
+import ru.adios.budgeter.util.EmptyOnItemSelectedListener;
+import ru.adios.budgeter.util.EmptyTextWatcher;
+import ru.adios.budgeter.util.Formatting;
 
 
 /**
@@ -43,22 +48,41 @@ public class EnterAmountFragment extends CoreFragment {
         return new CollectibleFragmentInfoProvider.Builder(fragmentId, new Feedbacker(fragmentId, monSet), highlighter)
                 .addFieldInfo(FIELD_AMOUNT_DECIMAL, new CoreElementActivity.CoreElementFieldInfo(decCoreName, new CoreNotifier.DecimalLinker() {
                     @Override
-                    public void link(BigDecimal data) {
-                        monSet.setAmountDecimal(data);
+                    public boolean link(BigDecimal data) {
+                        final BigDecimal prev = monSet.getAmountDecimal();
+                        if (!prev.equals(data != null ? data : BigDecimal.ZERO)) {
+                            monSet.setAmountDecimal(data);
+                            return true;
+                        }
+                        return false;
                     }
                 }, highlighter))
                 .addFieldInfo(FIELD_AMOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(unitCoreName, new CoreNotifier.CurrencyLinker() {
                     @Override
-                    public void link(CurrencyUnit data) {
-                        monSet.setAmountUnit(data);
+                    public boolean link(CurrencyUnit data) {
+                        final CurrencyUnit prev = monSet.getAmountUnit();
+                        if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                            monSet.setAmountUnit(data);
+                            return true;
+                        }
+                        return false;
                     }
                 }, highlighter))
                 .build();
     }
 
 
+    private BigDecimal decimalVal;
+    private int curSelection = -1;
+
     public EnterAmountFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        setRetainInstance(true);
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -70,12 +94,43 @@ public class EnterAmountFragment extends CoreFragment {
 
         // Init currencies choice
         final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
+        final TextView amountTextView = (TextView) inflated.findViewById(R.id.amount_decimal);
         HintedArrayAdapter.adaptStringSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
 
-        // Register listeners in parent activity
         final int id = getId();
-        activity.addFieldFragmentInfo(id, FIELD_AMOUNT_DECIMAL, inflated.findViewById(R.id.amount_decimal), inflated.findViewById(R.id.amount_decimal_info));
-        activity.addFieldFragmentInfo(id, FIELD_AMOUNT_CURRENCY, currencySpinner, inflated.findViewById(R.id.amount_currency_info));
+
+        amountTextView.addTextChangedListener(new EmptyTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                final String val = s.toString();
+                if (Formatting.isDecimal(val)) {
+                    decimalVal = new BigDecimal(val);
+                }
+            }
+        });
+        if (decimalVal != null) {
+            amountTextView.setText(decimalVal.toPlainString());
+        }
+        final CoreNotifier.Linker decLinker = activity.addFieldFragmentInfo(id, FIELD_AMOUNT_DECIMAL, amountTextView, inflated.findViewById(R.id.amount_decimal_info));
+        if (decimalVal != null) {
+            CoreNotifier.linkViewValueWithCore(decimalVal, decLinker, activity);
+        }
+
+        currencySpinner.setOnItemSelectedListener(new EmptyOnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (parent.getAdapter().getCount() > position) {
+                    curSelection = position;
+                }
+            }
+        });
+        if (curSelection >= 0) {
+            currencySpinner.setSelection(curSelection);
+        }
+        final CoreNotifier.Linker curLinker = activity.addFieldFragmentInfo(id, FIELD_AMOUNT_CURRENCY, currencySpinner, inflated.findViewById(R.id.amount_currency_info));
+        if (curSelection >= 0) {
+            CoreNotifier.linkViewValueWithCore(currencySpinner.getSelectedItem(), curLinker, activity);
+        }
 
         return inflated;
     }
@@ -104,7 +159,11 @@ public class EnterAmountFragment extends CoreFragment {
         @Override
         protected void performFeedbackSafe() {
             Feedbacking.decimalTextViewFeedback(monSet.getAmountDecimal(), amountDecimal);
-            Feedbacking.currenciesSpinnerFeedback(monSet.getAmountUnit(), amountCurrency);
+            final CurrencyUnit amountUnit = monSet.getAmountUnit();
+            if (amountUnit == null) {
+                System.out.println("SHIT!");
+            }
+            Feedbacking.currenciesSpinnerFeedback(amountUnit, amountCurrency);
         }
 
         @Override

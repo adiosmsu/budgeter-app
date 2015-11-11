@@ -47,8 +47,14 @@ public class AddPriceActivity extends CoreElementActivity {
                             null,
                             new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_SUBJECT, new CoreNotifier.HintedLinker() {
                                 @Override
-                                public void link(HintedArrayAdapter.ObjectContainer data) {
-                                    priceElement.setSubject((FundsMutationSubject) data.getObject());
+                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                    final FundsMutationSubject object = (FundsMutationSubject) data.getObject();
+                                    final FundsMutationSubject prev = priceElement.getSubject();
+                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                        priceElement.setSubject(object);
+                                        return true;
+                                    }
+                                    return false;
                                 }
                             }, priceHighlighter),
                             new Supplier<FundsMutationSubject>() {
@@ -65,8 +71,14 @@ public class AddPriceActivity extends CoreElementActivity {
                             null,
                             new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
                                 @Override
-                                public void link(HintedArrayAdapter.ObjectContainer data) {
-                                    priceElement.setAgent((FundsMutationAgent) data.getObject());
+                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                    final FundsMutationAgent object = (FundsMutationAgent) data.getObject();
+                                    final FundsMutationAgent prev = priceElement.getAgent();
+                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                        priceElement.setAgent(object);
+                                        return true;
+                                    }
+                                    return false;
                                 }
                             }, priceHighlighter),
                             new Supplier<FundsMutationAgent>() {
@@ -99,10 +111,15 @@ public class AddPriceActivity extends CoreElementActivity {
         priceHighlighter.addElementInfo(PriceAdditionElementCore.FIELD_DAY, findViewById(R.id.price_date_info));
         CoreNotifier.addLink(this, dateView, new CoreNotifier.ArbitraryLinker() {
             @Override
-            public void link(Object data) {
+            public boolean link(Object data) {
                 if (data instanceof OffsetDateTime) {
-                    priceElement.setDay(new UtcDay((OffsetDateTime) data));
+                    final UtcDay object = new UtcDay((OffsetDateTime) data);
+                    if (!object.equals(priceElement.getDay())) {
+                        priceElement.setDay(object);
+                        return true;
+                    }
                 }
+                return false;
             }
         });
 

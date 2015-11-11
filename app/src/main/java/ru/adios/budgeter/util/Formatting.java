@@ -8,6 +8,7 @@ import org.threeten.bp.temporal.TemporalAccessor;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -25,6 +26,11 @@ public final class Formatting {
     private static final DateTimeFormatter DATE_TIME_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
     private static final DateTimeFormatter DATE_RUS_SHORT = DateTimeFormatter.ofPattern("dd.MM.yy");
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("###.####");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^(?!0[0-9])[0-9]*\\.?[0-9]*$");
+
+    public static boolean isDecimal(String str) {
+        return str.length() > 0 && DECIMAL_PATTERN.matcher(str).matches();
+    }
 
     public static String toStringRusDateTimeShort(TemporalAccessor dateTime) {
         return DATE_TIME_RUS_SHORT.format(dateTime);

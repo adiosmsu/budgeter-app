@@ -70,8 +70,14 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                             })
                                     .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_BUY_ACCOUNT, exchangeHighlighter, new CoreNotifier.HintedLinker() {
                                         @Override
-                                        public void link(HintedArrayAdapter.ObjectContainer data) {
-                                            exchangeElement.setBuyAccount((BalanceAccount) data.getObject());
+                                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                                            final BalanceAccount prev = exchangeElement.getBuyAccount();
+                                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                                exchangeElement.setBuyAccount(object);
+                                                return true;
+                                            }
+                                            return false;
                                         }
                                     })
                                     .build()
@@ -85,8 +91,14 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                             })
                                     .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_SELL_ACCOUNT, exchangeHighlighter, new CoreNotifier.HintedLinker() {
                                         @Override
-                                        public void link(HintedArrayAdapter.ObjectContainer data) {
-                                            exchangeElement.setSellAccount((BalanceAccount) data.getObject());
+                                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                                            final BalanceAccount prev = exchangeElement.getSellAccount();
+                                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                                exchangeElement.setSellAccount(object);
+                                                return true;
+                                            }
+                                            return false;
                                         }
                                     })
                                     .build()
@@ -96,8 +108,14 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                             null,
                             new CoreElementFieldInfo(ExchangeCurrenciesElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
                                 @Override
-                                public void link(HintedArrayAdapter.ObjectContainer data) {
-                                    exchangeElement.setAgent((FundsMutationAgent) data.getObject());
+                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                    final FundsMutationAgent object = (FundsMutationAgent) data.getObject();
+                                    final FundsMutationAgent prev = exchangeElement.getAgent();
+                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                        exchangeElement.setAgent(object);
+                                        return true;
+                                    }
+                                    return false;
                                 }
                             }, exchangeHighlighter),
                             new Supplier<FundsMutationAgent>() {
@@ -163,16 +181,26 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
 
         CoreNotifier.addLink(this, exchangeCurrenciesNaturalRate, new CoreNotifier.DecimalLinker() {
             @Override
-            public void link(BigDecimal data) {
+            public boolean link(BigDecimal data) {
                 naturalRateVal = data;
-                exchangeElement.setNaturalRate(data);
+                final BigDecimal prev = exchangeElement.getNaturalRate();
+                if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                    exchangeElement.setNaturalRate(data);
+                    return true;
+                }
+                return false;
             }
         });
         CoreNotifier.addLink(this, exchangeCurrenciesCustomRate, new CoreNotifier.DecimalLinker() {
             @Override
-            public void link(BigDecimal data) {
+            public boolean link(BigDecimal data) {
                 customRateVal = data;
-                exchangeElement.setCustomRate(data);
+                final BigDecimal prev = exchangeElement.getCustomRate();
+                if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                    exchangeElement.setCustomRate(data);
+                    return true;
+                }
+                return false;
             }
         });
 

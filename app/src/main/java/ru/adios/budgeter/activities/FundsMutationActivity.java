@@ -62,8 +62,14 @@ public class FundsMutationActivity extends CoreElementActivity {
                             null,
                             new CoreElementFieldInfo(FundsMutationElementCore.FIELD_SUBJECT, new CoreNotifier.HintedLinker() {
                                 @Override
-                                public void link(HintedArrayAdapter.ObjectContainer data) {
-                                    mutationElement.setSubject((FundsMutationSubject) data.getObject());
+                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                    final FundsMutationSubject object = (FundsMutationSubject) data.getObject();
+                                    final FundsMutationSubject prev = mutationElement.getSubject();
+                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                        mutationElement.setSubject(object);
+                                        return true;
+                                    }
+                                    return false;
                                 }
                             }, mutationHighlighter),
                             new Supplier<FundsMutationSubject>() {
@@ -96,8 +102,14 @@ public class FundsMutationActivity extends CoreElementActivity {
                             })
                                     .provideAccountFieldInfo(FundsMutationElementCore.FIELD_RELEVANT_BALANCE, mutationHighlighter, new CoreNotifier.HintedLinker() {
                                         @Override
-                                        public void link(HintedArrayAdapter.ObjectContainer data) {
-                                            mutationElement.setRelevantBalance((BalanceAccount) data.getObject());
+                                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                                            final BalanceAccount prev = mutationElement.getRelevantBalance();
+                                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                                mutationElement.setRelevantBalance(object);
+                                                return true;
+                                            }
+                                            return false;
                                         }
                                     })
                                     .build()
@@ -107,8 +119,14 @@ public class FundsMutationActivity extends CoreElementActivity {
                             null,
                             new CoreElementFieldInfo(FundsMutationElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
                                 @Override
-                                public void link(HintedArrayAdapter.ObjectContainer data) {
-                                    mutationElement.setAgent((FundsMutationAgent) data.getObject());
+                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                                    final FundsMutationAgent object = (FundsMutationAgent) data.getObject();
+                                    final FundsMutationAgent prev = mutationElement.getAgent();
+                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                        mutationElement.setAgent(object);
+                                        return true;
+                                    }
+                                    return false;
                                 }
                             }, mutationHighlighter),
                             new Supplier<FundsMutationAgent>() {
@@ -194,29 +212,52 @@ public class FundsMutationActivity extends CoreElementActivity {
         mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_QUANTITY, findViewById(R.id.funds_mutation_quantity_info));
         CoreNotifier.addLink(this, fundsMutationQuantity, new CoreNotifier.NumberLinker() {
             @Override
-            public void link(Number data) {
-                mutationElement.setQuantity(data.intValue());
+            public boolean link(Number data) {
+                final int i = data.intValue();
+                final int prev = mutationElement.getQuantity();
+                if (prev != i) {
+                    mutationElement.setQuantity(i);
+                    return true;
+                }
+                return false;
             }
         });
         mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_DIRECTION, findViewById(R.id.funds_mutation_direction_radio_info));
         CoreNotifier.addLink(this, fundsMutationDirectionRadio, new CoreNotifier.NumberLinker() {
             @Override
-            public void link(Number data) {
-                mutationElement.setDirection(FundsMutator.MutationDirection.values()[data.intValue()]);
+            public boolean link(Number data) {
+                final int i = data.intValue();
+                final FundsMutator.MutationDirection prev = mutationElement.getDirection();
+
+                if ((prev == null && i >= 0) || (prev != null && prev.ordinal() != i)) {
+                    mutationElement.setDirection(FundsMutator.MutationDirection.values()[i]);
+                    return true;
+                }
+                return false;
             }
         });
         CoreNotifier.addLink(this, fundsMutationNaturalRate, new CoreNotifier.DecimalLinker() {
             @Override
-            public void link(BigDecimal data) {
+            public boolean link(BigDecimal data) {
                 naturalRateVal = data;
-                mutationElement.setNaturalRate(data);
+                final BigDecimal prev = mutationElement.getNaturalRate();
+                if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                    mutationElement.setNaturalRate(data);
+                    return true;
+                }
+                return false;
             }
         });
         CoreNotifier.addLink(this, fundsMutationCustomRate, new CoreNotifier.DecimalLinker() {
             @Override
-            public void link(BigDecimal data) {
+            public boolean link(BigDecimal data) {
                 customRateVal = data;
-                mutationElement.setCustomRate(data);
+                final BigDecimal prev = mutationElement.getCustomRate();
+                if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                    mutationElement.setCustomRate(data);
+                    return true;
+                }
+                return false;
             }
         });
 

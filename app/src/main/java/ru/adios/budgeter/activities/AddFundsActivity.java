@@ -48,8 +48,14 @@ public class AddFundsActivity extends CoreElementActivity {
             })
                     .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.HintedLinker() {
                         @Override
-                        public void link(HintedArrayAdapter.ObjectContainer data) {
-                            additionElement.setAccount((BalanceAccount) data.getObject());
+                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
+                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                            final BalanceAccount prev = additionElement.getAccount();
+                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
+                                additionElement.setAccount(object);
+                                return true;
+                            }
+                            return false;
                         }
                     })
                     .build();

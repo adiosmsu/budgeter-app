@@ -43,22 +43,28 @@ public class DateTimeFragment extends CoreFragment {
         )
                 .addFieldInfo(FIELD_DATE, new CoreElementActivity.CoreElementFieldInfo(fieldCoreName, new CoreNotifier.ArbitraryLinker() {
                     @Override
-                    public void link(Object data) {
+                    public boolean link(Object data) {
                         if (data instanceof OffsetDateTime) {
                             final OffsetDateTime date = (OffsetDateTime) data;
 
                             final OffsetDateTime ts = tsSet.getTimestamp();
                             if (ts != null) {
-                                tsSet.setTimestamp(OffsetDateTime.of(date.toLocalDate(), ts.toLocalTime(), date.getOffset()));
+                                final OffsetDateTime cur = OffsetDateTime.of(date.toLocalDate(), ts.toLocalTime(), date.getOffset());
+                                if (!cur.equals(ts)) {
+                                    tsSet.setTimestamp(cur);
+                                    return true;
+                                }
                             } else {
                                 tsSet.setTimestamp(date);
+                                return true;
                             }
                         }
+                        return false;
                     }
                 }, highlighter))
                 .addFieldInfo(FIELD_TIME, new CoreElementActivity.CoreElementFieldInfo(fieldCoreName, new CoreNotifier.ArbitraryLinker() {
                     @Override
-                    public void link(Object data) {
+                    public boolean link(Object data) {
                         if (data instanceof OffsetTime) {
                             final OffsetTime time = (OffsetTime) data;
 
@@ -66,8 +72,13 @@ public class DateTimeFragment extends CoreFragment {
                             if (ts == null) {
                                 ts = OffsetDateTime.now();
                             }
-                            tsSet.setTimestamp(OffsetDateTime.of(ts.toLocalDate(), time.toLocalTime(), time.getOffset()));
+                            final OffsetDateTime cur = OffsetDateTime.of(ts.toLocalDate(), time.toLocalTime(), time.getOffset());
+                            if (!cur.equals(ts)) {
+                                tsSet.setTimestamp(cur);
+                                return true;
+                            }
                         }
+                        return false;
                     }
                 }, highlighter))
                 .build();

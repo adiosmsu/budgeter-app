@@ -84,19 +84,29 @@ public class FundsSubjectFragment extends CoreFragment {
                 .addFieldInfo(FIELD_SUBJECTS, subjectFieldInfo)
                 .addFieldInfo(FIELD_NEW_SUBJECT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
                     @Override
-                    public void link(String data) {
-                        subjectsElement.setName(data);
+                    public boolean link(String data) {
+                        final String prev = subjectsElement.getName();
+                        if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                            subjectsElement.setName(data);
+                            return true;
+                        }
+                        return false;
                     }
                 }, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_SUBJECT_DESC, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_DESCRIPTION, new CoreNotifier.TextLinker() {
                     @Override
-                    public void link(String data) {
-                        subjectsElement.setDescription(data);
+                    public boolean link(String data) {
+                        final String prev = subjectsElement.getDescription();
+                        if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                            subjectsElement.setDescription(data);
+                            return true;
+                        }
+                        return false;
                     }
                 }, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
                     @Override
-                    public void link(final String data) {
+                    public boolean link(final String data) {
                         new AsyncTask<SubjectAdditionElementCore, Void, Optional<FundsMutationSubject>>() {
                             @Override
                             protected Optional<FundsMutationSubject> doInBackground(SubjectAdditionElementCore[] params) {
@@ -127,12 +137,19 @@ public class FundsSubjectFragment extends CoreFragment {
                                 }
                             }
                         }.execute(subjectsElement);
+                        return false;
                     }
                 }, subjectsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_SUBJECT_TYPE, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_TYPE, new CoreNotifier.NumberLinker() {
                     @Override
-                    public void link(Number data) {
-                        subjectsElement.setType(data.intValue());
+                    public boolean link(Number data) {
+                        final int i = data.intValue();
+                        final FundsMutationSubject.Type prev = subjectsElement.getType();
+                        if ((prev == null && i >= 0) || (prev != null && prev.ordinal() != i)) {
+                            subjectsElement.setType(i);
+                            return true;
+                        }
+                        return false;
                     }
                 }, subjectsErrorHighlighter))
                 .build();
@@ -182,7 +199,9 @@ public class FundsSubjectFragment extends CoreFragment {
                         new EmptyOnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                selectedSubject = position;
+                                if (parent.getAdapter().getCount() > position) {
+                                    selectedSubject = position;
+                                }
                             }
                         }
                 )

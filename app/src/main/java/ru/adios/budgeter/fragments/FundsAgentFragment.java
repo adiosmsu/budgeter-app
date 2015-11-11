@@ -66,14 +66,24 @@ public class FundsAgentFragment extends CoreFragment {
                 .addFieldInfo(FIELD_AGENTS, agentFieldInfo)
                 .addFieldInfo(FIELD_NEW_AGENT_NAME, new CoreElementActivity.CoreElementFieldInfo(AgentAdditionElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
                     @Override
-                    public void link(String data) {
-                        agentCore.setName(data);
+                    public boolean link(String data) {
+                        final String prev = agentCore.getName();
+                        if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                            agentCore.setName(data);
+                            return true;
+                        }
+                        return false;
                     }
                 }, agentsErrorHighlighter))
                 .addFieldInfo(FIELD_NEW_AGENT_DESC, new CoreElementActivity.CoreElementFieldInfo(AgentAdditionElementCore.FIELD_DESCRIPTION, new CoreNotifier.TextLinker() {
                     @Override
-                    public void link(String data) {
-                        agentCore.setDescription(data);
+                    public boolean link(String data) {
+                        final String prev = agentCore.getDescription();
+                        if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                            agentCore.setDescription(data);
+                            return true;
+                        }
+                        return false;
                     }
                 }, agentsErrorHighlighter))
                 .build();
@@ -122,7 +132,9 @@ public class FundsAgentFragment extends CoreFragment {
                         new EmptyOnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                selectedAgent = position;
+                                if (parent.getAdapter().getCount() > position) {
+                                    selectedAgent = position;
+                                }
                             }
                         }
                 )

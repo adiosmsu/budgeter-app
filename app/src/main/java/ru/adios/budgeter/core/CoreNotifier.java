@@ -32,37 +32,37 @@ public final class CoreNotifier {
 
     public interface DecimalLinker extends Linker {
 
-        void link(BigDecimal data);
+        boolean link(BigDecimal data);
 
     }
 
     public interface CurrencyLinker extends Linker {
 
-        void link(CurrencyUnit data);
+        boolean link(CurrencyUnit data);
 
     }
 
     public interface TextLinker extends Linker {
 
-        void link(String data);
+        boolean link(String data);
 
     }
 
     public interface HintedLinker extends Linker {
 
-        void link(HintedArrayAdapter.ObjectContainer data);
+        boolean link(HintedArrayAdapter.ObjectContainer data);
 
     }
 
     public interface NumberLinker extends Linker {
 
-        void link(Number data);
+        boolean link(Number data);
 
     }
 
     public interface ArbitraryLinker extends Linker {
 
-        void link(Object data);
+        boolean link(Object data);
 
     }
 
@@ -85,8 +85,9 @@ public final class CoreNotifier {
 
                     if (s != null && s.length() > 0) {
                         if (linker instanceof ArbitraryLinker) {
-                            ((ArbitraryLinker) linker).link(dateEditView.formatText(s));
-                            activity.coreFeedback();
+                            if (((ArbitraryLinker) linker).link(dateEditView.formatText(s))) {
+                                activity.coreFeedback();
+                            }
                         } else {
                             linkViewValueWithCore(s.toString(), linker, activity);
                         }
@@ -106,8 +107,9 @@ public final class CoreNotifier {
 
                     if (s != null && s.length() > 0) {
                         if (linker instanceof ArbitraryLinker) {
-                            ((ArbitraryLinker) linker).link(timeEditView.formatText(s));
-                            activity.coreFeedback();
+                            if (((ArbitraryLinker) linker).link(timeEditView.formatText(s))) {
+                                activity.coreFeedback();
+                            }
                         } else {
                             linkViewValueWithCore(s.toString(), linker, activity);
                         }
@@ -171,76 +173,61 @@ public final class CoreNotifier {
     }
 
     public static void linkViewValueWithCore(Object o, Linker linker, CoreElementActivity activity) {
+        boolean fieldChanged = false;
         if (linker instanceof DecimalLinker) {
             final String decStr = getStringFromObject(o);
             if (decStr.length() > 0) {
                 try {
-                    ((DecimalLinker) linker).link(new BigDecimal(decStr));
-                    activity.coreFeedback();
+                    fieldChanged = ((DecimalLinker) linker).link(new BigDecimal(decStr));
                 } catch (NumberFormatException ignore) {}
             } else {
-                ((DecimalLinker) linker).link(null);
-                activity.coreFeedback();
+                fieldChanged = ((DecimalLinker) linker).link(null);
             }
         } else if (linker instanceof CurrencyLinker) {
             if (o instanceof CurrencyUnit) {
-                ((CurrencyLinker) linker).link((CurrencyUnit) o);
-                activity.coreFeedback();
+                fieldChanged = ((CurrencyLinker) linker).link((CurrencyUnit) o);
             } else {
                 if (o instanceof HintedArrayAdapter.ObjectContainer && ((HintedArrayAdapter.ObjectContainer) o).getObject() == null) {
-                    ((CurrencyLinker) linker).link(null);
-                    activity.coreFeedback();
+                    fieldChanged = ((CurrencyLinker) linker).link(null);
                 } else {
                     final String decStr = getStringFromObject(o);
                     if (decStr.length() > 0) {
                         try {
-                            ((CurrencyLinker) linker).link(CurrencyUnit.of(decStr.toUpperCase()));
-                            activity.coreFeedback();
+                            fieldChanged = ((CurrencyLinker) linker).link(CurrencyUnit.of(decStr.toUpperCase()));
                         } catch (IllegalCurrencyException ignore) {
                         }
                     } else {
-                        ((CurrencyLinker) linker).link(null);
-                        activity.coreFeedback();
+                        fieldChanged = ((CurrencyLinker) linker).link(null);
                     }
                 }
             }
         } else if (linker instanceof TextLinker) {
-            ((TextLinker) linker).link(getStringFromObject(o));
-            activity.coreFeedback();
+            fieldChanged = ((TextLinker) linker).link(getStringFromObject(o));
         } else if (linker instanceof HintedLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
-            ((HintedLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
-            activity.coreFeedback();
+            fieldChanged = ((HintedLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
         } else if (linker instanceof NumberLinker) {
             final NumberLinker nl = (NumberLinker) linker;
             if (o instanceof Number) {
-                nl.link((Number) o);
-                activity.coreFeedback();
+                fieldChanged = nl.link((Number) o);
             } else {
                 final String str = getStringFromObject(o);
                 if (str.length() > 0) {
                     try {
-                        nl.link(Long.valueOf(str));
-                        activity.coreFeedback();
+                        fieldChanged = nl.link(Long.valueOf(str));
                     } catch (NumberFormatException ignore) {}
                 }
             }
         } else if (linker instanceof ArbitraryLinker) {
             ((ArbitraryLinker) linker).link(o);
         }
+
+        if (fieldChanged) {
+            activity.coreFeedback();
+        }
     }
 
     private static String getStringFromObject(Object o) {
         return o == null ? "" : (o instanceof String ? (String) o : o.toString());
-    }
-
-    /**
-     * For fully inflated activity.
-     * @param activity element activity
-     * @param viewId field view id
-     * @param linker linker callback
-     */
-    public static void addLink(CoreElementActivity activity, @IdRes int viewId, Linker linker) {
-        addLink(activity, activity.findViewById(viewId), linker);
     }
 
 }

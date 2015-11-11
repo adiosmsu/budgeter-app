@@ -144,30 +144,55 @@ public class AccountStandardFragment extends CoreFragment {
                     .addFieldInfo(FIELD_ACCOUNT, accountFieldInfo)
                     .addFieldInfo(FIELD_NEW_ACCOUNT_NAME, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_NAME, new CoreNotifier.TextLinker() {
                         @Override
-                        public void link(String data) {
-                            accountsElement.setName(data);
+                        public boolean link(String data) {
+                            final String prev = accountsElement.getName();
+                            if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                                accountsElement.setName(data);
+                                return true;
+                            }
+                            return false;
                         }
                     }, accountsErrorHighlighter))
                     .addFieldInfo(FIELD_NEW_ACCOUNT_DESC, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_DESCRIPTION, new CoreNotifier.TextLinker() {
                         @Override
-                        public void link(String data) {
-                            accountsElement.setDescription(data);
+                        public boolean link(String data) {
+                            final String prev = accountsElement.getDescription();
+                            if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                                accountsElement.setDescription(data);
+                                return true;
+                            }
+                            return false;
                         }
                     }, accountsErrorHighlighter))
                     .addFieldInfo(FIELD_NEW_ACCOUNT_CURRENCY, new CoreElementActivity.CoreElementFieldInfo(AccountsElementCore.FIELD_UNIT, new CoreNotifier.CurrencyLinker() {
                         @Override
-                        public void link(CurrencyUnit data) {
-                            accountsElement.setUnit(data);
-                        }
-                    }, accountsErrorHighlighter))
-                    .addFieldInfo(FIELD_NEW_ACCOUNT_AMOUNT, new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
-                        @Override
-                        public void link(BigDecimal data) {
-                            if (!newAccountOptionalAmount.lockOn) {
-                                newAccountOptionalAmount.object = Optional.of(data);
+                        public boolean link(CurrencyUnit data) {
+                            final CurrencyUnit prev = accountsElement.getUnit();
+                            if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                                accountsElement.setUnit(data);
+                                return true;
                             }
+                            return false;
                         }
                     }, accountsErrorHighlighter))
+                    .addFieldInfo(
+                            FIELD_NEW_ACCOUNT_AMOUNT,
+                            new CoreElementActivity.CoreElementFieldInfo(FundsAdditionElementCore.FIELD_AMOUNT_DECIMAL, new CoreNotifier.DecimalLinker() {
+                                @Override
+                                public boolean link(BigDecimal data) {
+                                    if (!newAccountOptionalAmount.lockOn) {
+                                        if (newAccountOptionalAmount.object.isPresent() && !newAccountOptionalAmount.object.get().equals(data)) {
+                                            newAccountOptionalAmount.object = Optional.ofNullable(data);
+                                            return true;
+                                        } else if (!newAccountOptionalAmount.object.isPresent() && data != null) {
+                                            newAccountOptionalAmount.object = Optional.of(data);
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+                                }
+                            }, accountsErrorHighlighter)
+                    )
                     .build();
         }
     }
@@ -216,7 +241,9 @@ public class AccountStandardFragment extends CoreFragment {
                         new EmptyOnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                selectedAccount = position;
+                                if (parent.getAdapter().getCount() > position) {
+                                    selectedAccount = position;
+                                }
                             }
                         }
                 )

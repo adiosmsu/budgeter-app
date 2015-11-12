@@ -152,9 +152,7 @@ public class FundsAgentFragment extends CoreFragment {
                         new EmptyOnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if (parent.getAdapter().getCount() > position) {
-                                    selectedAgent = position;
-                                }
+                                selectedAgent = parent.getAdapter().getCount() > position ? position : -1;
                             }
                         }
                 )

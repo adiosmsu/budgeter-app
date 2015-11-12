@@ -218,9 +218,7 @@ public class FundsSubjectFragment extends CoreFragment {
                         new EmptyOnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if (parent.getAdapter().getCount() > position) {
-                                    selectedSubject = position;
-                                }
+                                selectedSubject = parent.getAdapter().getCount() > position ? position : -1;
                             }
                         }
                 )

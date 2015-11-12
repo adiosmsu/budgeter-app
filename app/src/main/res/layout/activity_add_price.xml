@@ -20,78 +20,78 @@
         tools:context="ru.adios.budgeter.activities.AddPriceActivity">
 
         <TextView
-            android:id="@+id/price_subject_text"
+            android:id="@+id/add_price_subject_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:text="@string/price_subject_text"/>
         <fragment android:name="ru.adios.budgeter.fragments.FundsSubjectFragment"
-            android:id="@+id/price_subject_fragment"
+            android:id="@+id/add_price_subject_fragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_subject_text"
+            android:layout_below="@id/add_price_subject_text"
             tools:layout="@layout/fragment_funds_subject"/>
 
         <TextView
-            android:id="@+id/price_agent_text"
+            android:id="@+id/add_price_agent_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_subject_fragment"
+            android:layout_below="@id/add_price_subject_fragment"
             android:text="@string/price_agent_text"/>
         <fragment
-            android:id="@+id/price_agent_fragment"
+            android:id="@+id/add_price_agent_fragment"
             android:name="ru.adios.budgeter.fragments.FundsAgentFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_agent_text"
+            android:layout_below="@id/add_price_agent_text"
             tools:layout="@layout/fragment_funds_agent"/>
 
         <TextView
-            android:id="@+id/price_price_text"
+            android:id="@+id/add_price_price_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_agent_fragment"
+            android:layout_below="@id/add_price_agent_fragment"
             android:text="@string/price_price_text"/>
         <fragment
-            android:id="@+id/price_amount_fragment"
+            android:id="@+id/add_price_amount_fragment"
             android:name="ru.adios.budgeter.fragments.EnterAmountFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_price_text"
+            android:layout_below="@id/add_price_price_text"
             tools:layout="@layout/fragment_enter_amount" />
 
         <TextView
-            android:id="@+id/price_date_text"
+            android:id="@+id/add_price_date_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_amount_fragment"
+            android:layout_below="@id/add_price_amount_fragment"
             android:text="@string/price_date_text"/>
         <ru.adios.budgeter.widgets.DateEditView
-            android:id="@+id/price_date"
+            android:id="@+id/add_price_date"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_date_text"
+            android:layout_below="@id/add_price_date_text"
             app:layout_widthPercent="70%"
             tools:ignore="TextFields"
             style="@android:style/Widget.DeviceDefault.Light.Spinner"/>
         <TextView
-            android:id="@+id/price_date_info"
+            android:id="@+id/add_price_date_info"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:text=""
             android:textColor="#af0b0b"
-            android:layout_below="@id/price_date"
+            android:layout_below="@id/add_price_date"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:visibility="invisible" />
 
         <TextView
-            android:id="@+id/price_info"
+            android:id="@+id/add_price_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
             android:textColor="#af0b0b"
-            android:layout_below="@id/price_date_info"
+            android:layout_below="@id/add_price_date_info"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:visibility="invisible" />
@@ -100,7 +100,7 @@
             android:layout_width="0dp"
             app:layout_widthPercent="25%"
             android:layout_height="wrap_content"
-            android:layout_below="@id/price_info"
+            android:layout_below="@id/add_price_info"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:text="@string/price_finish_button"

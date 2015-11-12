@@ -540,7 +540,7 @@ public class DataTableLayout extends TableLayout {
             }
         }
 
-        final int curHdrOff = headerOffset + 1;
+        final int curHdrOff = rowsPerSet > 1 ? headerOffset + 1 : headerOffset;
         headerOffset = addDataRow(headers, headerOffset, Optional.<Consumer<TextView>>of(new Consumer<TextView>() {
             @Override
             public void accept(TextView textView) {

@@ -22,15 +22,15 @@ package ru.adios.budgeter.widgets;
 
 import android.content.Context;
 import android.support.annotation.UiThread;
+import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
-import android.widget.Spinner;
 
 /**
  * Created by Michail Kulikov
  * 10/13/15
  */
 @UiThread
-public class FlexibleNotifyingSpinner extends Spinner {
+public class FlexibleNotifyingSpinner extends AppCompatSpinner {
 
     private boolean notifyEvenIfSameSelection = false;
 

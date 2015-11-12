@@ -46,7 +46,7 @@ public class MutationEventsDataStore extends AbstractDataStore<FundsMutationEven
         super(
                 ImmutableList.of(
                         resources.getString(R.string.ah_ops_table_col_time),
-                        resources.getString(R.string.ah_ops_table_col_subj),
+                        resources.getString(R.string.common_table_col_subj),
                         resources.getString(R.string.ah_ops_table_col_money),
                         resources.getString(R.string.ah_ops_table_col_account)
                 ),

@@ -261,9 +261,7 @@ public class AccountStandardFragment extends CoreFragment {
                         new EmptyOnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                if (parent.getAdapter().getCount() > position) {
-                                    selectedAccount = position;
-                                }
+                                selectedAccount = parent.getAdapter().getCount() > position ? position : -1;
                             }
                         }
                 )

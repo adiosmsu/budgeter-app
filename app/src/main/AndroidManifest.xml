@@ -63,8 +63,16 @@
             android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
-        <activity android:name=".activities.AddPriceActivity"
+        <activity
+            android:name=".activities.AddPriceActivity"
             android:label="@string/title_activity_add_price"
+            android:parentActivityName=".activities.HomeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.HomeActivity" />
+        </activity>
+        <activity android:name=".activities.PricesActivity"
+            android:label="@string/title_activity_prices"
             android:parentActivityName=".activities.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

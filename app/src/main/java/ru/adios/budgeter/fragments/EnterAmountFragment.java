@@ -139,9 +139,7 @@ public class EnterAmountFragment extends CoreFragment {
         currencySpinner.setOnItemSelectedListener(new EmptyOnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (parent.getAdapter().getCount() > position) {
-                    curSelection = position;
-                }
+                curSelection = parent.getAdapter().getCount() > position ? position : -1;
             }
         });
         if (curSelection >= 0) {

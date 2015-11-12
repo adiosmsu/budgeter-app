@@ -62,7 +62,7 @@ public class AddPriceActivity extends CoreElementActivity {
     private final CollectedFragmentsInfoProvider infoProvider = new CollectedFragmentsInfoProvider.Builder(this)
             .addProvider(
                     FundsSubjectFragment.getInfoProvider(
-                            R.id.price_subject_fragment,
+                            R.id.add_price_subject_fragment,
                             this,
                             null,
                             new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_SUBJECT, new CoreNotifier.HintedLinker() {
@@ -87,7 +87,7 @@ public class AddPriceActivity extends CoreElementActivity {
             )
             .addProvider(
                     FundsAgentFragment.getInfoProvider(
-                            R.id.price_agent_fragment,
+                            R.id.add_price_agent_fragment,
                             null,
                             new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
                                 @Override
@@ -111,7 +111,7 @@ public class AddPriceActivity extends CoreElementActivity {
             )
             .addProvider(
                     EnterAmountFragment.getInfoProvider(
-                            R.id.price_amount_fragment,
+                            R.id.add_price_amount_fragment,
                             priceElement.getPriceSettable(),
                             priceHighlighter,
                             PriceAdditionElementCore.FIELD_PRICE_AMOUNT,
@@ -126,9 +126,9 @@ public class AddPriceActivity extends CoreElementActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        dateView = (DateEditView) findViewById(R.id.price_date);
+        dateView = (DateEditView) findViewById(R.id.add_price_date);
         dateView.init(this, savedInstanceState);
-        priceHighlighter.addElementInfo(PriceAdditionElementCore.FIELD_DAY, findViewById(R.id.price_date_info));
+        priceHighlighter.addElementInfo(PriceAdditionElementCore.FIELD_DAY, findViewById(R.id.add_price_date_info));
         CoreNotifier.addLink(this, dateView, new CoreNotifier.ArbitraryLinker() {
             @Override
             public boolean link(Object data) {
@@ -143,10 +143,10 @@ public class AddPriceActivity extends CoreElementActivity {
             }
         });
 
-        final View infoView = findViewById(R.id.price_info);
+        final View infoView = findViewById(R.id.add_price_info);
         priceHighlighter.setGlobalInfoView(infoView);
-        setGlobalInfoViewPerFragment(R.id.price_subject_fragment, FundsSubjectFragment.BUTTON_NEW_SUBJECT_SUBMIT, infoView);
-        setGlobalInfoViewPerFragment(R.id.price_agent_fragment, FundsAgentFragment.BUTTON_NEW_AGENT_SUBMIT, infoView);
+        setGlobalInfoViewPerFragment(R.id.add_price_subject_fragment, FundsSubjectFragment.BUTTON_NEW_SUBJECT_SUBMIT, infoView);
+        setGlobalInfoViewPerFragment(R.id.add_price_agent_fragment, FundsAgentFragment.BUTTON_NEW_AGENT_SUBMIT, infoView);
     }
 
     @Override

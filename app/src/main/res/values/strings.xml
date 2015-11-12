@@ -43,7 +43,7 @@
     <string name="funds_mutation_payed_amount_box_text">Drop paid amount</string>
     <string name="funds_mutation_subject_cost_box_text">Drop subject cost</string>
     <string name="ah_ops_table_col_time">Op time</string>
-    <string name="ah_ops_table_col_subj">Subject</string>
+    <string name="common_table_col_subj">Subject</string>
     <string name="ah_ops_table_col_money">Money</string>
     <string name="ah_ops_table_col_account">Account</string>
     <string name="ah_ops_table_header">Recent operations</string>
@@ -97,5 +97,12 @@
     <string name="register_exchange_failure">Registering exchange failed - check out field errors</string>
     <string name="register_mutation_success">Registering operation succeeded!</string>
     <string name="register_mutation_failure">Registering operation failed - check out field errors</string>
+    <string name="price_show_button">Show</string>
+    <string name="title_activity_prices">Monitor prices</string>
+    <string name="prices_table_col_day">Day</string>
+    <string name="prices_table_col_price">Price</string>
+    <string name="prices_table_col_subject">Subject</string>
+    <string name="prices_table_col_agent">Agent</string>
+    <string name="button_prices">Explore prices</string>
 
 </resources>

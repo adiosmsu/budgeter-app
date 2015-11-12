@@ -46,6 +46,6 @@ dependencies {
     compile('ru.adios.budgeter:jdbcrepo-api-impl-java6:0.1-SNAPSHOT') {
         exclude module: 'commons-logging'
     }
-    compile 'org.sqldroid:sqldroid-threadsafe:1.0.4-SNAPSHOT'
+    compile 'org.sqldroid:sqldroid-wared:1.0.4-SNAPSHOT'
     compile 'com.noveogroup.android:android-logger:1.3.5'
 }

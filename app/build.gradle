@@ -42,8 +42,8 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'com.android.support:percent:23.1.0'
-    compile 'ru.adios.budgeter:core-java6:0.1-SNAPSHOT'
-    compile('ru.adios.budgeter:jdbcrepo-api-impl-java6:0.1-SNAPSHOT') {
+    compile 'ru.adios.budgeter:core-java6:0.1-BETA'
+    compile('ru.adios.budgeter:jdbcrepo-api-impl-java6:0.1-BETA') {
         exclude module: 'commons-logging'
     }
     compile 'org.sqldroid:sqldroid-wared:1.0.4-SNAPSHOT'

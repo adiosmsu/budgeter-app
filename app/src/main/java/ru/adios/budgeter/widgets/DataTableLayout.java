@@ -118,7 +118,9 @@ public class DataTableLayout extends TableLayout {
             if (orderResolver.isPresent()) {
                 final TextView tv = (TextView) v;
                 if (tv.isSelected()) {
-                    orderBy = Optional.of(orderBy.get().flipOrder());
+                    if (orderBy.isPresent()) {
+                        orderBy = Optional.of(orderBy.get().flipOrder());
+                    }
                 } else {
                     final Optional<OrderBy> possibleOrder = orderResolver.get().byColumnName(tv.getText().toString(), Order.DESC);
                     if (!possibleOrder.isPresent()) {
@@ -544,7 +546,7 @@ public class DataTableLayout extends TableLayout {
         headerOffset = addDataRow(headers, headerOffset, Optional.<Consumer<TextView>>of(new Consumer<TextView>() {
             @Override
             public void accept(TextView textView) {
-                if (orderResolver.isPresent() && textView.getText().toString().equals(orderResolver.get().byField(orderBy.get().field).orElse(null))) {
+                if (orderResolver.isPresent() && orderBy.isPresent() && textView.getText().toString().equals(orderResolver.get().byField(orderBy.get().field).orElse(null))) {
                     selectOrderByColumn(textView);
                 }
                 textView.setOnClickListener(rowOrderListener);
@@ -572,6 +574,9 @@ public class DataTableLayout extends TableLayout {
         addView(constructRowSeparator(1));
     }
 
+    /**
+     * Requires tableName to be checked, i.e. isPresent() == true .
+     */
     private void addTitleRowWithSeparator(Context context, float layoutWeightSum, float titleViewWeight) {
         final TableRow tableNameRow = new TableRow(context);
         tableNameRow.setId(ElementsIdProvider.getNextId());

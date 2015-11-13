@@ -398,7 +398,7 @@ public class AccountStandardFragment extends CoreFragment {
             Feedbacking.textViewFeedback(accountsElement.getName(), accountsNameInput);
             Feedbacking.textViewFeedback(accountsElement.getDescription(), accountsDescInput);
             Feedbacking.currenciesSpinnerFeedback(accountsElement.getUnit(), accountsCurrencyInput);
-            Feedbacking.decimalTextViewFeedback(newAccountOptionalAmount.object.get(), accountsAmountOptionalInput);
+            Feedbacking.decimalTextViewFeedback(newAccountOptionalAmount.object.orElse(null), accountsAmountOptionalInput);
             Feedbacking.hintedArraySpinnerFeedback(accountSupplier.get(), accountsSpinner);
         }
 
@@ -442,8 +442,8 @@ public class AccountStandardFragment extends CoreFragment {
                 return accountResult;
             }
 
-            final BigDecimal dec = newAccountOptionalAmount.object.get();
-            if (!dec.equals(BigDecimal.ZERO)) {
+            final BigDecimal dec;
+            if (newAccountOptionalAmount.object.isPresent() && !(dec = newAccountOptionalAmount.object.get()).equals(BigDecimal.ZERO)) {
                 final FundsAdditionElementCore core = new FundsAdditionElementCore(BundleProvider.getBundle().treasury());
                 core.setAccount(accountResult.submitResult);
                 core.setAmountDecimal(dec);

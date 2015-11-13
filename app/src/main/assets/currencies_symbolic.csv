@@ -28,7 +28,7 @@ MXN,¢,1
 NOK,kr,1
 PHP,₱,1
 PLN,zł,1
-RUB,Р,1# alas, no Unicode 7.0 on Android
+RUB,Р,1# alas no Unicode 7.0 on Android
 SEK,kr,1
 SGD,S$,1
 THB,฿,1
@@ -37,4 +37,4 @@ UAH,₴,1
 USD,$,1
 VND,₫,1
 ZAR,R,1
-BTC,Ƀ,1
+BTC,฿,1

@@ -56,7 +56,7 @@ public class MutationEventsDataStore extends AbstractDataStore<FundsMutationEven
                         return ImmutableList.of(
                                 Formatting.toStringRusDateTimeShort(event.timestamp),
                                 event.subject.name,
-                                Formatting.toStringMoneyUsingSign(event.amount.multipliedBy(event.quantity), resources),
+                                Formatting.toStringMoneyUsingSign(event.amount, resources),
                                 event.relevantBalance.name
                         );
                     }

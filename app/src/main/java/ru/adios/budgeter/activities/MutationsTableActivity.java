@@ -84,7 +84,7 @@ public class MutationsTableActivity extends FundsAwareMenuActivity {
                                 Formatting.toStringRusDateTimeShort(event.timestamp),
                                 event.subject.name,
                                 event.agent.name,
-                                Formatting.toStringMoneyUsingSign(event.amount.multipliedBy(event.quantity), resources),
+                                Formatting.toStringMoneyUsingSign(event.amount, resources),
                                 CoreUtils.getExtendedAccountString(event.relevantBalance, resources)
                         );
                     }

@@ -104,7 +104,8 @@ public final class BundleProvider {
     }
 
     public static void backupDb() {
-        transferFile(dataSource.getUrl(), Environment.getExternalStorageDirectory() + File.separator + BUDGET_DB_NAME, "Error while backing up the DB");
+        getBundle();
+        transferFile(toPath(dataSource.getUrl()), Environment.getExternalStorageDirectory() + File.separator + BUDGET_DB_NAME, "Error while backing up the DB");
     }
 
     public static void restoreDbFromBackup() {
@@ -112,11 +113,11 @@ public final class BundleProvider {
             getBundle();
 
             final String errMsg = "Error restoring DB";
-            final String temp = getDefaultUrl().replace(JDBC_SQLITE_URL_START, "").replace(BUDGET_DB_NAME, "budget-backup.db");
+            final String temp = toPath(getDefaultUrl()).replace(BUDGET_DB_NAME, "budget-backup.db");
             transferFile(Environment.getExternalStorageDirectory() + File.separator + BUDGET_DB_NAME, temp, errMsg);
 
             try {
-                final String filePath = dataSource.getUrl().replace(JDBC_SQLITE_URL_START, "");
+                final String filePath = toPath(dataSource.getUrl());
                 dataSource.destroy();
                 transferFile(temp, filePath, errMsg);
                 setNewDatabase(JDBC_SQLITE_URL_START + filePath, false);
@@ -126,6 +127,10 @@ public final class BundleProvider {
                 }
             }
         }
+    }
+
+    private static String toPath(String url) {
+        return url.replace(JDBC_SQLITE_URL_START, "");
     }
 
     private static void transferFile(String source, String destination, String errMsg) {

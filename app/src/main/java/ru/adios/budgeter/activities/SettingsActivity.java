@@ -57,40 +57,55 @@ public class SettingsActivity extends FundsAwareMenuActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(SettingsActivity.class);
 
-    private final DialogInterface.OnClickListener dbDialogClickListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            if (which == DialogInterface.BUTTON_POSITIVE) {
-                new AsyncTask<Void, Void, String>() {
-                    @Override
-                    protected String doInBackground(Void... params) {
-                        String r = null;
-                        try {
-                            BundleProvider.getBundle().clearSchema();
-                        } catch (RuntimeException ex) {
-                            r = "Error: " + ex.getMessage();
-                        }
-                        return r;
+    private final DialogInterface.OnClickListener dbDialogClearListener = new YesNoDialogListener(
+            new AsyncTask<Void, Void, String>() {
+                @Override
+                protected String doInBackground(Void... params) {
+                    String r = null;
+                    try {
+                        BundleProvider.getBundle().clearSchema();
+                    } catch (RuntimeException ex) {
+                        r = "Error: " + ex.getMessage();
+                    }
+                    return r;
+                }
+
+                @Override
+                protected void onPostExecute(String s) {
+                    final TextView info = (TextView) findViewById(R.id.settings_reset_db_button_info);
+                    if (s == null) {
+                        info.setTextColor(UiUtils.GREEN_COLOR);
+                        info.setText(R.string.button_success);
+                        BalancesUiThreadState.instantiate(getApplication()); // invalidate balances cache
+                    } else {
+                        info.setTextColor(UiUtils.RED_COLOR);
+                        info.setText(s);
+                    }
+                    info.setVisibility(View.VISIBLE);
+                }
+            }
+    );
+    private final DialogInterface.OnClickListener dbDialogRestoreListener = new YesNoDialogListener(
+            new AsyncTask<Void, Void, Boolean>() {
+                @Override
+                protected Boolean doInBackground(Void... params) {
+                    try {
+                        BundleProvider.restoreDbFromBackup();
+                    } catch(RuntimeException e) {
+                        logger.error("Error while restoring", e);
+                        return false;
                     }
 
-                    @Override
-                    protected void onPostExecute(String s) {
-                        final TextView info = (TextView) findViewById(R.id.settings_reset_db_button_info);
-                        if (s == null) {
-                            info.setTextColor(UiUtils.GREEN_COLOR);
-                            info.setText(R.string.button_success);
-                            BalancesUiThreadState.instantiate(getApplication()); // invalidate balances cache
-                        } else {
-                            info.setTextColor(UiUtils.RED_COLOR);
-                            info.setText(s);
-                        }
-                        info.setVisibility(View.VISIBLE);
-                    }
-                }.execute();
+                    return true;
+                }
+
+                @Override
+                protected void onPostExecute(Boolean aVoid) {
+                    BalancesUiThreadState.instantiate(getApplication()); // invalidate balances cache
+                    Toast.makeText(SettingsActivity.this, aVoid ? "DB Imported!" : "DB failed to import...", Toast.LENGTH_LONG).show();
+                }
             }
-            dialog.dismiss();
-        }
-    };
+    );
     private final DialogInterface.OnClickListener dismissListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -125,8 +140,8 @@ public class SettingsActivity extends FundsAwareMenuActivity {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.attention_exclamation))
                 .setMessage(getString(R.string.settings_db_reset_dialog_text))
-                .setPositiveButton(getString(R.string.common_yes), dbDialogClickListener)
-                .setNegativeButton(getString(R.string.common_no), dbDialogClickListener)
+                .setPositiveButton(getString(R.string.common_yes), dbDialogClearListener)
+                .setNegativeButton(getString(R.string.common_no), dbDialogClearListener)
                 .show();
     }
 
@@ -234,24 +249,12 @@ public class SettingsActivity extends FundsAwareMenuActivity {
     }
 
     public void restoreDb(View view) {
-        new AsyncTask<Void, Void, Boolean>() {
-            @Override
-            protected Boolean doInBackground(Void... params) {
-                try {
-                    BundleProvider.restoreDbFromBackup();
-                } catch(RuntimeException e) {
-                    logger.error("Error while restoring", e);
-                    return false;
-                }
-
-                return true;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean aVoid) {
-                Toast.makeText(SettingsActivity.this, aVoid ? "DB Imported!" : "DB failed to import...", Toast.LENGTH_LONG).show();
-            }
-        }.execute();
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.attention_exclamation))
+                .setMessage(getString(R.string.settings_db_restore_dialog_text))
+                .setPositiveButton(getString(R.string.common_yes), dbDialogRestoreListener)
+                .setNegativeButton(getString(R.string.common_no), dbDialogRestoreListener)
+                .show();
     }
 
     @Override
@@ -263,6 +266,24 @@ public class SettingsActivity extends FundsAwareMenuActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private static final class YesNoDialogListener implements DialogInterface.OnClickListener {
+
+        private final AsyncTask<Void, Void, ?> task;
+
+        YesNoDialogListener(AsyncTask<Void, Void, ?> task) {
+            this.task = task;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            if (which == DialogInterface.BUTTON_POSITIVE) {
+                task.execute();
+            }
+            dialog.dismiss();
+        }
+
     }
 
 }

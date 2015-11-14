@@ -108,5 +108,6 @@
     <string name="funds_mutation_portion_box_text">Operating on portion</string>
     <string name="button_backup_db">Backup DB</string>
     <string name="button_restore_db">Restore DB</string>
+    <string name="settings_db_restore_dialog_text">You will loose any data that is newer than backup. Proceed?</string>
 
 </resources>

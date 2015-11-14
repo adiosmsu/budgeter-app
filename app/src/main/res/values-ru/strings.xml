@@ -104,4 +104,5 @@
     <string name="funds_mutation_portion_box_text">Операция на доли</string>
     <string name="button_backup_db">Бэкап ДБ</string>
     <string name="button_restore_db">Восстановление DB</string>
+    <string name="settings_db_restore_dialog_text">Вы потеряете все данные, новее бэкапа. Продолжить?</string>
 </resources>

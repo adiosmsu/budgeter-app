@@ -24,6 +24,8 @@ import android.os.Environment;
 
 import com.google.common.base.Preconditions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -34,6 +36,10 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -68,6 +74,8 @@ import ru.adios.budgeter.jdbcrepo.SourcingBundle;
 @ThreadSafe
 public final class BundleProvider {
 
+    private static final Logger logger = LoggerFactory.getLogger(BundleProvider.class);
+
     public static SourcingBundle getBundle() {
         if (dataSource == null) {
             initDataSource(getDefaultUrl());
@@ -75,16 +83,76 @@ public final class BundleProvider {
         return BundleContainer.BUNDLE;
     }
 
+    private static final String JDBC_SQLITE_URL_START = "jdbc:sqlite:";
+    public static final String BUDGET_DB_NAME = "budget.db";
     public static volatile String DEFAULT_PATH = Environment.getDataDirectory() + "/data/ru.adios.budgeter/databases/budget.db";
 
-    public static void setNewDatabase(String url) {
+    public static SingleConnectionDataSource setNewDatabase(String url, boolean destroyOld) {
         synchronized (BundleProvider.class) {
             final SingleConnectionDataSource ds = createDataSource(url);
             BundleContainer.BUNDLE.setNewDataSource(ds, new SpringTransactionalSupport(ds));
             try {
-                dataSource.destroy();
+                final SingleConnectionDataSource ret = dataSource;
+                if (destroyOld) {
+                    ret.destroy();
+                }
+                return ret;
             } finally {
                 dataSource = ds;
+            }
+        }
+    }
+
+    public static void backupDb() {
+        transferFile(dataSource.getUrl(), Environment.getExternalStorageDirectory() + File.separator + BUDGET_DB_NAME, "Error while backing up the DB");
+    }
+
+    public static void restoreDbFromBackup() {
+        synchronized (BundleProvider.class) {
+            getBundle();
+
+            final String errMsg = "Error restoring DB";
+            final String temp = getDefaultUrl().replace(JDBC_SQLITE_URL_START, "").replace(BUDGET_DB_NAME, "budget-backup.db");
+            transferFile(Environment.getExternalStorageDirectory() + File.separator + BUDGET_DB_NAME, temp, errMsg);
+
+            try {
+                final String filePath = dataSource.getUrl().replace(JDBC_SQLITE_URL_START, "");
+                dataSource.destroy();
+                transferFile(temp, filePath, errMsg);
+                setNewDatabase(JDBC_SQLITE_URL_START + filePath, false);
+            } finally {
+                if (!new File(temp).delete()) {
+                    logger.warn("Temp backup file wasn't deleted!");
+                }
+            }
+        }
+    }
+
+    private static void transferFile(String source, String destination, String errMsg) {
+        final File sourceFile = new File(source);
+        final File destFile = new File(destination);
+
+        FileChannel fcSource = null;
+        FileChannel fcDest = null;
+        try {
+            fcSource = new FileInputStream(sourceFile).getChannel();
+            fcDest = new FileOutputStream(destFile).getChannel();
+            fcDest.transferFrom(fcSource, 0, fcSource.size());
+            fcSource.close();
+            fcDest.close();
+        } catch(IOException e) {
+            logger.error(errMsg, e);
+            throw new DataAccessResourceFailureException(errMsg, e);
+        } finally {
+            try {
+                if (fcSource != null) {
+                    fcSource.close();
+                }
+                if (fcDest != null) {
+                    fcDest.close();
+                }
+            } catch (IOException ignore) {
+                logger.warn("Exception while closing IO channels", ignore);
             }
         }
     }
@@ -101,7 +169,7 @@ public final class BundleProvider {
                 throw new IllegalStateException("Unable to create " + dirPath);
             }
         }
-        return "jdbc:sqlite:" + defaultFilePath;
+        return JDBC_SQLITE_URL_START + defaultFilePath;
     }
 
     private static SingleConnectionDataSource createDataSource(String url) {

@@ -33,6 +33,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.collect.ImmutableList;
 
@@ -78,7 +79,7 @@ public class SettingsActivity extends FundsAwareMenuActivity {
                         if (s == null) {
                             info.setTextColor(UiUtils.GREEN_COLOR);
                             info.setText(R.string.button_success);
-                            BalancesUiThreadState.instantiate(); // invalidate balances cache
+                            BalancesUiThreadState.instantiate(getApplication()); // invalidate balances cache
                         } else {
                             info.setTextColor(UiUtils.RED_COLOR);
                             info.setText(s);
@@ -209,6 +210,48 @@ public class SettingsActivity extends FundsAwareMenuActivity {
         if (first) {
             mesBuilder.append("None");
         }
+    }
+
+    public void backupDb(View view) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                try {
+                    BundleProvider.backupDb();
+                } catch(RuntimeException e) {
+                    logger.error("Error while backing up", e);
+                    return false;
+                }
+
+                return true;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean aVoid) {
+                Toast.makeText(SettingsActivity.this, aVoid ? "DB Exported!" : "DB failed to export...", Toast.LENGTH_LONG).show();
+            }
+        }.execute();
+    }
+
+    public void restoreDb(View view) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                try {
+                    BundleProvider.restoreDbFromBackup();
+                } catch(RuntimeException e) {
+                    logger.error("Error while restoring", e);
+                    return false;
+                }
+
+                return true;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean aVoid) {
+                Toast.makeText(SettingsActivity.this, aVoid ? "DB Imported!" : "DB failed to import...", Toast.LENGTH_LONG).show();
+            }
+        }.execute();
     }
 
     @Override

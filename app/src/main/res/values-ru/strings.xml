@@ -100,4 +100,8 @@
     <string name="type_product">Товар</string>
     <string name="type_service">Сервис</string>
     <string name="work_finished_phraze">Работа закончена</string>
+    <string name="funds_mutation_portion_text">Доля субъекта</string>
+    <string name="funds_mutation_portion_box_text">Операция на доли</string>
+    <string name="button_backup_db">Бэкап ДБ</string>
+    <string name="button_restore_db">Восстановление DB</string>
 </resources>

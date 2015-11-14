@@ -104,5 +104,9 @@
     <string name="prices_table_col_subject">Subject</string>
     <string name="prices_table_col_agent">Agent</string>
     <string name="button_prices">Explore prices</string>
+    <string name="funds_mutation_portion_text">Subject portion</string>
+    <string name="funds_mutation_portion_box_text">Operating on portion</string>
+    <string name="button_backup_db">Backup DB</string>
+    <string name="button_restore_db">Restore DB</string>
 
 </resources>

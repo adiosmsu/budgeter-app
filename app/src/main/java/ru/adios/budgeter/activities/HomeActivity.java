@@ -165,7 +165,7 @@ public class HomeActivity extends FundsAwareMenuActivity {
         ebParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
         btnEx.setLayoutParams(ebParams);
 
-        BalancesUiThreadState.instantiate(); // this is the first activity so...
+        BalancesUiThreadState.instantiate(getApplication()); // this is the first activity so...
 
         mutationsTable.start();
         exchangesTable.start();

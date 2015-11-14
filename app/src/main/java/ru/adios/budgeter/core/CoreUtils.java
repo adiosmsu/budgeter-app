@@ -22,6 +22,7 @@ package ru.adios.budgeter.core;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.support.annotation.UiThread;
 import android.widget.Toast;
 
 import org.joda.money.CurrencyUnit;
@@ -53,13 +54,18 @@ import ru.adios.budgeter.util.Formatting;
 @Immutable
 public final class CoreUtils {
 
-    public static Money getTotalBalance(BalanceElementCore balanceElement, @Nullable Logger logger) {
+    @UiThread
+    public static Money getTotalBalance(BalanceElementCore balanceElement, @Nullable Context application, @Nullable Logger logger) {
         Money totalBalance;
         try {
             totalBalance = balanceElement.getTotalBalance();
         } catch (BudgeterApiException ex) {
+            final String msg = "Error fetching total balance";
             if (logger != null) {
-                logger.error("Error fetching total balance", ex);
+                logger.error(msg, ex);
+            }
+            if (application != null) {
+                Toast.makeText(application, msg + ": " + ex.getMessage(), Toast.LENGTH_LONG).show();
             }
             totalBalance = Money.zero(Units.RUB);
         }

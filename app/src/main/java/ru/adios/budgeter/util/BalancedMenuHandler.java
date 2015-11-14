@@ -71,13 +71,13 @@ public final class BalancedMenuHandler {
 
     public void onCreateMenu(Menu menu) {
         if (tbSnap == null) {
-            tbSnap = BalancesUiThreadState.totalBalance;
+            tbSnap = BalancesUiThreadState.innerTotalBalance;
         }
         UiUtils.fillStandardMenu(menu, tbSnap, resources);
     }
 
     public void updateMenu(Activity activity) {
-        final Money newSnap = BalancesUiThreadState.totalBalance;
+        final Money newSnap = BalancesUiThreadState.innerTotalBalance;
         if (!newSnap.equals(tbSnap)) {
             tbSnap = newSnap;
             activity.invalidateOptionsMenu();

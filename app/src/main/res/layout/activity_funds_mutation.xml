@@ -43,12 +43,42 @@
                 android:hint="@string/funds_mutation_quantity_text"
                 android:inputType="number"/>
             <TextView
+                android:id="@+id/funds_mutation_quantity_info"
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:text=""
                 android:textColor="#af0b0b"
-                android:id="@+id/funds_mutation_quantity_info"
                 android:layout_below="@id/funds_mutation_quantity"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:visibility="invisible" />
+
+            <EditText
+                android:id="@+id/funds_mutation_portion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/funds_mutation_quantity_info"
+                android:hint="@string/funds_mutation_portion_text"
+                android:inputType="numberDecimal"
+                android:visibility="invisible"/>
+            <CheckBox
+                android:id="@+id/funds_mutation_portion_box"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignTop="@id/funds_mutation_portion"
+                android:layout_alignBottom="@id/funds_mutation_portion"
+                android:layout_below="@id/funds_mutation_quantity_info"
+                app:layout_widthPercent="40%"
+                android:text="@string/funds_mutation_portion_box_text" />
+            <TextView
+                android:id="@+id/funds_mutation_portion_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#af0b0b"
+                android:layout_below="@id/funds_mutation_portion"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:visibility="invisible" />
@@ -59,7 +89,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_below="@id/funds_mutation_quantity_info"
+                android:layout_below="@id/funds_mutation_portion_info"
                 android:orientation="horizontal">
 
                 <RadioButton
@@ -75,7 +105,7 @@
             </RadioGroup>
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:text=""
                 android:textColor="#af0b0b"
                 android:id="@+id/funds_mutation_direction_radio_info"

@@ -65,6 +65,7 @@ import ru.adios.budgeter.util.UiUtils;
 public class FundsMutationActivity extends CoreElementActivity {
 
     public static final String KEY_HIGHLIGHTER = "fu_ma_act_high";
+    public static final String KEY_PORTION = "fu_ma_port_key";
     public static final String KEY_COST = "fu_ma_cost_key";
     public static final String KEY_PAY = "fu_ma_pay_key";
     public static final String KEY_NATURAL_RATE = "fu_ma_nr_key";
@@ -163,10 +164,12 @@ public class FundsMutationActivity extends CoreElementActivity {
     private final CheckedChangeListener costListener = new CheckedChangeListener(R.id.funds_mutation_subject_cost_fragment, true);
     private TextView fundsMutationNaturalRate;
     private TextView fundsMutationCustomRate;
+    private TextView portionTextView;
     private TextView fundsMutationQuantity;
     private RadioGroup fundsMutationDirectionRadio;
 
     // transient state
+    private boolean portionShown = false;
     private boolean costShown = true;
     private boolean payShown = true;
     private BigDecimal naturalRateVal;
@@ -193,12 +196,9 @@ public class FundsMutationActivity extends CoreElementActivity {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey(KEY_COST)) {
-                costShown = savedInstanceState.getBoolean(KEY_COST);
-            }
-            if (savedInstanceState.containsKey(KEY_PAY)) {
-                payShown = savedInstanceState.getBoolean(KEY_PAY);
-            }
+            portionShown = savedInstanceState.getBoolean(KEY_PORTION, true);
+            costShown = savedInstanceState.getBoolean(KEY_COST, false);
+            payShown = savedInstanceState.getBoolean(KEY_PAY, false);
             final String nrStr = savedInstanceState.getString(KEY_NATURAL_RATE);
             if (nrStr != null) {
                 naturalRateVal = new BigDecimal(nrStr);
@@ -209,6 +209,12 @@ public class FundsMutationActivity extends CoreElementActivity {
             }
         }
 
+        portionTextView = (TextView) findViewById(R.id.funds_mutation_portion);
+        if (portionShown) {
+            portionTextView.setVisibility(View.VISIBLE);
+        } else {
+            portionTextView.setVisibility(View.INVISIBLE);
+        }
         if (costShown) {
             findViewById(R.id.funds_mutation_subject_cost_fragment).setVisibility(View.VISIBLE);
         } else {
@@ -237,6 +243,18 @@ public class FundsMutationActivity extends CoreElementActivity {
                 final int prev = mutationElement.getQuantity();
                 if (prev != i) {
                     mutationElement.setQuantity(i);
+                    return true;
+                }
+                return false;
+            }
+        });
+        mutationHighlighter.addElementInfo(FundsMutationElementCore.FIELD_PORTION, findViewById(R.id.funds_mutation_portion_info));
+        CoreNotifier.addLink(this, portionTextView, new CoreNotifier.DecimalLinker() {
+            @Override
+            public boolean link(BigDecimal data) {
+                final BigDecimal prev = mutationElement.getPortion();
+                if ((prev == null && data != null) || (prev != null && !prev.equals(data))) {
+                    mutationElement.setPortion(data);
                     return true;
                 }
                 return false;
@@ -281,6 +299,18 @@ public class FundsMutationActivity extends CoreElementActivity {
             }
         });
 
+        ((CheckBox) findViewById(R.id.funds_mutation_portion_box)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                portionShown = isChecked;
+                if (isChecked) {
+                    portionTextView.setVisibility(View.VISIBLE);
+                } else {
+                    portionTextView.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
         final CheckBox paidAmountBox = (CheckBox) findViewById(R.id.funds_mutation_paid_amount_box);
         paidAmountBox.setOnCheckedChangeListener(paidMoneyListener);
         final CheckBox costBox = (CheckBox) findViewById(R.id.funds_mutation_subject_cost_box);
@@ -296,6 +326,7 @@ public class FundsMutationActivity extends CoreElementActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_PORTION, portionShown);
         outState.putBoolean(KEY_COST, costShown);
         outState.putBoolean(KEY_PAY, payShown);
         outState.putString(KEY_NATURAL_RATE, naturalRateVal != null ? naturalRateVal.toPlainString() : null);
@@ -322,6 +353,7 @@ public class FundsMutationActivity extends CoreElementActivity {
     protected final void activityInnerFeedback() {
         Feedbacking.decimalTextViewFeedback(mutationElement.getNaturalRate(), fundsMutationNaturalRate);
         Feedbacking.decimalTextViewFeedback(mutationElement.getCustomRate(), fundsMutationCustomRate);
+        Feedbacking.decimalTextViewFeedback(mutationElement.getPortion(), portionTextView);
         Feedbacking.textViewFeedback(String.valueOf(mutationElement.getQuantity()), fundsMutationQuantity);
         Feedbacking.radioGroupFeedback(mutationElement.getDirection(), fundsMutationDirectionRadio);
     }

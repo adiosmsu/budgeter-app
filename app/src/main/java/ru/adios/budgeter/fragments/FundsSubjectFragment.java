@@ -53,7 +53,7 @@ import ru.adios.budgeter.SubjectAdditionElementCore;
 import ru.adios.budgeter.adapters.FundsMutationSubjectContainer;
 import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.adapters.ModedRequestingAutoCompleteAdapter;
-import ru.adios.budgeter.adapters.RequestingAutoCompleteAdapter;
+import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.api.data.FundsMutationSubject;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
 import ru.adios.budgeter.core.CollectedFragmentsInfoProvider;
@@ -244,7 +244,7 @@ public class FundsSubjectFragment extends CoreFragment {
                         return BundleProvider.getBundle().fundsMutationSubjects().nameLikeSearch(constraint);
                     }
                 },
-                new RequestingAutoCompleteAdapter.StringPresenter<FundsMutationSubject>() {
+                new StringPresenter<FundsMutationSubject>() {
                     @Override
                     public String getStringPresentation(FundsMutationSubject item) {
                         return item.name;

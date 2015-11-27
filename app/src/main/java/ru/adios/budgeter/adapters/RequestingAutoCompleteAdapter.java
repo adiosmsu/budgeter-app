@@ -47,25 +47,17 @@ import ru.adios.budgeter.R;
 @NotThreadSafe
 public abstract class RequestingAutoCompleteAdapter<T> extends BaseAdapter implements Filterable {
 
-    @UiThread
-    public interface StringPresenter<T> {
-
-        String getStringPresentation(T item);
-
-    }
-
-    private final Context context;
+    private final LayoutInflater layoutInflater;
     private final StringPresenter<T> presenter;
 
     private List<T> resultsCache = new ArrayList<>();
 
     public RequestingAutoCompleteAdapter(Context context) {
-        this.context = context;
-        this.presenter = new DefPresenter<>();
+        this(context, new DefPresenter<T>());
     }
 
     public RequestingAutoCompleteAdapter(Context context, StringPresenter<T> presenter) {
-        this.context = context;
+        this.layoutInflater = LayoutInflater.from(context);
         this.presenter = presenter;
     }
 
@@ -91,7 +83,7 @@ public abstract class RequestingAutoCompleteAdapter<T> extends BaseAdapter imple
     @UiThread
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.simple_dropdown_item_1line, parent, false);
+            convertView = layoutInflater.inflate(R.layout.simple_dropdown_item_1line, parent, false);
         }
         ((TextView) convertView.findViewById(R.id.text1)).setText(presenter.getStringPresentation(getItem(position)));
 

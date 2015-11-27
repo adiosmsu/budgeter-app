@@ -218,9 +218,10 @@ public class AccountStandardFragment extends CoreFragment {
     }
 
 
-
+    // transient state
     private boolean editOpen = false;
     private int selectedAccount = -1;
+    // end of transient state
 
     public AccountStandardFragment() {
         // Required empty public constructor

@@ -105,20 +105,8 @@ public final class ModedRequestingAutoCompleteAdapter<T> extends RequestingAutoC
         decorator = null;
     }
 
-    public ModedRequestingAutoCompleteAdapter(Context context, Requester<T> requester, StringPresenter<T> presenter) {
-        super(context, presenter);
-        this.requester = requester;
-        decorator = null;
-    }
-
     public ModedRequestingAutoCompleteAdapter(Context context, Requester<T> requester, @Nullable RequestDecorator decorator) {
         super(context);
-        this.requester = requester;
-        this.decorator = decorator;
-    }
-
-    public ModedRequestingAutoCompleteAdapter(Context context, Requester<T> requester, StringPresenter<T> presenter, @Nullable RequestDecorator decorator) {
-        super(context, presenter);
         this.requester = requester;
         this.decorator = decorator;
     }

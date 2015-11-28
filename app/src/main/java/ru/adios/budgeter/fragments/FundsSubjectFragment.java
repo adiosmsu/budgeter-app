@@ -236,7 +236,7 @@ public class FundsSubjectFragment extends CoreFragment {
         final DelayingAutoCompleteTextView parentNameInput = (DelayingAutoCompleteTextView) inflated.findViewById(R.id.subjects_parent_name_input);
         parentNameInput.setThreshold(2);
         parentNameInput.setAutoCompleteDelayMillis(2000);
-        parentNameInput.setAdapter(new ModedRequestingAutoCompleteAdapter<>(
+        final ModedRequestingAutoCompleteAdapter<FundsMutationSubject> autoCompleteAdapter = new ModedRequestingAutoCompleteAdapter<>(
                 activity,
                 new ModedRequestingAutoCompleteAdapter.Requester<FundsMutationSubject>() {
                     @Override
@@ -244,14 +244,17 @@ public class FundsSubjectFragment extends CoreFragment {
                         return BundleProvider.getBundle().fundsMutationSubjects().nameLikeSearch(constraint);
                     }
                 },
+                ModedRequestingAutoCompleteAdapter.SQL_ILIKE_DECORATOR
+        );
+        autoCompleteAdapter.setStringPresenter(
                 new StringPresenter<FundsMutationSubject>() {
                     @Override
                     public String getStringPresentation(FundsMutationSubject item) {
                         return item.name;
                     }
-                },
-                ModedRequestingAutoCompleteAdapter.SQL_ILIKE_DECORATOR
-        ));
+                }
+        );
+        parentNameInput.setAdapter(autoCompleteAdapter);
         parentNameInput.setLoadingIndicator((ProgressBar) inflated.findViewById(R.id.subjects_parent_name_input_progress));
         parentNameInput.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

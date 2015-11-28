@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * 11/27/15
  */
 @UiThread
-public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements ThemedSpinnerAdapter {
+public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements ThemedSpinnerAdapter, StringPresentingAdapter<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewProvidingBaseAdapter.class);
 
@@ -75,6 +75,7 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
         this.lrnField = new LazyResName(context, fieldId);
     }
 
+    @Override
     public void setStringPresenter(StringPresenter<T> stringPresenter) {
         this.stringPresenter = stringPresenter;
     }

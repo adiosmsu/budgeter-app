@@ -45,19 +45,20 @@ import ru.adios.budgeter.R;
  * 10/15/15
  */
 @NotThreadSafe
-public abstract class RequestingAutoCompleteAdapter<T> extends BaseAdapter implements Filterable {
+public abstract class RequestingAutoCompleteAdapter<T> extends BaseAdapter implements Filterable, StringPresentingAdapter<T> {
 
     private final LayoutInflater layoutInflater;
-    private final StringPresenter<T> presenter;
+
+    private StringPresenter<T> presenter = new DefPresenter<>();
 
     private List<T> resultsCache = new ArrayList<>();
 
     public RequestingAutoCompleteAdapter(Context context) {
-        this(context, new DefPresenter<T>());
+        this.layoutInflater = LayoutInflater.from(context);
     }
 
-    public RequestingAutoCompleteAdapter(Context context, StringPresenter<T> presenter) {
-        this.layoutInflater = LayoutInflater.from(context);
+    @Override
+    public void setStringPresenter(StringPresenter<T> presenter) {
         this.presenter = presenter;
     }
 

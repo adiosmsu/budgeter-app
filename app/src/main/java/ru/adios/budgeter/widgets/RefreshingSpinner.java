@@ -27,6 +27,7 @@ import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
 import android.widget.SpinnerAdapter;
 
+import ru.adios.budgeter.adapters.DecoratingAdapter;
 import ru.adios.budgeter.adapters.RefreshingAdapter;
 
 /**
@@ -48,7 +49,16 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
     }
 
     @Override
-    public void setAdapter(SpinnerAdapter adapter) {
+    public void setAdapter(final SpinnerAdapter a) {
+        SpinnerAdapter adapter = a;
+        while (adapter instanceof DecoratingAdapter) {
+            final DecoratingAdapter decAd = (DecoratingAdapter) adapter;
+            if (SpinnerAdapter.class.isAssignableFrom(decAd.getWrappedType())) {
+                adapter = (SpinnerAdapter) decAd.getWrapped();
+            } else {
+                break;
+            }
+        }
         if (adapter instanceof RefreshingAdapter) {
             //noinspection unchecked
             refreshingAdapter = (RefreshingAdapter<DataType, DataType>) adapter;
@@ -61,7 +71,8 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
                 }
             });
         }
-        super.setAdapter(adapter);
+
+        super.setAdapter(a);
     }
 
     @Override

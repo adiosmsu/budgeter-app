@@ -54,7 +54,7 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 @UiThread
 public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedSpinnerAdapter, T>
         extends BaseAdapter
-        implements NullableAdapter, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
+        implements NullableAdapter, DecoratingAdapter, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
 
     public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, Type[] array) {
         NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), array);
@@ -131,6 +131,16 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
         nullViewProvider = fieldId.isPresent()
                 ? new NullViewProvider(context, resource, fieldId.getAsInt())
                 : new NullViewProvider(context, resource);
+    }
+
+    @Override
+    public AdapterType getWrapped() {
+        return delegate;
+    }
+
+    @Override
+    public Class<? extends BaseAdapter> getWrappedType() {
+        return delegate.getClass();
     }
 
     @Override

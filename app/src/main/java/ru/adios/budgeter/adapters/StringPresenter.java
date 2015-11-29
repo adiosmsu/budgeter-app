@@ -31,4 +31,6 @@ public interface StringPresenter<T> {
 
     String getStringPresentation(T item);
 
+    void registerAdapter(ObservedAdapter adapter);
+
 }

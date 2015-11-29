@@ -60,6 +60,7 @@ public abstract class RequestingAutoCompleteAdapter<T> extends BaseAdapter imple
     @Override
     public void setStringPresenter(StringPresenter<T> presenter) {
         this.presenter = presenter;
+        presenter.registerAdapter(this);
     }
 
     @Override
@@ -134,7 +135,7 @@ public abstract class RequestingAutoCompleteAdapter<T> extends BaseAdapter imple
     @WorkerThread
     protected abstract List<T> doRequest(String constraint);
 
-    private static final class DefPresenter<T> implements StringPresenter<T> {
+    private static final class DefPresenter<T> extends UnchangingStringPresenter<T> {
         @Override
         public String getStringPresentation(T item) {
             return item.toString();

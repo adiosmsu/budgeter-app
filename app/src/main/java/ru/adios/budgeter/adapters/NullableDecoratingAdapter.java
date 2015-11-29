@@ -31,16 +31,20 @@ import android.support.annotation.UiThread;
 import android.support.v7.widget.ThemedSpinnerAdapter;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
-import android.widget.SpinnerAdapter;
+import android.widget.BaseAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.Collection;
+import java.util.List;
 
 import java8.util.Optional;
 import java8.util.OptionalInt;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkElementIndex;
 
 /**
@@ -48,8 +52,40 @@ import static com.google.common.base.Preconditions.checkElementIndex;
  * 11/28/15
  */
 @UiThread
-public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter & ListAdapter & ThemedSpinnerAdapter, T>
-        implements SpinnerAdapter, ListAdapter, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
+public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedSpinnerAdapter, T>
+        extends BaseAdapter
+        implements NullableAdapter, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
+
+    public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, Type[] array) {
+        NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), array);
+        adaptSpinner(spinner, adapter, presenter);
+    }
+
+    public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, List<Type> list) {
+        NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), list);
+        adaptSpinner(spinner, adapter, presenter);
+    }
+
+    private static <Type> void adaptSpinner(Spinner spinner, NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter, Optional<StringPresenter<Type>> presenter) {
+        if (presenter.isPresent()) {
+            adapter.setStringPresenter(presenter.get());
+        }
+        spinner.setAdapter(adapter);
+    }
+
+    public static <Type> NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> constructArrayWrapper(Context context, String nullVal, Type[] array) {
+        return constructArrayWrapperInner(context, nullVal, new CompatArrayAdapter<>(context, android.R.layout.simple_spinner_item, array));
+    }
+
+    public static <Type> NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> constructArrayWrapper(Context context, String nullVal, List<Type> list) {
+        return constructArrayWrapperInner(context, nullVal, new CompatArrayAdapter<>(context, android.R.layout.simple_spinner_item, list));
+    }
+
+    private static <Type> NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> constructArrayWrapperInner(Context context, String nullVal, CompatArrayAdapter<Type> innerAdapter) {
+        innerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return new NullableDecoratingAdapter<>(context, innerAdapter, nullVal, android.R.layout.simple_spinner_item);
+    }
+
 
     private final AdapterType delegate;
     private final NullViewProvider nullViewProvider;
@@ -63,7 +99,11 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
 
     private StringPresenter<T> stringPresenter;
 
-    public NullableDecoratingSpinnerAdapter(Context context, AdapterType delegate, @StringRes int resNullValStr, @LayoutRes int resource, @IdRes OptionalInt fieldId) {
+    public NullableDecoratingAdapter(Context context, AdapterType delegate, @StringRes int resNullValStr, @LayoutRes int resource) {
+        this(context, delegate, resNullValStr, resource, OptionalInt.empty());
+    }
+
+    public NullableDecoratingAdapter(Context context, AdapterType delegate, @StringRes int resNullValStr, @LayoutRes int resource, @IdRes OptionalInt fieldId) {
         this.delegate = delegate;
         this.delegateIsArray = delegate instanceof ArrayAdapter;
         this.delegateIsMutable = delegate instanceof MutableAdapter && ((MutableAdapter) delegate).isMutable();
@@ -76,7 +116,11 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
                 : new NullViewProvider(context, resource);
     }
 
-    public NullableDecoratingSpinnerAdapter(Context context, AdapterType delegate, String nullValStr, @LayoutRes int resource, @IdRes OptionalInt fieldId) {
+    public NullableDecoratingAdapter(Context context, AdapterType delegate, String nullValStr, @LayoutRes int resource) {
+        this(context, delegate, nullValStr, resource, OptionalInt.empty());
+    }
+
+    public NullableDecoratingAdapter(Context context, AdapterType delegate, String nullValStr, @LayoutRes int resource, @IdRes OptionalInt fieldId) {
         this.delegate = delegate;
         this.delegateIsArray = delegate instanceof ArrayAdapter;
         this.delegateIsMutable = delegate instanceof MutableAdapter && ((MutableAdapter) delegate).isMutable();
@@ -90,17 +134,30 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
     }
 
     @Override
+    public <A extends Adapter> void setNullSelection(AdapterView<A> adapterView) {
+        adapterView.setSelection(0);
+    }
+
+    @Override
     public void setStringPresenter(StringPresenter<T> stringPresenter) {
         this.stringPresenter = stringPresenter;
         if (delegate instanceof StringPresentingAdapter) {
             //noinspection unchecked
             ((StringPresentingAdapter<T>) delegate).setStringPresenter(stringPresenter);
+        } else {
+            stringPresenter.registerAdapter(this);
         }
     }
 
     @Override
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
-        return delegate.getDropDownView(position, convertView, parent);
+        if (position == 0) {
+            return nullViewProvider.getDropDownView(0, convertView, parent);
+        }
+
+        final View dropDownView = delegate.getDropDownView(position - 1, convertView, parent);
+        checkStringPresentationForView(position, dropDownView);
+        return dropDownView;
     }
 
     @Override
@@ -140,6 +197,11 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
         }
 
         final View view = delegate.getView(position - 1, convertView, parent);
+        checkStringPresentationForView(position, view);
+        return view;
+    }
+
+    private void checkStringPresentationForView(int position, View view) {
         if (!(delegate instanceof StringPresentingAdapter) && stringPresenter != null) {
             TextView text;
             try {
@@ -149,12 +211,10 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
                     text = (TextView) view;
                 }
             } catch (ClassCastException e) {
-                throw new IllegalStateException("NullableDecoratingSpinnerAdapter requires the resource ID to be a TextView", e);
+                throw new IllegalStateException("NullableDecoratingAdapter requires the resource ID to be a TextView", e);
             }
-            text.setText(stringPresenter.getStringPresentation(getItem(position - 1)));
+            text.setText(stringPresenter.getStringPresentation(getItem(position)));
         }
-
-        return view;
     }
 
     @Override
@@ -174,11 +234,13 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
 
     @Override
     public void registerDataSetObserver(DataSetObserver observer) {
+        super.registerDataSetObserver(observer);
         delegate.registerDataSetObserver(observer);
     }
 
     @Override
     public void unregisterDataSetObserver(DataSetObserver observer) {
+        super.unregisterDataSetObserver(observer);
         delegate.unregisterDataSetObserver(observer);
     }
 
@@ -244,6 +306,7 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
     @Override
     @SuppressWarnings("unchecked")
     public void insert(T object, int index) {
+        checkArgument(index != 0, "Cannot insert on null value place");
         if (delegateIsArray) {
             ((ArrayAdapter<T>) delegate).insert(object, index - 1);
         } else if (delegateIsMutable) {
@@ -256,6 +319,7 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
     @Override
     @SuppressWarnings("unchecked")
     public void remove(T object) {
+        checkArgument(object != null, "Cannot remove null");
         if (delegateIsArray) {
             ((ArrayAdapter<T>) delegate).remove(object);
         } else if (delegateIsMutable) {
@@ -287,6 +351,7 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
     }
 
     private final class NullViewProvider extends ViewProvidingBaseAdapter<String> {
+
         NullViewProvider(Context context, @LayoutRes int resource) {
             super(context, resource);
         }
@@ -312,6 +377,7 @@ public class NullableDecoratingSpinnerAdapter<AdapterType extends SpinnerAdapter
         public long getItemId(int position) {
             return position;
         }
+
     }
 
 }

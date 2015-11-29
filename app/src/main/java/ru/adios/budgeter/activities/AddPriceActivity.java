@@ -36,7 +36,6 @@ import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.PriceAdditionElementCore;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.api.UtcDay;
 import ru.adios.budgeter.api.data.FundsMutationAgent;
 import ru.adios.budgeter.api.data.FundsMutationSubject;
@@ -65,13 +64,13 @@ public class AddPriceActivity extends CoreElementActivity {
                             R.id.add_price_subject_fragment,
                             this,
                             null,
-                            new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_SUBJECT, new CoreNotifier.HintedLinker() {
+                            new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_SUBJECT, new CoreNotifier.ArbitraryLinker() {
                                 @Override
-                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                    final FundsMutationSubject object = (FundsMutationSubject) data.getObject();
+                                public boolean link(Object data) {
+                                    final FundsMutationSubject subject = (FundsMutationSubject) data;
                                     final FundsMutationSubject prev = priceElement.getSubject();
-                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                        priceElement.setSubject(object);
+                                    if ((prev == null && subject != null) || (prev != null && !prev.equals(subject))) {
+                                        priceElement.setSubject(subject);
                                         return true;
                                     }
                                     return false;
@@ -89,13 +88,13 @@ public class AddPriceActivity extends CoreElementActivity {
                     FundsAgentFragment.getInfoProvider(
                             R.id.add_price_agent_fragment,
                             null,
-                            new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
+                            new CoreElementFieldInfo(PriceAdditionElementCore.FIELD_AGENT, new CoreNotifier.ArbitraryLinker() {
                                 @Override
-                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                    final FundsMutationAgent object = (FundsMutationAgent) data.getObject();
+                                public boolean link(Object data) {
+                                    final FundsMutationAgent agent = (FundsMutationAgent) data;
                                     final FundsMutationAgent prev = priceElement.getAgent();
-                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                        priceElement.setAgent(object);
+                                    if ((prev == null && agent != null) || (prev != null && !prev.equals(agent))) {
+                                        priceElement.setAgent(agent);
                                         return true;
                                     }
                                     return false;

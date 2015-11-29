@@ -44,7 +44,6 @@ import ru.adios.budgeter.FundsMutationElementCore;
 import ru.adios.budgeter.FundsMutator;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.api.data.FundsMutationAgent;
 import ru.adios.budgeter.api.data.FundsMutationSubject;
@@ -80,13 +79,13 @@ public class FundsMutationActivity extends CoreElementActivity {
                             R.id.funds_mutation_subject_fragment,
                             this,
                             null,
-                            new CoreElementFieldInfo(FundsMutationElementCore.FIELD_SUBJECT, new CoreNotifier.HintedLinker() {
+                            new CoreElementFieldInfo(FundsMutationElementCore.FIELD_SUBJECT, new CoreNotifier.ArbitraryLinker() {
                                 @Override
-                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                    final FundsMutationSubject object = (FundsMutationSubject) data.getObject();
+                                public boolean link(Object data) {
+                                    final FundsMutationSubject subject = (FundsMutationSubject) data;
                                     final FundsMutationSubject prev = mutationElement.getSubject();
-                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                        mutationElement.setSubject(object);
+                                    if ((prev == null && subject != null) || (prev != null && !prev.equals(subject))) {
+                                        mutationElement.setSubject(subject);
                                         return true;
                                     }
                                     return false;
@@ -120,13 +119,13 @@ public class FundsMutationActivity extends CoreElementActivity {
                                     return mutationElement.getRelevantBalance();
                                 }
                             })
-                                    .provideAccountFieldInfo(FundsMutationElementCore.FIELD_RELEVANT_BALANCE, mutationHighlighter, new CoreNotifier.HintedLinker() {
+                                    .provideAccountFieldInfo(FundsMutationElementCore.FIELD_RELEVANT_BALANCE, mutationHighlighter, new CoreNotifier.ArbitraryLinker() {
                                         @Override
-                                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                                        public boolean link(Object data) {
+                                            final BalanceAccount account = (BalanceAccount) data;
                                             final BalanceAccount prev = mutationElement.getRelevantBalance();
-                                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                                mutationElement.setRelevantBalance(object);
+                                            if ((prev == null && account != null) || (prev != null && !prev.equals(account))) {
+                                                mutationElement.setRelevantBalance(account);
                                                 return true;
                                             }
                                             return false;
@@ -137,13 +136,13 @@ public class FundsMutationActivity extends CoreElementActivity {
                     .addProvider(FundsAgentFragment.getInfoProvider(
                             R.id.funds_mutation_agent_fragment,
                             null,
-                            new CoreElementFieldInfo(FundsMutationElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
+                            new CoreElementFieldInfo(FundsMutationElementCore.FIELD_AGENT, new CoreNotifier.ArbitraryLinker() {
                                 @Override
-                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                    final FundsMutationAgent object = (FundsMutationAgent) data.getObject();
+                                public boolean link(Object data) {
+                                    final FundsMutationAgent agent = (FundsMutationAgent) data;
                                     final FundsMutationAgent prev = mutationElement.getAgent();
-                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                        mutationElement.setAgent(object);
+                                    if ((prev == null && agent != null) || (prev != null && !prev.equals(agent))) {
+                                        mutationElement.setAgent(agent);
                                         return true;
                                     }
                                     return false;
@@ -348,7 +347,7 @@ public class FundsMutationActivity extends CoreElementActivity {
 
                 mutationHighlighter.processSubmitResult(result);
                 if (result.isSuccessful() && result.submitResult != null) {
-                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner), getResources());
+                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner));
                     BalancesUiThreadState.addMoney(mutationElement.getSubmittedMoney(), FundsMutationActivity.this);
                     Toast.makeText(getApplicationContext(), R.string.register_mutation_success, Toast.LENGTH_SHORT)
                             .show();

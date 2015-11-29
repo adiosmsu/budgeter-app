@@ -35,10 +35,12 @@ import org.joda.money.CurrencyUnit;
 
 import java.math.BigDecimal;
 
+import java8.util.Optional;
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.MoneySettable;
 import ru.adios.budgeter.R;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
+import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
 import ru.adios.budgeter.core.CollectibleFragmentInfoProvider;
 import ru.adios.budgeter.core.CoreElementActivity;
@@ -115,7 +117,7 @@ public class EnterAmountFragment extends CoreFragment {
         // Init currencies choice
         final Spinner currencySpinner = (Spinner) inflated.findViewById(R.id.amount_currency);
         final TextView amountTextView = (TextView) inflated.findViewById(R.id.amount_decimal);
-        HintedArrayAdapter.adaptStringSpinner(currencySpinner, activity, Constants.CURRENCIES_DROPDOWN);
+        NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(currencySpinner, Optional.<StringPresenter<String>>empty(), Constants.currenciesDropdownCopy());
 
         final int id = getId();
 

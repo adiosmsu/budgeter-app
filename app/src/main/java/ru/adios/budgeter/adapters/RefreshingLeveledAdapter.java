@@ -93,7 +93,7 @@ public final class RefreshingLeveledAdapter<DataType> extends RefreshingAdapter<
         return super.getItem(position);
     }
 
-    private final class WrappingPresenter implements StringPresenter<DataType> {
+    private final class WrappingPresenter extends UnchangingStringPresenter<DataType> {
         @Override
         public String getStringPresentation(DataType item) {
             if (item == upLevel) {

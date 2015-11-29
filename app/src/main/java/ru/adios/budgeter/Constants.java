@@ -26,6 +26,8 @@ import com.google.common.collect.ImmutableMap;
 
 import org.joda.money.CurrencyUnit;
 
+import java.util.Arrays;
+
 import javax.annotation.concurrent.Immutable;
 
 import ru.adios.budgeter.api.Accounter;
@@ -51,6 +53,11 @@ public final class Constants {
             CurrencyUnit.EUR.getCode(),
             Units.BTC.getCode()
     };
+
+    public static String[] currenciesDropdownCopy() {
+        return Arrays.copyOf(CURRENCIES_DROPDOWN, CURRENCIES_DROPDOWN.length);
+    }
+
     private static final ImmutableMap<String, Integer> CUR_DROP_POSITIONS;
 
     static {

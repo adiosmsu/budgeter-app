@@ -20,12 +20,15 @@
 
 package ru.adios.budgeter.adapters;
 
+import android.widget.Adapter;
+import android.widget.AdapterView;
+
 /**
  * Created by Michail Kulikov
- * 11/28/15
+ * 11/29/15
  */
-public interface StringPresentingAdapter<T> extends ObservedAdapter {
+public interface NullableAdapter extends Adapter {
 
-    void setStringPresenter(StringPresenter<T> stringPresenter);
+    <T extends Adapter> void setNullSelection(AdapterView<T> adapterView);
 
 }

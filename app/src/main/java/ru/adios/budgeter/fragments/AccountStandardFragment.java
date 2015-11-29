@@ -44,7 +44,6 @@ import javax.annotation.Nullable;
 import java8.util.Optional;
 import java8.util.OptionalInt;
 import java8.util.function.Consumer;
-import java8.util.function.Function;
 import java8.util.function.Supplier;
 import ru.adios.budgeter.AccountsElementCore;
 import ru.adios.budgeter.BalancesUiThreadState;
@@ -53,8 +52,9 @@ import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.FundsAdditionElementCore;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
-import ru.adios.budgeter.adapters.BalanceAccountContainer;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
+import ru.adios.budgeter.adapters.Presenters;
+import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.api.TransactionalSupport;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
@@ -137,7 +137,7 @@ public class AccountStandardFragment extends CoreFragment {
             return this;
         }
 
-        public InfoProviderBuilder provideAccountFieldInfo(String coreFieldName, CoreErrorHighlighter highlighter, CoreNotifier.HintedLinker linker) {
+        public InfoProviderBuilder provideAccountFieldInfo(String coreFieldName, CoreErrorHighlighter highlighter, CoreNotifier.ArbitraryLinker linker) {
             accountFieldInfo = new CoreElementActivity.CoreElementFieldInfo(coreFieldName, linker, highlighter);
             return this;
         }
@@ -243,7 +243,7 @@ public class AccountStandardFragment extends CoreFragment {
 
         // main spinner init
         final Spinner accountsSpinner = (Spinner) inflated.findViewById(R.id.accounts_spinner);
-        UiUtils.prepareHintedSpinnerAsync(
+        UiUtils.prepareNullableSpinnerAsync(
                 accountsSpinner,
                 activity,
                 id,
@@ -251,12 +251,7 @@ public class AccountStandardFragment extends CoreFragment {
                 inflated,
                 R.id.accounts_spinner_info,
                 BundleProvider.getBundle().treasury().streamRegisteredAccounts(),
-                new Function<BalanceAccount, HintedArrayAdapter.ObjectContainer<BalanceAccount>>() {
-                    @Override
-                    public HintedArrayAdapter.ObjectContainer<BalanceAccount> apply(BalanceAccount balanceAccount) {
-                        return new BalanceAccountContainer(balanceAccount, getResources());
-                    }
-                },
+                Presenters.getBalanceAccountDefaultPresenter(getResources()),
                 selectedAccount >= 0 ? OptionalInt.of(selectedAccount) : OptionalInt.empty(),
                 Optional.<AdapterView.OnItemSelectedListener>of(
                         new EmptyOnItemSelectedListener() {
@@ -277,7 +272,7 @@ public class AccountStandardFragment extends CoreFragment {
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_NAME, nameInput, nameInputInfo);
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_DESC, descInput, descInputInfo);
         final Spinner currencyInput = (Spinner) inflated.findViewById(R.id.accounts_currency_input);
-        HintedArrayAdapter.adaptStringSpinner(currencyInput, activity, Constants.CURRENCIES_DROPDOWN);
+        NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(currencyInput, Optional.<StringPresenter<String>>empty(), Constants.currenciesDropdownCopy());
         final TextView currencyInputInfo = (TextView) inflated.findViewById(R.id.accounts_currency_input_info);
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_CURRENCY, currencyInput, currencyInputInfo);
         final EditText amountInput = (EditText) inflated.findViewById(R.id.accounts_amount_optional_input);
@@ -310,7 +305,7 @@ public class AccountStandardFragment extends CoreFragment {
                 editOpen = false;
                 hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt,
                         currencyInput, currencyInputInfo, amountInput, amountInputHint, amountInputInfo, submitButton, addButton);
-                UiUtils.addToHintedSpinner(account, accountsSpinner, BalanceAccountContainer.getFactory(getResources()));
+                UiUtils.addToMutableSpinner(account, accountsSpinner);
                 inflated.invalidate();
             }
         });

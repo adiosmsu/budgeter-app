@@ -30,6 +30,9 @@ import java.util.Collection;
  */
 public interface MutableAdapter<T> extends Adapter {
 
+    @Override
+    T getItem(int position);
+
     void add(T object);
 
     void addAll(Collection<? extends T> collection);

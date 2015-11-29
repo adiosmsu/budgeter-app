@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import org.joda.money.Money;
@@ -46,18 +47,19 @@ import javax.annotation.concurrent.Immutable;
 
 import java8.util.Optional;
 import java8.util.OptionalInt;
-import java8.util.function.Function;
 import java8.util.stream.Collectors;
 import java8.util.stream.Stream;
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.ElementsIdProvider;
 import ru.adios.budgeter.R;
-import ru.adios.budgeter.adapters.BalanceAccountContainer;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.adapters.MutableAdapter;
+import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
+import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.core.CoreElementActivity;
 import ru.adios.budgeter.core.CoreNotifier;
-import ru.adios.budgeter.widgets.FlexibleNotifyingSpinner;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Created by Michail Kulikov
@@ -86,26 +88,25 @@ public final class UiUtils {
         return (int) (sizeInPixels / context.getResources().getDisplayMetrics().density);
     }
 
-    public static <T> void prepareHintedSpinnerAsync(final Spinner spinner,
-                                                     final CoreElementActivity activity,
-                                                     final @IdRes int fragmentId,
-                                                     final String fieldName,
-                                                     final View mainFragmentView,
-                                                     final @IdRes int spinnerInfoId,
-                                                     Stream<T> stream,
-                                                     Function<T, HintedArrayAdapter.ObjectContainer<T>> converter,
-                                                     final OptionalInt selection,
-                                                     final Optional<AdapterView.OnItemSelectedListener> listenerOptional) {
-        HintedArrayAdapter.adaptStringSpinner(spinner, activity, new String[] {}); // empty it first 'cause we need to do our task in background
-        new AsyncTask<Object, Void, List<HintedArrayAdapter.ObjectContainer<T>>>() {
+    public static <T> void prepareNullableSpinnerAsync(final Spinner spinner,
+                                                       final CoreElementActivity activity,
+                                                       final @IdRes int fragmentId,
+                                                       final String fieldName,
+                                                       final View mainFragmentView,
+                                                       final @IdRes int spinnerInfoId,
+                                                       Stream<T> stream,
+                                                       final StringPresenter<T> presenter,
+                                                       final OptionalInt selection,
+                                                       final Optional<AdapterView.OnItemSelectedListener> listenerOptional) {
+        // empty it first 'cause we need to do our task in background
+        NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.<StringPresenter<String>>empty(), new String[] {});
+        new AsyncTask<Stream, Void, List<T>>() {
             @Override
-            protected List<HintedArrayAdapter.ObjectContainer<T>> doInBackground(Object[] params) {
+            protected List<T> doInBackground(Stream[] params) {
                 // get values from db
                 try {
                     //noinspection unchecked
-                    return ((Stream<T>) params[0])
-                            .map((Function<T, HintedArrayAdapter.ObjectContainer<T>>) params[1])
-                            .collect(Collectors.<HintedArrayAdapter.ObjectContainer<T>>toList());
+                    return ((Stream<T>) params[0]).collect(Collectors.<T>toList());
                 } catch (RuntimeException e) {
                     logger.warn("Exception while querying for spinner contents with stream", e);
                     return new ArrayList<>(1);
@@ -113,8 +114,8 @@ public final class UiUtils {
             }
 
             @Override
-            protected void onPostExecute(List<HintedArrayAdapter.ObjectContainer<T>> res) {
-                HintedArrayAdapter.adaptArbitraryContainedSpinner(spinner, activity, res); // fill spinner with data and schedule it for redrawing
+            protected void onPostExecute(List<T> res) {
+                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res); // fill spinner with data and schedule it for redrawing
                 if (selection.isPresent()) {
                     spinner.setSelection(selection.getAsInt()); // if fragment saved spinner state, apply it
                 }
@@ -131,7 +132,7 @@ public final class UiUtils {
 
                 spinner.invalidate();
             }
-        }.execute(stream, converter);
+        }.execute(stream);
     }
 
     public static void refillLinearLayoutWithBalances(LinearLayout fundsLayout, List<Money> balances, Money totalBalance, Context context) {
@@ -186,40 +187,28 @@ public final class UiUtils {
         return fundsInfo;
     }
 
-    public static <T> void addToHintedSpinner(T obj, Spinner hintedSpinner, HintedArrayAdapter.ContainerFactory<T> factory) {
-        @SuppressWarnings("unchecked")
-        final HintedArrayAdapter<T> adapter = (HintedArrayAdapter<T>) hintedSpinner.getAdapter();
-
-        boolean hintSelected = adapter.getCount() == hintedSpinner.getSelectedItemPosition();
-        Boolean backup = null;
-
-        adapter.add(factory.create(obj));
-
-        // repair situation when what selected is a hint and we add something to the end of a real items list hence position will not change and no event will fire
-        if (hintedSpinner instanceof FlexibleNotifyingSpinner && hintSelected) {
-            final FlexibleNotifyingSpinner as = (FlexibleNotifyingSpinner) hintedSpinner;
-            backup = as.willNotifyEvenIfSameSelection();
-            as.setNotifyEvenIfSameSelection(true);
-        }
-
-        hintedSpinner.setSelection(adapter.getCount() - 1, true);
-
-        // change back
-        if (backup != null && backup == Boolean.FALSE) {
-            ((FlexibleNotifyingSpinner) hintedSpinner).setNotifyEvenIfSameSelection(false);
-        }
+    public static <T> void addToMutableSpinner(T obj, Spinner spinner) {
+        final MutableAdapter<T> adapter = extractMutableAdapter(spinner);
+        final int indexNewVal = adapter.getCount();
+        adapter.add(obj);
+        spinner.setSelection(indexNewVal);
     }
 
-    public static void replaceAccountInSpinner(BalanceAccount account, Spinner accountsSpinner, Resources resources) {
-        @SuppressWarnings("unchecked")
-        final HintedArrayAdapter<BalanceAccount> adapter = (HintedArrayAdapter<BalanceAccount>) accountsSpinner.getAdapter();
+    @SuppressWarnings("unchecked")
+    private static <T> MutableAdapter<T> extractMutableAdapter(Spinner spinner) {
+        final SpinnerAdapter spAd = spinner.getAdapter();
+        checkArgument(spAd instanceof MutableAdapter, "Spinner must be adapted by MutableAdapter");
+        return (MutableAdapter<T>) spAd;
+    }
+
+    public static void replaceAccountInSpinner(BalanceAccount account, Spinner accountsSpinner) {
+        final MutableAdapter<BalanceAccount> adapter = extractMutableAdapter(accountsSpinner);
 
         for (int i = 0; i < adapter.getCount(); i++) {
-            final HintedArrayAdapter.ObjectContainer<BalanceAccount> item = adapter.getItem(i);
-            final BalanceAccount someAccount = item.getObject();
+            final BalanceAccount item = adapter.getItem(i);
 
-            if (someAccount.name.equals(account.name) && someAccount.getUnit().equals(account.getUnit())) {
-                adapter.insert(new BalanceAccountContainer(account, resources), i);
+            if (item.name.equals(account.name) && item.getUnit().equals(account.getUnit())) {
+                adapter.insert(account, i);
                 adapter.remove(item);
                 return;
             }

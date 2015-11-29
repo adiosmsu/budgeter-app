@@ -40,7 +40,6 @@ import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.FundsAdditionElementCore;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.core.CollectedFragmentsInfoProvider;
 import ru.adios.budgeter.core.CollectibleFragmentInfoProvider;
@@ -66,10 +65,10 @@ public class AddFundsActivity extends CoreElementActivity {
                     return additionElement.getAccount();
                 }
             })
-                    .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.HintedLinker() {
+                    .provideAccountFieldInfo(FundsAdditionElementCore.FIELD_ACCOUNT, addFundsErrorHighlighter, new CoreNotifier.ArbitraryLinker() {
                         @Override
-                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                        public boolean link(Object data) {
+                            final BalanceAccount object = (BalanceAccount) data;
                             final BalanceAccount prev = additionElement.getAccount();
                             if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
                                 additionElement.setAccount(object);
@@ -165,7 +164,7 @@ public class AddFundsActivity extends CoreElementActivity {
 
                 addFundsErrorHighlighter.processSubmitResult(result);
                 if (result.isSuccessful()) {
-                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner), getResources());
+                    UiUtils.replaceAccountInSpinner(result.submitResult, (Spinner) findViewById(R.id.accounts_spinner));
                     //noinspection ConstantConditions
                     BalancesUiThreadState.addMoney(Money.of(additionElement.getAmountUnit(), additionElement.getAmountDecimal()), AddFundsActivity.this);
                     Toast.makeText(getApplicationContext(), R.string.funds_add_success, Toast.LENGTH_SHORT)

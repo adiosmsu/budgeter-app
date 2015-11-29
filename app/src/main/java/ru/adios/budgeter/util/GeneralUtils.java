@@ -28,8 +28,6 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
-
 /**
  * Created by Michail Kulikov
  * 10/8/15
@@ -56,10 +54,8 @@ public final class GeneralUtils {
     public static <T> T[] newArrayInstance(Class<T> arrayClass, int length) {
         if (arrayClass.equals(String.class)) { //expand if needed
             return (T[]) new String[length];
-        } else if(HintedArrayAdapter.ObjectContainer.class.isAssignableFrom(arrayClass)) {
-            return (T[]) new HintedArrayAdapter.ObjectContainer[length];
         } else {
-            return (T[]) Array.newInstance(arrayClass, length); // heavy JNI call (screw Dalvik!)
+            return (T[]) Array.newInstance(arrayClass, length); // heavy JNI call
         }
     }
 

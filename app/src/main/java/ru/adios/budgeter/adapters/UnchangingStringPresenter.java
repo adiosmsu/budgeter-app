@@ -22,10 +22,10 @@ package ru.adios.budgeter.adapters;
 
 /**
  * Created by Michail Kulikov
- * 11/28/15
+ * 11/29/15
  */
-public interface StringPresentingAdapter<T> extends ObservedAdapter {
-
-    void setStringPresenter(StringPresenter<T> stringPresenter);
-
+public abstract class UnchangingStringPresenter<T> implements StringPresenter<T> {
+    @Override
+    public void registerAdapter(ObservedAdapter adapter) {
+    }
 }

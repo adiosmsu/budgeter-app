@@ -20,40 +20,25 @@
 
 package ru.adios.budgeter.adapters;
 
-import android.support.annotation.UiThread;
+import android.widget.Adapter;
 
 /**
  * Created by Michail Kulikov
- * 10/15/15
+ * 11/29/15
  */
-@UiThread
-public abstract class CachingHintedContainer<T> implements HintedArrayAdapter.ObjectContainer<T> {
+public interface ObservedAdapter extends Adapter {
 
-    private final T obj;
+    /**
+     * Notifies the attached observers that the underlying data has been changed
+     * and any View reflecting the data set should refresh itself.
+     */
+    void notifyDataSetChanged();
 
-    private String cache;
-
-    public CachingHintedContainer(T obj) {
-        this.obj = obj;
-    }
-
-    @Override
-    public final T getObject() {
-        return obj;
-    }
-
-    @Override
-    public final String toString() {
-        if (cache == null) {
-            cache = calculateToString();
-        }
-        return cache;
-    }
-
-    protected abstract String calculateToString();
-
-    protected final void invalidateCache() {
-        cache = null;
-    }
+    /**
+     * Notifies the attached observers that the underlying data is no longer valid
+     * or available. Once invoked this adapter is no longer valid and should
+     * not report further data set changes.
+     */
+    void notifyDataSetInvalidated();
 
 }

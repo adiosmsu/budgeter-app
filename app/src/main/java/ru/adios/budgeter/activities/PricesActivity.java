@@ -47,9 +47,9 @@ import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.ElementsIdProvider;
 import ru.adios.budgeter.FundsAwareMenuActivity;
 import ru.adios.budgeter.R;
-import ru.adios.budgeter.adapters.CachingHintedContainer;
-import ru.adios.budgeter.adapters.FundsMutationSubjectContainer;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
+import ru.adios.budgeter.adapters.Presenters;
+import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.api.Order;
 import ru.adios.budgeter.api.OrderBy;
 import ru.adios.budgeter.api.OrderedField;
@@ -116,12 +116,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
                 subjectsSpinner,
                 subjectsSelection,
                 BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
-                new Function<FundsMutationSubject, HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>() {
-                    @Override
-                    public HintedArrayAdapter.ObjectContainer<FundsMutationSubject> apply(FundsMutationSubject fundsMutationSubject) {
-                        return new FundsMutationSubjectContainer(fundsMutationSubject);
-                    }
-                },
+                Presenters.getSubjectParentLoadingPresenter(),
                 new Function<FundsMutationSubject, Long>() {
                     @Override
                     public Long apply(FundsMutationSubject fundsMutationSubject) {
@@ -133,17 +128,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
                 agentsSpinner,
                 agentsSelection,
                 BundleProvider.getBundle().fundsMutationAgents().streamAll(),
-                new Function<FundsMutationAgent, HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>() {
-                    @Override
-                    public HintedArrayAdapter.ObjectContainer<FundsMutationAgent> apply(final FundsMutationAgent agent) {
-                        return new CachingHintedContainer<FundsMutationAgent>(agent) {
-                            @Override
-                            protected String calculateToString() {
-                                return getObject().name;
-                            }
-                        };
-                    }
-                },
+                Presenters.getAgentDefaultPresenter(),
                 new Function<FundsMutationAgent, Long>() {
                     @Override
                     public Long apply(FundsMutationAgent agent) {
@@ -222,7 +207,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
             final Object selectedItem = subjectsSpinner.getSelectedItem();
             if (tableName == null) {
                 //noinspection unchecked
-                final String sn = (selectedItem != null) ? ((HintedArrayAdapter.ObjectContainer<FundsMutationSubject>) selectedItem).getObject().name : null;
+                final String sn = (selectedItem != null) ? ((FundsMutationSubject) selectedItem).name : null;
                 tableName = getResources().getString(R.string.common_table_col_subj) + ": " + sn;
             }
             table.setTableName(tableName);
@@ -267,18 +252,16 @@ public class PricesActivity extends FundsAwareMenuActivity {
     private <T> void fillSpinner(final Spinner spinner,
                                  final SpinnerState selection,
                                  final Stream<T> stream,
-                                 final Function<T, HintedArrayAdapter.ObjectContainer<T>> f,
+                                 final StringPresenter<T> presenter,
                                  final Function<T, Long> idExtractor
     ) {
-        HintedArrayAdapter.adaptStringSpinner(spinner, this, new String[] {});
-        new AsyncTask<Void, Void, List<HintedArrayAdapter.ObjectContainer<T>>>() {
+        NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.<StringPresenter<String>>empty(), new String[] {});
+        new AsyncTask<Void, Void, List<T>>() {
             @Override
-            protected List<HintedArrayAdapter.ObjectContainer<T>> doInBackground(Void[] params) {
+            protected List<T> doInBackground(Void[] params) {
                 // get values from db
                 try {
-                    return stream
-                            .map(f)
-                            .collect(Collectors.<HintedArrayAdapter.ObjectContainer<T>>toList());
+                    return stream.collect(Collectors.<T>toList());
                 } catch (RuntimeException e) {
                     logger.warn("Exception while querying for spinner contents with stream", e);
                     return new ArrayList<>(1);
@@ -286,8 +269,8 @@ public class PricesActivity extends FundsAwareMenuActivity {
             }
 
             @Override
-            protected void onPostExecute(List<HintedArrayAdapter.ObjectContainer<T>> res) {
-                HintedArrayAdapter.adaptArbitraryContainedSpinner(spinner, PricesActivity.this, res);
+            protected void onPostExecute(List<T> res) {
+                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res);
                 if (selection.selection >= 0) {
                     spinner.setSelection(selection.selection);
                 }
@@ -297,7 +280,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
                         final boolean actual = position < parent.getAdapter().getCount();
                         selection.selection = actual ? position : -1;
                         //noinspection unchecked
-                        selection.id = actual ? idExtractor.apply(((HintedArrayAdapter.ObjectContainer<T>) parent.getSelectedItem()).getObject()) : -1;
+                        selection.id = actual ? idExtractor.apply((T) parent.getSelectedItem()) : -1;
                     }
                 });
                 spinner.invalidate();

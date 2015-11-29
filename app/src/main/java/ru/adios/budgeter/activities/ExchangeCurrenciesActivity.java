@@ -39,7 +39,6 @@ import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.ExchangeCurrenciesElementCore;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.api.data.FundsMutationAgent;
 import ru.adios.budgeter.core.CollectedFragmentsInfoProvider;
@@ -88,13 +87,13 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                                     return exchangeElement.getBuyAccount();
                                 }
                             })
-                                    .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_BUY_ACCOUNT, exchangeHighlighter, new CoreNotifier.HintedLinker() {
+                                    .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_BUY_ACCOUNT, exchangeHighlighter, new CoreNotifier.ArbitraryLinker() {
                                         @Override
-                                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                                        public boolean link(Object data) {
+                                            final BalanceAccount account = (BalanceAccount) data;
                                             final BalanceAccount prev = exchangeElement.getBuyAccount();
-                                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                                exchangeElement.setBuyAccount(object);
+                                            if ((prev == null && account != null) || (prev != null && !prev.equals(account))) {
+                                                exchangeElement.setBuyAccount(account);
                                                 return true;
                                             }
                                             return false;
@@ -109,13 +108,13 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                                     return exchangeElement.getSellAccount();
                                 }
                             })
-                                    .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_SELL_ACCOUNT, exchangeHighlighter, new CoreNotifier.HintedLinker() {
+                                    .provideAccountFieldInfo(ExchangeCurrenciesElementCore.FIELD_SELL_ACCOUNT, exchangeHighlighter, new CoreNotifier.ArbitraryLinker() {
                                         @Override
-                                        public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                            final BalanceAccount object = (BalanceAccount) data.getObject();
+                                        public boolean link(Object data) {
+                                            final BalanceAccount account = (BalanceAccount) data;
                                             final BalanceAccount prev = exchangeElement.getSellAccount();
-                                            if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                                exchangeElement.setSellAccount(object);
+                                            if ((prev == null && account != null) || (prev != null && !prev.equals(account))) {
+                                                exchangeElement.setSellAccount(account);
                                                 return true;
                                             }
                                             return false;
@@ -126,13 +125,13 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
                     .addProvider(FundsAgentFragment.getInfoProvider(
                             R.id.exchange_currencies_agent_fragment,
                             null,
-                            new CoreElementFieldInfo(ExchangeCurrenciesElementCore.FIELD_AGENT, new CoreNotifier.HintedLinker() {
+                            new CoreElementFieldInfo(ExchangeCurrenciesElementCore.FIELD_AGENT, new CoreNotifier.ArbitraryLinker() {
                                 @Override
-                                public boolean link(HintedArrayAdapter.ObjectContainer data) {
-                                    final FundsMutationAgent object = (FundsMutationAgent) data.getObject();
+                                public boolean link(Object data) {
+                                    final FundsMutationAgent agent = (FundsMutationAgent) data;
                                     final FundsMutationAgent prev = exchangeElement.getAgent();
-                                    if ((prev == null && object != null) || (prev != null && !prev.equals(object))) {
-                                        exchangeElement.setAgent(object);
+                                    if ((prev == null && agent != null) || (prev != null && !prev.equals(agent))) {
+                                        exchangeElement.setAgent(agent);
                                         return true;
                                     }
                                     return false;
@@ -283,9 +282,9 @@ public class ExchangeCurrenciesActivity extends CoreElementActivity {
 
                 exchangeHighlighter.processSubmitResult(result);
                 if (result.isSuccessful()) {
-                    UiUtils.replaceAccountInSpinner(core.getBuyAccount(), (Spinner) findViewById(R.id.exchange_currencies_buy_account_fragment).findViewById(R.id.accounts_spinner), getResources());
+                    UiUtils.replaceAccountInSpinner(core.getBuyAccount(), (Spinner) findViewById(R.id.exchange_currencies_buy_account_fragment).findViewById(R.id.accounts_spinner));
                     BalancesUiThreadState.addMoney(core.getBuyMoneySettable().getAmount(), ExchangeCurrenciesActivity.this);
-                    UiUtils.replaceAccountInSpinner(core.getSellAccount(), (Spinner) findViewById(R.id.exchange_currencies_sell_account_fragment).findViewById(R.id.accounts_spinner), getResources());
+                    UiUtils.replaceAccountInSpinner(core.getSellAccount(), (Spinner) findViewById(R.id.exchange_currencies_sell_account_fragment).findViewById(R.id.accounts_spinner));
                     BalancesUiThreadState.addMoney(core.getSellMoneySettable().getAmount().negated(), ExchangeCurrenciesActivity.this);
                     Toast.makeText(getApplicationContext(), R.string.register_exchange_success, Toast.LENGTH_SHORT)
                             .show();

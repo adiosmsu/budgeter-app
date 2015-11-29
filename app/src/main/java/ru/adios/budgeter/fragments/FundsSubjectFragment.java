@@ -45,15 +45,13 @@ import javax.annotation.Nullable;
 import java8.util.Optional;
 import java8.util.OptionalInt;
 import java8.util.function.Consumer;
-import java8.util.function.Function;
 import java8.util.function.Supplier;
 import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.SubjectAdditionElementCore;
-import ru.adios.budgeter.adapters.FundsMutationSubjectContainer;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.adapters.ModedRequestingAutoCompleteAdapter;
-import ru.adios.budgeter.adapters.StringPresenter;
+import ru.adios.budgeter.adapters.Presenters;
+import ru.adios.budgeter.adapters.UnchangingStringPresenter;
 import ru.adios.budgeter.api.data.FundsMutationSubject;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
 import ru.adios.budgeter.core.CollectedFragmentsInfoProvider;
@@ -199,7 +197,7 @@ public class FundsSubjectFragment extends CoreFragment {
 
         // main spinner init
         final Spinner subjectsSpinner = (Spinner) inflated.findViewById(R.id.subjects_spinner);
-        UiUtils.prepareHintedSpinnerAsync(
+        UiUtils.prepareNullableSpinnerAsync(
                 subjectsSpinner,
                 activity,
                 id,
@@ -207,12 +205,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 inflated,
                 R.id.subjects_spinner_info,
                 BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
-                new Function<FundsMutationSubject, HintedArrayAdapter.ObjectContainer<FundsMutationSubject>>() {
-                    @Override
-                    public HintedArrayAdapter.ObjectContainer<FundsMutationSubject> apply(FundsMutationSubject subject) {
-                        return new FundsMutationSubjectContainer(subject);
-                    }
-                },
+                Presenters.getSubjectParentLoadingPresenter(),
                 selectedSubject >= 0 ? OptionalInt.of(selectedSubject) : OptionalInt.empty(),
                 Optional.<AdapterView.OnItemSelectedListener>of(
                         new EmptyOnItemSelectedListener() {
@@ -247,7 +240,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 ModedRequestingAutoCompleteAdapter.SQL_ILIKE_DECORATOR
         );
         autoCompleteAdapter.setStringPresenter(
-                new StringPresenter<FundsMutationSubject>() {
+                new UnchangingStringPresenter<FundsMutationSubject>() {
                     @Override
                     public String getStringPresentation(FundsMutationSubject item) {
                         return item.name;
@@ -294,7 +287,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 editOpen = false;
                 hideEdit(nameInput, nameInputInfo, descInput,
                         descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton);
-                UiUtils.addToHintedSpinner(subject, subjectsSpinner, FundsMutationSubjectContainer.FACTORY);
+                UiUtils.addToMutableSpinner(subject, subjectsSpinner);
                 inflated.invalidate();
             }
         });

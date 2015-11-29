@@ -31,6 +31,7 @@ import android.support.v7.widget.ThemedSpinnerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -58,7 +59,6 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
     private int dropDownViewResource;
     @IdRes
     private int fieldId;
-    private LazyResName lrnField;
 
     private StringPresenter<T> stringPresenter;
 
@@ -72,12 +72,12 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
         this.fieldId = fieldId;
         this.inflater = LayoutInflater.from(context);
         this.dropDownHelper = new Helper(context);
-        this.lrnField = new LazyResName(context, fieldId);
     }
 
     @Override
     public void setStringPresenter(StringPresenter<T> stringPresenter) {
         this.stringPresenter = stringPresenter;
+        stringPresenter.registerAdapter(this);
     }
 
     @Override
@@ -113,6 +113,20 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
     }
 
     private View createViewFromResource(LayoutInflater inflater, int position, View convertView, ViewGroup parent, int resource) {
+        return createViewFromResource(context, this, stringPresenter, inflater, position, convertView, parent, resource, fieldId);
+    }
+
+    static <T> View createViewFromResource(
+            Context context,
+            Adapter adapter,
+            StringPresenter<T> presenter,
+            LayoutInflater inflater,
+            int position,
+            View convertView,
+            ViewGroup parent,
+            int resource,
+            int fieldId
+    ) {
         final View view;
         final TextView text;
         if (convertView == null) {
@@ -122,29 +136,34 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
             resource = convertView.getId(); // for exception throwing
         }
 
+        final Resources resources = context.getResources();
         try {
+            final View casting;
             if (fieldId == 0) {
                 // If no custom field is assigned, assume the whole resource is a TextView
-                text = (TextView) view;
+                casting = view;
             } else {
                 // Otherwise, find the TextView field within the view
-                text = (TextView) view.findViewById(fieldId);
-                Preconditions.checkNotNull(text, "Resource {%s:%s} not found inside view {%s:%s}", fieldId, lrnField, resource, new LazyResName(context, resource));
+                casting = view.findViewById(fieldId);
             }
+            text = (TextView) casting;
+            Preconditions.checkNotNull(text, "Resource {%s:%s} not found inside view {%s:%s}",
+                    fieldId, resources.getResourceName(fieldId), resource, new LazyResName(context, resource));
         } catch (ClassCastException e) {
             logger.error("ViewProvidingBaseAdapter: convert view is not a TextView and field resource id wasn't provided");
             if (fieldId == 0) {
                 throw new IllegalStateException("ViewProvidingBaseAdapter requires the resource {" + resource + ":"
-                        + context.getResources().getResourceName(resource) + "} to be a TextView or a fieldId provided", e);
+                        + getResStr(resources, resource) + "} to be a TextView or a fieldId provided", e);
             } else {
                 throw new IllegalStateException("ViewProvidingBaseAdapter requires the fieldId resource {" + fieldId + ":"
-                        + context.getResources().getResourceName(fieldId) + "} to be a TextView or a fieldId provided", e);
+                        + resources.getResourceName(fieldId) + "} to be a TextView or a fieldId provided", e);
             }
         }
 
-        T item = getItem(position);
-        if (stringPresenter != null) {
-            text.setText(stringPresenter.getStringPresentation(item));
+        //noinspection unchecked
+        T item = (T) adapter.getItem(position);
+        if (presenter != null) {
+            text.setText(presenter.getStringPresentation(item));
         } else {
             if (item instanceof CharSequence) {
                 text.setText((CharSequence) item);
@@ -169,9 +188,17 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
 
         @Override
         public String toString() {
-            return String.valueOf(context.getResources().getResourceName(resId));
+            return getResStr(context.getResources(), resId);
         }
 
+    }
+
+    private static String getResStr(Resources resources, int resId) {
+        try {
+            return resources.getResourceName(resId);
+        } catch (Resources.NotFoundException e) {
+            return "null";
+        }
     }
 
 }

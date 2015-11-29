@@ -35,7 +35,6 @@ import java.math.BigDecimal;
 
 import javax.annotation.concurrent.Immutable;
 
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
 import ru.adios.budgeter.util.EmptyTextWatcher;
 import ru.adios.budgeter.widgets.DateEditView;
 import ru.adios.budgeter.widgets.TimeEditView;
@@ -65,12 +64,6 @@ public final class CoreNotifier {
     public interface TextLinker extends Linker {
 
         boolean link(String data);
-
-    }
-
-    public interface HintedLinker extends Linker {
-
-        boolean link(HintedArrayAdapter.ObjectContainer data);
 
     }
 
@@ -162,7 +155,7 @@ public final class CoreNotifier {
                     }
 
                     final Adapter adapter = sp.getAdapter();
-                    if (adapter.getCount() > position || (adapter.getCount() == position && adapter instanceof HintedArrayAdapter)) {
+                    if (adapter.getCount() > position) {
                         linkViewValueWithCore(parent.getItemAtPosition(position), linker, activity);
                         sp.invalidate();
                     }
@@ -207,7 +200,7 @@ public final class CoreNotifier {
             if (o instanceof CurrencyUnit) {
                 fieldChanged = ((CurrencyLinker) linker).link((CurrencyUnit) o);
             } else {
-                if (o instanceof HintedArrayAdapter.ObjectContainer && ((HintedArrayAdapter.ObjectContainer) o).getObject() == null) {
+                if (o == null) {
                     fieldChanged = ((CurrencyLinker) linker).link(null);
                 } else {
                     final String decStr = getStringFromObject(o);
@@ -223,8 +216,6 @@ public final class CoreNotifier {
             }
         } else if (linker instanceof TextLinker) {
             fieldChanged = ((TextLinker) linker).link(getStringFromObject(o));
-        } else if (linker instanceof HintedLinker && o instanceof HintedArrayAdapter.ObjectContainer) {
-            fieldChanged = ((HintedLinker) linker).link((HintedArrayAdapter.ObjectContainer) o);
         } else if (linker instanceof NumberLinker) {
             final NumberLinker nl = (NumberLinker) linker;
             if (o instanceof Number) {

@@ -22,6 +22,7 @@ package ru.adios.budgeter.core;
 
 import android.support.annotation.IdRes;
 import android.text.Editable;
+import android.widget.Adapter;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -38,7 +39,7 @@ import javax.annotation.concurrent.Immutable;
 
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.DateTimeUtils;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.adapters.NullableAdapter;
 import ru.adios.budgeter.api.UtcDay;
 import ru.adios.budgeter.widgets.DateEditView;
 import ru.adios.budgeter.widgets.TimeEditView;
@@ -113,9 +114,8 @@ public final class Feedbacking {
     public static void currenciesSpinnerFeedback(CurrencyUnit unit, Spinner spinner) {
         if (unit == null) {
             final SpinnerAdapter adapter = spinner.getAdapter();
-            if (adapter instanceof HintedArrayAdapter) {
-                spinner.setSelection(adapter.getCount());
-                spinner.invalidate();
+            if (adapter instanceof NullableAdapter) {
+                ((NullableAdapter) adapter).setNullSelection(spinner);
             }
         } else if (!spinner.getSelectedItem().toString().equals(unit.getCode())) {
             spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
@@ -123,40 +123,35 @@ public final class Feedbacking {
         }
     }
 
-    public static <T> void hintedArraySpinnerFeedback(T object, Spinner spinnerView) {
+    public static void hintedArraySpinnerFeedback(Object object, Spinner spinnerView) {
         final SpinnerAdapter adapter = spinnerView.getAdapter();
 
-        int pos = -1;
+        boolean extract = false;
         final Object selectedItem = spinnerView.getSelectedItem();
-        if (adapter instanceof HintedArrayAdapter) {
-            Object innerItem;
-            if (selectedItem == null || (innerItem = ((HintedArrayAdapter.ObjectContainer) selectedItem).getObject()) == null || !innerItem.equals(object)) {
-                @SuppressWarnings("unchecked")
-                final HintedArrayAdapter<T> hintedArrayAdapter = (HintedArrayAdapter) adapter;
+        if (adapter instanceof NullableAdapter) {
+            if ((selectedItem == null && object != null) || (selectedItem != null && !selectedItem.equals(object))) {
                 if (object == null) {
-                    spinnerView.setSelection(adapter.getCount()); // nothing selected => display hint
+                    ((NullableAdapter) adapter).setNullSelection(spinnerView); // nothing selected
                 } else {
-                    for (int i = 0; i < adapter.getCount(); i++) {
-                        if (hintedArrayAdapter.getItem(i).getObject().equals(object)) {
-                            pos = i;
-                            break;
-                        }
-                    }
+                    extract = true;
                 }
             }
         } else if (object != null && !object.equals(selectedItem)) {
-            for (int i = 0; i < adapter.getCount(); i++) {
-                if (adapter.getItem(i).equals(object)) {
-                    pos = i;
-                    break;
-                }
-            }
+            extract = true;
         }
 
-        if (pos >= 0) {
-            spinnerView.setSelection(pos, true);
-            spinnerView.invalidate();
+        if (extract) {
+            spinnerView.setSelection(extractPosition(adapter, object), true);
         }
+    }
+
+    private static int extractPosition(Adapter adapter, Object object) {
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equals(object)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public static void dateTimeFeedback(OffsetDateTime dateTime, DateEditView dateEditView, TimeEditView timeEditView) {

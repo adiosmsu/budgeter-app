@@ -38,13 +38,11 @@ import javax.annotation.Nullable;
 import java8.util.Optional;
 import java8.util.OptionalInt;
 import java8.util.function.Consumer;
-import java8.util.function.Function;
 import java8.util.function.Supplier;
 import ru.adios.budgeter.AgentAdditionElementCore;
 import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.R;
-import ru.adios.budgeter.adapters.CachingHintedContainer;
-import ru.adios.budgeter.adapters.HintedArrayAdapter;
+import ru.adios.budgeter.adapters.Presenters;
 import ru.adios.budgeter.api.data.FundsMutationAgent;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
 import ru.adios.budgeter.core.CollectibleFragmentInfoProvider;
@@ -134,19 +132,15 @@ public class FundsAgentFragment extends CoreFragment {
 
         // main spinner init
         final Spinner agentsSpinner = (Spinner) inflated.findViewById(R.id.agents_spinner);
-        UiUtils.prepareHintedSpinnerAsync(
+        UiUtils.prepareNullableSpinnerAsync(
                 agentsSpinner,
                 activity,
-                id, FIELD_AGENTS,
+                id,
+                FIELD_AGENTS,
                 inflated,
                 R.id.agents_spinner_info,
                 BundleProvider.getBundle().fundsMutationAgents().streamAll(),
-                new Function<FundsMutationAgent, HintedArrayAdapter.ObjectContainer<FundsMutationAgent>>() {
-                    @Override
-                    public HintedArrayAdapter.ObjectContainer<FundsMutationAgent> apply(FundsMutationAgent agent) {
-                        return CONTAINER_FACTORY.create(agent);
-                    }
-                },
+                Presenters.getAgentDefaultPresenter(),
                 selectedAgent >= 0 ? OptionalInt.of(selectedAgent) : OptionalInt.empty(),
                 Optional.<AdapterView.OnItemSelectedListener>of(
                         new EmptyOnItemSelectedListener() {
@@ -190,7 +184,7 @@ public class FundsAgentFragment extends CoreFragment {
             public void accept(FundsMutationAgent agent) {
                 editOpen = false;
                 hideEdit(nameInput, nameInputInfo, descInput, descInputInfo, descInputOpt, submitButton, addButton);
-                UiUtils.addToHintedSpinner(agent, agentsSpinner, CONTAINER_FACTORY);
+                UiUtils.addToMutableSpinner(agent, agentsSpinner);
                 inflated.invalidate();
             }
         });
@@ -223,22 +217,6 @@ public class FundsAgentFragment extends CoreFragment {
         descInputOpt.setVisibility(View.VISIBLE);
         submitButton.setVisibility(View.VISIBLE);
         v.setVisibility(View.INVISIBLE);
-    }
-
-    private static final FundsMutationAgentContainerFactory CONTAINER_FACTORY = new FundsMutationAgentContainerFactory();
-    public static final class FundsMutationAgentContainerFactory implements HintedArrayAdapter.ContainerFactory<FundsMutationAgent> {
-        private FundsMutationAgentContainerFactory() {}
-
-        @Override
-        public HintedArrayAdapter.ObjectContainer<FundsMutationAgent> create(FundsMutationAgent fundsMutationAgent) {
-            return new CachingHintedContainer<FundsMutationAgent>(fundsMutationAgent) {
-                @Override
-                protected String calculateToString() {
-                    return getObject().name;
-                }
-            };
-        }
-
     }
 
     private static final class Feedbacker extends AbstractCollectibleFeedbacker {

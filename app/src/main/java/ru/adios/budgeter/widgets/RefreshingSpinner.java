@@ -38,6 +38,7 @@ import ru.adios.budgeter.adapters.RefreshingAdapter;
 public class RefreshingSpinner<DataType> extends AppCompatSpinner {
 
     private RefreshingAdapter<DataType, DataType> refreshingAdapter;
+    private DecoratingAdapter<DataType> decorator;
     private boolean requestedRefreshOnce = false;
 
     public RefreshingSpinner(Context context) {
@@ -51,12 +52,17 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
     @Override
     public void setAdapter(final SpinnerAdapter a) {
         SpinnerAdapter adapter = a;
-        while (adapter instanceof DecoratingAdapter) {
-            final DecoratingAdapter decAd = (DecoratingAdapter) adapter;
-            if (SpinnerAdapter.class.isAssignableFrom(decAd.getWrappedType())) {
-                adapter = (SpinnerAdapter) decAd.getWrapped();
-            } else {
-                break;
+        if (adapter instanceof DecoratingAdapter) {
+            //noinspection unchecked
+            decorator = (DecoratingAdapter<DataType>) adapter;
+
+            while (adapter instanceof DecoratingAdapter) {
+                final DecoratingAdapter decAd = (DecoratingAdapter) adapter;
+                if (SpinnerAdapter.class.isAssignableFrom(decAd.getWrappedType())) {
+                    adapter = (SpinnerAdapter) decAd.getWrapped();
+                } else {
+                    break;
+                }
             }
         }
         if (adapter instanceof RefreshingAdapter) {
@@ -77,10 +83,18 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        if (!requestedRefreshOnce) {
-            requestedRefreshOnce = true;
+        if (refreshingAdapter != null) {
+            if (!requestedRefreshOnce) {
+                requestedRefreshOnce = true;
+            }
+            if (decorator != null) {
+                if (decorator.isPositionTranslatable(which)) {
+                    refreshingAdapter.refresh(decorator.translatePosition(which));
+                }
+            } else {
+                refreshingAdapter.refresh(refreshingAdapter.getItem(which));
+            }
         }
-        refreshingAdapter.refresh(refreshingAdapter.getItem(which));
         super.onClick(dialog, which);
     }
 

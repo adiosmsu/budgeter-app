@@ -26,10 +26,14 @@ import android.widget.Adapter;
  * Created by Michail Kulikov
  * 11/29/15
  */
-public interface DecoratingAdapter extends Adapter {
+public interface DecoratingAdapter<T> extends Adapter {
 
     Class<? extends Adapter> getWrappedType();
 
     Adapter getWrapped();
+
+    boolean isPositionTranslatable(int position);
+
+    T translatePosition(int position);
 
 }

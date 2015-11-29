@@ -54,7 +54,7 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 @UiThread
 public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedSpinnerAdapter, T>
         extends BaseAdapter
-        implements NullableAdapter, DecoratingAdapter, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
+        implements NullableAdapter, DecoratingAdapter<T>, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
 
     public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, Type[] array) {
         NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), array);
@@ -141,6 +141,17 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
     @Override
     public Class<? extends BaseAdapter> getWrappedType() {
         return delegate.getClass();
+    }
+
+    @Override
+    public boolean isPositionTranslatable(int position) {
+        return position != 0;
+    }
+
+    @Override
+    public T translatePosition(int position) {
+        checkArgument(position != 0, "Cannot translate to delegate, null value is unique to this wrapper");
+        return getItem(position);
     }
 
     @Override

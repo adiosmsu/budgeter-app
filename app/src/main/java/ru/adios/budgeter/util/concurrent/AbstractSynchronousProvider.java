@@ -18,36 +18,26 @@
  *
  */
 
-package ru.adios.budgeter.adapters;
+package ru.adios.budgeter.util.concurrent;
 
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
-
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java8.util.function.Supplier;
-import ru.adios.budgeter.util.concurrent.AsyncTaskProvider;
 
 /**
  * Created by Michail Kulikov
- * 11/27/15
+ * 12/1/15
  */
-public abstract class AsyncRefresher<T, P> implements RefreshingAdapter.Refresher<T, P> {
-
-    private final AsyncTaskProvider asyncTaskProvider = new AsyncTaskProvider();
-
-    @WorkerThread
-    public abstract ImmutableList<T> gatherData(@Nullable P param);
+public abstract class AbstractSynchronousProvider implements AsynchronyProvider {
 
     @Override
     public final boolean isAsync() {
-        return true;
+        return false;
     }
 
     @Override
     public final <V> ListenableFuture<V> provideAsynchrony(Supplier<V> supplier) {
-        return asyncTaskProvider.provideAsynchrony(supplier);
+        throw new UnsupportedOperationException("This is synchronous implementation");
     }
 
 }

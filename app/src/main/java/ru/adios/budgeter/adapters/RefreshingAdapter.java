@@ -31,7 +31,14 @@ import android.view.AbsSavedState;
 
 import com.google.common.collect.ImmutableList;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.ThreadSafe;
+
+import java8.util.function.Consumer;
+import java8.util.function.Supplier;
+import ru.adios.budgeter.util.concurrent.AsynchronyProvider;
 
 /**
  * Created by Michail Kulikov
@@ -40,31 +47,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 @UiThread
 public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Type> implements PersistingStateful {
 
-    public static abstract class Refresher<T, P> {
+    static final Logger logger = LoggerFactory.getLogger(RefreshingAdapter.class);
 
-        protected final RefreshingAdapter<T, P> adapter;
+    @ThreadSafe
+    public interface Refresher<T, P> extends AsynchronyProvider {
 
-        public Refresher(RefreshingAdapter<T, P> adapter) {
-            this.adapter = adapter;
-        }
-
-        /**
-         * Must call {@link #processGathered(ImmutableList)} at the end.
-         * @param param typed parameter.
-         */
-        @UiThread
-        public abstract void gatherData(@Nullable P param);
-
-        @UiThread
-        public final void processGathered(ImmutableList<T> data) {
-            adapter.setItems(data);
-            adapter.notifyDataSetChanged();
-        }
-
-        @UiThread
-        public final void processNoData() {
-            adapter.processNoData();
-        }
+        @Nullable
+        ImmutableList<T> gatherData(@Nullable P param);
 
     }
 
@@ -83,17 +72,11 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
     public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource) {
         super(context, resource);
         this.refresher = refresher;
-        assertRefresherIsOurs(refresher);
     }
 
     public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource, @IdRes int fieldId) {
         super(context, resource, fieldId);
         this.refresher = refresher;
-        assertRefresherIsOurs(refresher);
-    }
-
-    private void assertRefresherIsOurs(Refresher<Type, Param> refresher) {
-        checkArgument(refresher.adapter == this, "Expecting Refresher instantiated with instance of this class");
     }
 
     @Override
@@ -113,8 +96,28 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         this.onRefreshListener = onRefreshListener;
     }
 
-    public void refresh(@Nullable Param param) {
-        refresher.gatherData(param);
+    public void refresh(@Nullable final Param param) {
+        AsynchronyProvider.Static.workWithProvider(
+                refresher,
+                new Consumer<ImmutableList<Type>>() {
+                    @Override
+                    public void accept(ImmutableList<Type> data) {
+                        setItems(data);
+                    }
+                },
+                new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) {
+                        logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
+                    }
+                },
+                new Supplier<ImmutableList<Type>>() {
+                    @Override
+                    public ImmutableList<Type> get() {
+                        return refresher.gatherData(param);
+                    }
+                }
+        );
     }
 
     @Override
@@ -132,16 +135,17 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         return position;
     }
 
-    void setItems(ImmutableList<Type> items) {
-        this.items = items;
-        if (onRefreshListener != null) {
-            onRefreshListener.onRefreshed();
-        }
-    }
-
-    void processNoData() {
-        if (onRefreshListener != null) {
-            onRefreshListener.onNoDataLoaded();
+    void setItems(@Nullable ImmutableList<Type> items) {
+        if (items != null) {
+            this.items = items;
+            if (onRefreshListener != null) {
+                onRefreshListener.onRefreshed();
+            }
+            notifyDataSetChanged();
+        } else {
+            if (onRefreshListener != null) {
+                onRefreshListener.onNoDataLoaded();
+            }
         }
     }
 

@@ -32,7 +32,6 @@ import android.support.annotation.UiThread;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java8.util.function.Function;
 import java8.util.function.Supplier;
 import ru.adios.budgeter.R;
+import ru.adios.budgeter.util.concurrent.AsynchronyProvider;
 
 /**
  * Created by Michail Kulikov
@@ -56,9 +56,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     private static final Logger logger = LoggerFactory.getLogger(RefreshingLeveledAdapter.class);
 
     @ThreadSafe
-    public interface DataExtractor<T, I extends Serializable> {
-
-        <V> ListenableFuture<V> provideAsynchrony(Supplier<V> supplier);
+    public interface DataExtractor<T, I extends Serializable> extends AsynchronyProvider {
 
         @Nullable
         IdentifiedData<T, I> extractParent(I id);
@@ -67,8 +65,6 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
         @UiThread
         I extractId(T data);
-
-        boolean isAsync();
 
     }
 
@@ -157,13 +153,13 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
     private void refreshInnerGeneral(final IdType id, final Function<IdType, IdentifiedData<DataType, IdType>> f) {
         if (dataExtractor.isAsync()) {
-            if (refresher instanceof AsyncRefresher) {
+            if (refresher.isAsync()) {
                 Futures.addCallback(
                         dataExtractor.provideAsynchrony(new Supplier<AsyncResult<DataType, IdType>>() {
                             @Override
                             public AsyncResult<DataType, IdType> get() {
                                 final IdentifiedData<DataType, IdType> data = f.apply(id);
-                                return new AsyncResult<>(data, ((AsyncRefresher<DataType, IdType>) refresher).gatherDataAsync(data.id));
+                                return new AsyncResult<>(data, refresher.gatherData(data.data));
                             }
                         }),
                         new AbsFutureCallback<AsyncResult<DataType, IdType>>() {
@@ -171,7 +167,6 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                             public void onSuccess(AsyncResult<DataType, IdType> result) {
                                 handleNewUpLevel(result.identifiedData, false);
                                 setItems(result.refreshed);
-                                notifyDataSetChanged();
                             }
                         }
                 );
@@ -198,13 +193,11 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     void handleNewUpLevel(@Nullable IdType newUpLevelId, @Nullable DataType newUpLevelData, boolean doRefresh) {
+        potentialUpLevelId = newUpLevelId;
+        potentialUpLevelData = newUpLevelData;
+
         if (doRefresh) {
-            potentialUpLevelId = newUpLevelId;
-            potentialUpLevelData = newUpLevelData;
             super.refresh(newUpLevelData);
-        } else {
-            upLevelId = newUpLevelId;
-            upLevelData = newUpLevelData;
         }
     }
 
@@ -244,9 +237,9 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     @Immutable
     private static final class AsyncResult<T, I extends Serializable> {
         @Nullable final IdentifiedData<T, I> identifiedData;
-        final ImmutableList<T> refreshed;
+        @Nullable final ImmutableList<T> refreshed;
 
-        AsyncResult(@Nullable IdentifiedData<T, I> identifiedData, ImmutableList<T> refreshed) {
+        AsyncResult(@Nullable IdentifiedData<T, I> identifiedData, @Nullable ImmutableList<T> refreshed) {
             this.identifiedData = identifiedData;
             this.refreshed = refreshed;
         }
@@ -292,6 +285,11 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     private final class LeveledRefreshListener implements OnRefreshListener {
         @Override
         public void onNoDataLoaded() {
+            if (potentialUpLevelId != null && potentialUpLevelData != null) {
+                potentialUpLevelId = null;
+                potentialUpLevelData = null;
+            }
+
             if (innerRefListener != null) {
                 innerRefListener.onNoDataLoaded();
             }
@@ -299,10 +297,12 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
         @Override
         public void onRefreshed() {
-            upLevelId = potentialUpLevelId;
-            upLevelData = potentialUpLevelData;
-            potentialUpLevelId = null;
-            potentialUpLevelData = null;
+            if (potentialUpLevelId != null && potentialUpLevelData != null) {
+                upLevelId = potentialUpLevelId;
+                upLevelData = potentialUpLevelData;
+                potentialUpLevelId = null;
+                potentialUpLevelData = null;
+            }
 
             if (innerRefListener != null) {
                 innerRefListener.onRefreshed();

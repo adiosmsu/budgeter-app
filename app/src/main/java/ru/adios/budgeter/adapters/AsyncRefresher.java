@@ -52,6 +52,8 @@ public abstract class AsyncRefresher<T, P> extends RefreshingAdapter.Refresher<T
             protected void onPostExecute(ImmutableList<T> ts) {
                 if (ts != null) {
                     processGathered(ts);
+                } else {
+                    processNoData();
                 }
             }
         }.execute(param);

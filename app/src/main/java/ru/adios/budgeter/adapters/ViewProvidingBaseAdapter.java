@@ -40,6 +40,8 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.adios.budgeter.util.UiUtils;
+
 /**
  * Created by Michail Kulikov
  * 11/27/15
@@ -153,7 +155,7 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
             logger.error("ViewProvidingBaseAdapter: convert view is not a TextView and field resource id wasn't provided");
             if (fieldId == 0) {
                 throw new IllegalStateException("ViewProvidingBaseAdapter requires the resource {" + resource + ":"
-                        + getResStr(resources, resource) + "} to be a TextView or a fieldId provided", e);
+                        + UiUtils.resolveResourceId(resources, resource) + "} to be a TextView or a fieldId provided", e);
             } else {
                 throw new IllegalStateException("ViewProvidingBaseAdapter requires the fieldId resource {" + fieldId + ":"
                         + resources.getResourceName(fieldId) + "} to be a TextView or a fieldId provided", e);
@@ -188,17 +190,9 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
 
         @Override
         public String toString() {
-            return getResStr(context.getResources(), resId);
+            return UiUtils.resolveResourceId(context, resId);
         }
 
-    }
-
-    private static String getResStr(Resources resources, int resId) {
-        try {
-            return resources.getResourceName(resId);
-        } catch (Resources.NotFoundException e) {
-            return "null";
-        }
     }
 
 }

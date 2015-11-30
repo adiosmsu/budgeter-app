@@ -88,6 +88,25 @@ public final class UiUtils {
         return (int) (sizeInPixels / context.getResources().getDisplayMetrics().density);
     }
 
+    public static String resolveResourceId(Context context, int id) {
+        return resolveResourceId(context.getResources(), id);
+    }
+
+    public static String resolveResourceId(Resources resources, int id) {
+        String fieldValue;
+        if (id >= 0) {
+            try {
+                fieldValue = resources.getResourceTypeName(id) + '/' +
+                        resources.getResourceEntryName(id);
+            } catch (Resources.NotFoundException e) {
+                fieldValue = "id/" + id;
+            }
+        } else {
+            fieldValue = "NO_ID";
+        }
+        return fieldValue;
+    }
+
     public static <T> void prepareNullableSpinnerAsync(final Spinner spinner,
                                                        final CoreElementActivity activity,
                                                        final @IdRes int fragmentId,

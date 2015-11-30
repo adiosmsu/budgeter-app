@@ -21,19 +21,24 @@
 package ru.adios.budgeter.adapters;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
+import android.view.AbsSavedState;
 
 import com.google.common.collect.ImmutableList;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Created by Michail Kulikov
  * 11/27/15
  */
 @UiThread
-public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Type> {
+public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Type> implements PersistingStateful {
 
     public static abstract class Refresher<T, P> {
 
@@ -56,23 +61,55 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
             adapter.notifyDataSetChanged();
         }
 
+        @UiThread
+        public final void processNoData() {
+            adapter.processNoData();
+        }
+
     }
 
-    private final Refresher<Type, Param> refresher;
-    private Runnable onRefreshListener;
+    public interface OnRefreshListener {
+
+        void onRefreshed();
+
+        void onNoDataLoaded();
+
+    }
+
+    protected final Refresher<Type, Param> refresher;
+    private OnRefreshListener onRefreshListener;
     private ImmutableList<Type> items = ImmutableList.of();
 
     public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource) {
         super(context, resource);
         this.refresher = refresher;
+        assertRefresherIsOurs(refresher);
     }
 
     public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource, @IdRes int fieldId) {
         super(context, resource, fieldId);
         this.refresher = refresher;
+        assertRefresherIsOurs(refresher);
     }
 
-    public void setOnRefreshListener(Runnable onRefreshListener) {
+    private void assertRefresherIsOurs(Refresher<Type, Param> refresher) {
+        checkArgument(refresher.adapter == this, "Expecting Refresher instantiated with instance of this class");
+    }
+
+    @Override
+    public Parcelable getSavedState() {
+        return RefreshingState.EMPTY_STATE;
+    }
+
+    @Override
+    public void restoreSavedState(Parcelable state) {
+        if (state != null && !(state instanceof AbsSavedState)) {
+            throw new IllegalArgumentException("Wrong state class, expecting RefreshingState but "
+                    + "received " + state.getClass().toString() + " instead.");
+        }
+    }
+
+    public void setOnRefreshListener(OnRefreshListener onRefreshListener) {
         this.onRefreshListener = onRefreshListener;
     }
 
@@ -98,8 +135,35 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
     void setItems(ImmutableList<Type> items) {
         this.items = items;
         if (onRefreshListener != null) {
-            onRefreshListener.run();
+            onRefreshListener.onRefreshed();
         }
+    }
+
+    void processNoData() {
+        if (onRefreshListener != null) {
+            onRefreshListener.onNoDataLoaded();
+        }
+    }
+
+    public static class RefreshingState extends AbsSavedState {
+        RefreshingState(Parcel source) {
+            super(source);
+        }
+
+        RefreshingState(Parcelable superState) {
+            super(superState);
+        }
+
+        public static final Parcelable.Creator<RefreshingState> CREATOR =
+                new Parcelable.Creator<RefreshingState>() {
+                    public RefreshingState createFromParcel(Parcel in) {
+                        return new RefreshingState(in);
+                    }
+
+                    public RefreshingState[] newArray(int size) {
+                        return new RefreshingState[size];
+                    }
+                };
     }
 
 }

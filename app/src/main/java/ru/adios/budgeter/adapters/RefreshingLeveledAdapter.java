@@ -105,8 +105,8 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     private void innerInit() {
-        setStringPresenter(new WrappingPresenter());
-        setOnRefreshListener(new LeveledRefreshListener());
+        super.setStringPresenter(new WrappingPresenter());
+        super.setOnRefreshListener(new LeveledRefreshListener());
     }
 
     public void init() {

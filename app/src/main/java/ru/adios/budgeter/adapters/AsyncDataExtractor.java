@@ -23,7 +23,7 @@ package ru.adios.budgeter.adapters;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
-import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,12 +31,22 @@ import ru.adios.budgeter.util.concurrent.AsyncTaskProvider;
 
 /**
  * Created by Michail Kulikov
- * 11/27/15
+ * 12/1/15
  */
 @ThreadSafe
-public abstract class AsyncRefresher<T, P> extends AsyncTaskProvider implements RefreshingAdapter.Refresher<T, P> {
+public abstract class AsyncDataExtractor<T, I extends Serializable> extends AsyncTaskProvider implements RefreshingLeveledAdapter.DataExtractor<T, I> {
 
     @WorkerThread
-    public abstract ImmutableList<T> gatherData(@Nullable P param);
+    @Override
+    public abstract T extractData(I id);
+
+    @WorkerThread
+    @Override
+    public abstract I extractId(T data);
+
+    @WorkerThread
+    @Nullable
+    @Override
+    public abstract RefreshingLeveledAdapter.IdentifiedData<T, I> extractParent(I id);
 
 }

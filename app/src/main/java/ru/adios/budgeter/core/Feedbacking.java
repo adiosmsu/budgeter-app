@@ -128,7 +128,7 @@ public final class Feedbacking {
         }
     }
 
-    public static void hintedArraySpinnerFeedback(Object object, Spinner spinnerView) {
+    public static void nullableArraySpinnerFeedback(Object object, Spinner spinnerView) {
         final SpinnerAdapter adapter = spinnerView.getAdapter();
 
         boolean extract = false;

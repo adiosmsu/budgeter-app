@@ -368,7 +368,7 @@ public class FundsSubjectFragment extends CoreFragment {
             Feedbacking.textViewFeedback(subjectsElement.getDescription(), subjectsDescInput);
             Feedbacking.textViewFeedback(subjectsElement.getParentName(), subjectsParentNameInput);
             Feedbacking.radioGroupFeedback(subjectsElement.getType(), subjectsTypeRadio);
-            Feedbacking.hintedArraySpinnerFeedback(subjectSupplier.get(), subjectsSpinner);
+            Feedbacking.nullableArraySpinnerFeedback(subjectSupplier.get(), subjectsSpinner);
         }
 
         @Override

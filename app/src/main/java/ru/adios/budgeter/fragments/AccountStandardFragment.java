@@ -395,7 +395,7 @@ public class AccountStandardFragment extends CoreFragment {
             Feedbacking.textViewFeedback(accountsElement.getDescription(), accountsDescInput);
             Feedbacking.currenciesSpinnerFeedback(accountsElement.getUnit(), accountsCurrencyInput);
             Feedbacking.decimalTextViewFeedback(newAccountOptionalAmount.object.orElse(null), accountsAmountOptionalInput);
-            Feedbacking.hintedArraySpinnerFeedback(accountSupplier.get(), accountsSpinner);
+            Feedbacking.nullableArraySpinnerFeedback(accountSupplier.get(), accountsSpinner);
         }
 
         @Override

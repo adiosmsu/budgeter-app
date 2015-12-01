@@ -247,7 +247,7 @@ public class FundsAgentFragment extends CoreFragment {
         protected void performFeedbackSafe() {
             Feedbacking.textViewFeedback(agentsElement.getName(), agentsNameInput);
             Feedbacking.textViewFeedback(agentsElement.getDescription(), agentsDescInput);
-            Feedbacking.hintedArraySpinnerFeedback(agentSupplier.get(), agentsSpinner);
+            Feedbacking.nullableArraySpinnerFeedback(agentSupplier.get(), agentsSpinner);
         }
 
         @Override

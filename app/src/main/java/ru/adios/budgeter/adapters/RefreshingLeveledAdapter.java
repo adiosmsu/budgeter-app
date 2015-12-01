@@ -187,8 +187,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                 );
             }
         } else {
-            final IdentifiedData<DataType, IdType> parentData = f.apply(id);
-            handleNewUpLevel(parentData.id, parentData.data, true);
+            handleNewUpLevel(f.apply(id), true);
         }
     }
 

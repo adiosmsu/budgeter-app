@@ -11,12 +11,14 @@
 
     <string name="amount_decimal_hint">Amount</string>
     <string name="amount_currency_hint">Currency</string>
+    <string name="amount_currency_null_val">No currency</string>
     <string name="add_funds_finish_button">Add</string>
 
     <string name="direction_benefit">Benefit</string>
     <string name="direction_loss">Loss</string>
     <string name="funds_mutation_finish_button">Finish</string>
     <string name="accounts_spinner_prompt">Balance accounts</string>
+    <string name="accounts_spinner_null_val">No account</string>
     <string name="add_button_general" translatable="false">+</string>
     <string name="account_name_hint">Account name</string>
     <string name="account_starting_sum_hint">Starting sum</string>
@@ -26,6 +28,7 @@
     <string name="funds_mutation_payed_amount_text">Actual paid amount:</string>
     <string name="subject_name_hint">Subject name</string>
     <string name="subjects_spinner_prompt">Available subjects</string>
+    <string name="subjects_spinner_null_val">No subject</string>
     <string name="subject_parent_hint">Subject parent name (if any)</string>
     <string name="type_product">Product</string>
     <string name="type_service">Service</string>
@@ -36,6 +39,7 @@
     <string name="funds_mutation_relevant_balance_text">Relevant balance account:</string>
     <string name="funds_mutation_quantity_text">Quantity of subjects:</string>
     <string name="agents_spinner_prompt">Available agents</string>
+    <string name="agents_spinner_null_val">No agent</string>
     <string name="agent_name_hint">Agent name</string>
     <string name="op_agent_text">Operation agent (e.g. a place where the deal broke)</string>
     <string name="enter_datetime_text">Enter date and time of operation:</string>

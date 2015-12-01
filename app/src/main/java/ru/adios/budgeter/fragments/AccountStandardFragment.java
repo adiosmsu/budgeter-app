@@ -48,13 +48,11 @@ import java8.util.function.Supplier;
 import ru.adios.budgeter.AccountsElementCore;
 import ru.adios.budgeter.BalancesUiThreadState;
 import ru.adios.budgeter.BundleProvider;
-import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.FundsAdditionElementCore;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.Submitter;
 import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
 import ru.adios.budgeter.adapters.Presenters;
-import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.api.TransactionalSupport;
 import ru.adios.budgeter.api.data.BalanceAccount;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
@@ -252,6 +250,7 @@ public class AccountStandardFragment extends CoreFragment {
                 R.id.accounts_spinner_info,
                 BundleProvider.getBundle().treasury().streamRegisteredAccounts(),
                 Presenters.getBalanceAccountDefaultPresenter(getResources()),
+                R.string.accounts_spinner_null_val,
                 selectedAccount >= 0 ? OptionalInt.of(selectedAccount) : OptionalInt.empty(),
                 Optional.<AdapterView.OnItemSelectedListener>of(
                         new EmptyOnItemSelectedListener() {
@@ -272,7 +271,7 @@ public class AccountStandardFragment extends CoreFragment {
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_NAME, nameInput, nameInputInfo);
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_DESC, descInput, descInputInfo);
         final Spinner currencyInput = (Spinner) inflated.findViewById(R.id.accounts_currency_input);
-        NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(currencyInput, Optional.<StringPresenter<String>>empty(), Constants.currenciesDropdownCopy());
+        NullableDecoratingAdapter.adaptSpinnerWithCurrencies(currencyInput);
         final TextView currencyInputInfo = (TextView) inflated.findViewById(R.id.accounts_currency_input_info);
         activity.addFieldFragmentInfo(id, FIELD_NEW_ACCOUNT_CURRENCY, currencyInput, currencyInputInfo);
         final EditText amountInput = (EditText) inflated.findViewById(R.id.accounts_amount_optional_input);

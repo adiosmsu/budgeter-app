@@ -206,6 +206,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 R.id.subjects_spinner_info,
                 BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
                 Presenters.getSubjectParentLoadingPresenter(),
+                R.string.subjects_spinner_null_val,
                 selectedSubject >= 0 ? OptionalInt.of(selectedSubject) : OptionalInt.empty(),
                 Optional.<AdapterView.OnItemSelectedListener>of(
                         new EmptyOnItemSelectedListener() {

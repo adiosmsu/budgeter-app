@@ -35,14 +35,19 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import java8.util.Optional;
 import java8.util.OptionalInt;
+import ru.adios.budgeter.Constants;
+import ru.adios.budgeter.R;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkElementIndex;
@@ -56,19 +61,39 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
         extends BaseAdapter
         implements NullableAdapter, DecoratingAdapter<T>, ThemedSpinnerAdapter, MutableAdapter<T>, StringPresentingAdapter<T> {
 
+    public static void adaptSpinnerWithCurrencies(Spinner spinner) {
+        adaptSpinnerWithArrayWrapper(
+                spinner, Optional.<StringPresenter<String>>empty(), Constants.currenciesDropdownCopy(), OptionalInt.of(R.string.amount_currency_null_val)
+        );
+    }
+
     public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, Type[] array) {
+        adaptSpinnerWithArrayWrapper(spinner, presenter, array, OptionalInt.empty());
+    }
+
+    public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, Type[] array, OptionalInt nullPresentation) {
         NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), array);
-        adaptSpinner(spinner, adapter, presenter);
+        adaptSpinner(spinner, adapter, presenter, nullPresentation);
     }
 
     public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, List<Type> list) {
-        NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), list);
-        adaptSpinner(spinner, adapter, presenter);
+        adaptSpinnerWithArrayWrapper(spinner, presenter, list, OptionalInt.empty());
     }
 
-    private static <Type> void adaptSpinner(Spinner spinner, NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter, Optional<StringPresenter<Type>> presenter) {
+    public static <Type> void adaptSpinnerWithArrayWrapper(Spinner spinner, Optional<StringPresenter<Type>> presenter, List<Type> list, OptionalInt nullPresentation) {
+        NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter = constructArrayWrapper(spinner.getContext(), spinner.getPrompt().toString(), list);
+        adaptSpinner(spinner, adapter, presenter, nullPresentation);
+    }
+
+    private static <Type> void adaptSpinner(
+            Spinner spinner, NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter, Optional<StringPresenter<Type>> presenter, OptionalInt nullPresentation
+    ) {
         if (presenter.isPresent()) {
             adapter.setStringPresenter(presenter.get());
+        }
+        if (nullPresentation.isPresent()) {
+            adapter.addNullPresentationRule(ListView.class, nullPresentation.getAsInt());
+            adapter.addNullPresentationRule(FrameLayout.class, nullPresentation.getAsInt());
         }
         spinner.setAdapter(adapter);
     }
@@ -96,6 +121,7 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
     private final Optional<String> nullValStr;
     @IdRes
     private final OptionalInt fieldId;
+    private final ArrayList<NullRule> nullRules = new ArrayList<>();
 
     private StringPresenter<T> stringPresenter;
 
@@ -131,6 +157,14 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
         nullViewProvider = fieldId.isPresent()
                 ? new NullViewProvider(context, resource, fieldId.getAsInt())
                 : new NullViewProvider(context, resource);
+    }
+
+    public void addNullPresentationRule(Class<? extends View> viewClass, @Nullable String presentation) {
+        nullRules.add(new NullRule(viewClass, Optional.ofNullable(presentation)));
+    }
+
+    public void addNullPresentationRule(Class<? extends View> viewClass, @StringRes int presentationRes) {
+        addNullPresentationRule(viewClass, nullViewProvider.context.getResources().getString(presentationRes));
     }
 
     @Override
@@ -378,6 +412,8 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
 
     private final class NullViewProvider extends ViewProvidingBaseAdapter<String> {
 
+        private Class<? extends View> currentViewClass;
+
         NullViewProvider(Context context, @LayoutRes int resource) {
             super(context, resource);
         }
@@ -387,8 +423,31 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
         }
 
         @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            currentViewClass = parent.getClass();
+            return super.getView(position, convertView, parent);
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            currentViewClass = parent.getClass();
+            return super.getDropDownView(position, convertView, parent);
+        }
+
+        @Override
         public String getItem(int position) {
             checkElementIndex(position, 1);
+            for (final NullRule rule : nullRules) {
+                if (rule.viewClass.isAssignableFrom(currentViewClass)) {
+                    return rule.presentation.isPresent()
+                            ? rule.presentation.get()
+                            : getDefItem();
+                }
+            }
+            return getDefItem();
+        }
+
+        private String getDefItem() {
             return resNullValStr.isPresent()
                     ? context.getResources().getString(resNullValStr.getAsInt())
                     : nullValStr.get();
@@ -404,6 +463,16 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
             return position;
         }
 
+    }
+
+    private static final class NullRule {
+        final Class<? extends View> viewClass;
+        final Optional<String> presentation;
+
+        NullRule(Class<? extends View> viewClass, Optional<String> presentation) {
+            this.presentation = presentation;
+            this.viewClass = viewClass;
+        }
     }
 
 }

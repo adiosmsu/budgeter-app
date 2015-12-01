@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.support.annotation.IdRes;
+import android.support.annotation.StringRes;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -115,6 +116,7 @@ public final class UiUtils {
                                                        final @IdRes int spinnerInfoId,
                                                        Stream<T> stream,
                                                        final StringPresenter<T> presenter,
+                                                       final @StringRes int nullPresentation,
                                                        final OptionalInt selection,
                                                        final Optional<AdapterView.OnItemSelectedListener> listenerOptional) {
         // empty it first 'cause we need to do our task in background
@@ -134,7 +136,8 @@ public final class UiUtils {
 
             @Override
             protected void onPostExecute(List<T> res) {
-                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res); // fill spinner with data and schedule it for redrawing
+                // fill spinner with data and schedule it for redrawing
+                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res, OptionalInt.of(nullPresentation));
                 if (selection.isPresent()) {
                     spinner.setSelection(selection.getAsInt()); // if fragment saved spinner state, apply it
                 }

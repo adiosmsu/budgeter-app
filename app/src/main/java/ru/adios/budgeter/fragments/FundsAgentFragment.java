@@ -141,6 +141,7 @@ public class FundsAgentFragment extends CoreFragment {
                 R.id.agents_spinner_info,
                 BundleProvider.getBundle().fundsMutationAgents().streamAll(),
                 Presenters.getAgentDefaultPresenter(),
+                R.string.agents_spinner_null_val,
                 selectedAgent >= 0 ? OptionalInt.of(selectedAgent) : OptionalInt.empty(),
                 Optional.<AdapterView.OnItemSelectedListener>of(
                         new EmptyOnItemSelectedListener() {

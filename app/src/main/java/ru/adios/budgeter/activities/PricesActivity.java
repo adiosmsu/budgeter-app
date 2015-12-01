@@ -22,6 +22,7 @@ package ru.adios.budgeter.activities;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.StringRes;
 import android.support.annotation.UiThread;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.AppCompatSpinner;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java8.util.Optional;
+import java8.util.OptionalInt;
 import java8.util.function.Consumer;
 import java8.util.function.Function;
 import java8.util.stream.Collectors;
@@ -117,6 +119,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
                 subjectsSelection,
                 BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
                 Presenters.getSubjectParentLoadingPresenter(),
+                R.string.subjects_spinner_null_val,
                 new Function<FundsMutationSubject, Long>() {
                     @Override
                     public Long apply(FundsMutationSubject fundsMutationSubject) {
@@ -129,6 +132,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
                 agentsSelection,
                 BundleProvider.getBundle().fundsMutationAgents().streamAll(),
                 Presenters.getAgentDefaultPresenter(),
+                R.string.agents_spinner_null_val,
                 new Function<FundsMutationAgent, Long>() {
                     @Override
                     public Long apply(FundsMutationAgent agent) {
@@ -253,6 +257,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
                                  final SpinnerState selection,
                                  final Stream<T> stream,
                                  final StringPresenter<T> presenter,
+                                 final @StringRes int nullPresentation,
                                  final Function<T, Long> idExtractor
     ) {
         NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.<StringPresenter<String>>empty(), new String[] {});
@@ -270,7 +275,7 @@ public class PricesActivity extends FundsAwareMenuActivity {
 
             @Override
             protected void onPostExecute(List<T> res) {
-                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res);
+                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res, OptionalInt.of(nullPresentation));
                 if (selection.selection >= 0) {
                     spinner.setSelection(selection.selection);
                 }

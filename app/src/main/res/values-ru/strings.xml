@@ -7,6 +7,7 @@
     <string name="button_add_funds">Добавить средства</string>
     <string name="amount_decimal_hint">Сумма</string>
     <string name="amount_currency_hint">Валюта</string>
+    <string name="amount_currency_null_val">Без валюты</string>
     <string name="title_activity_add_funds">Добавить средства</string>
     <string name="add_funds_finish_button">Добавить</string>
     <string name="direction_benefit">Поступление</string>
@@ -17,10 +18,12 @@
     <string name="account_starting_sum_hint">Начальная сумма</string>
     <string name="accounts_desc_hint">Описание аккаунта</string>
     <string name="accounts_spinner_prompt">Аккаунты</string>
+    <string name="accounts_spinner_null_val">Без аккаунта</string>
     <string name="accounts_submit_button">Отправить</string>
     <string name="agent_desc_hint">Описание посредника</string>
     <string name="agent_name_hint">Название посредника</string>
     <string name="agents_spinner_prompt">Доступные посредники</string>
+    <string name="agents_spinner_null_val">Без посредника</string>
     <string name="ah_exchanges_table_col_b_acc">К-Акк</string>
     <string name="ah_exchanges_table_col_bought">Куплено</string>
     <string name="ah_exchanges_table_col_rate">Курс</string>
@@ -90,6 +93,7 @@
     <string name="subject_parent_hint">Название родителя субъекта (если есть)</string>
     <string name="subjects_desc_hint">Описание субъекта</string>
     <string name="subjects_spinner_prompt">Доступные субъекты</string>
+    <string name="subjects_spinner_null_val">Без субъекта</string>
     <string name="title_activity_add_price">Добавить цену</string>
     <string name="title_activity_exchange_currencies">Добавить обмен</string>
     <string name="title_activity_exchanges_table">Таблица обменов</string>

@@ -45,6 +45,7 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
     private boolean requestedRefreshOnce = false;
     private int restoredSelection = -1;
     private boolean restored = false;
+    private boolean restoreCommencing = false;
 
     public RefreshingSpinner(Context context) {
         super(context);
@@ -84,7 +85,17 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
             refreshingAdapter.setOnRefreshListener(new RefreshingAdapter.OnRefreshListener() {
                 @Override
                 public void onRefreshed() {
-                    if (requestedRefreshOnce) {
+                    if (restoreCommencing) {
+                        try {
+                            if (restoredSelection >= 0) {
+                                setSelection(restoredSelection);
+                                restoredSelection = -1;
+                            }
+                            restored = true;
+                        } finally {
+                            restoreCommencing = false;
+                        }
+                    } else if (requestedRefreshOnce) {
                         performClick();
                     }
                 }
@@ -130,11 +141,7 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
             ((PersistingStateful) adapter).restoreSavedState(savedState.adapterState);
         }
 
-        if (restoredSelection >= 0) {
-            setSelection(restoredSelection);
-            restoredSelection = -1;
-        }
-        restored = true;
+        restoreCommencing = true;
     }
 
     public static class SavedState extends BaseSavedState {

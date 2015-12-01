@@ -31,15 +31,15 @@ import java8.util.function.Supplier;
  * Created by Michail Kulikov
  * 12/1/15
  */
-public final class AsyncTaskProvider implements AsynchronyProvider {
+public class AsyncTaskProvider implements AsynchronyProvider {
 
     @Override
-    public boolean isAsync() {
+    public final boolean isAsync() {
         return true;
     }
 
     @Override
-    public <V> ListenableFuture<V> provideAsynchrony(Supplier<V> supplier) {
+    public final <V> ListenableFuture<V> provideAsynchrony(Supplier<V> supplier) {
         final AsyncListenableFuture<V> future = new AsyncListenableFuture<>();
         new AsyncTask<Supplier, Void, ResultContainer<V>>() {
             @Override

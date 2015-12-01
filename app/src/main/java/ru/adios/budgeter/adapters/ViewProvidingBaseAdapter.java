@@ -150,7 +150,7 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
             }
             text = (TextView) casting;
             Preconditions.checkNotNull(text, "Resource {%s:%s} not found inside view {%s:%s}",
-                    fieldId, resources.getResourceName(fieldId), resource, new LazyResName(context, resource));
+                    fieldId, new LazyResName(resources, fieldId), resource, new LazyResName(resources, resource));
         } catch (ClassCastException e) {
             logger.error("ViewProvidingBaseAdapter: convert view is not a TextView and field resource id wasn't provided");
             if (fieldId == 0) {
@@ -179,18 +179,18 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
 
     private static final class LazyResName {
 
-        private final Context context;
+        private final Resources resources;
         @AnyRes
         private final int resId;
 
-        LazyResName(Context context, @AnyRes int resId) {
-            this.context = context;
+        LazyResName(Resources resources, @AnyRes int resId) {
+            this.resources = resources;
             this.resId = resId;
         }
 
         @Override
         public String toString() {
-            return UiUtils.resolveResourceId(context, resId);
+            return UiUtils.resolveResourceId(resources, resId);
         }
 
     }

@@ -179,11 +179,7 @@ public class EnterAmountFragment extends CoreFragment {
         @Override
         protected void performFeedbackSafe() {
             Feedbacking.decimalTextViewFeedback(monSet.getAmountDecimal(), amountDecimal);
-            final CurrencyUnit amountUnit = monSet.getAmountUnit();
-            if (amountUnit == null) {
-                System.out.println("SHIT!");
-            }
-            Feedbacking.currenciesSpinnerFeedback(amountUnit, amountCurrency);
+            Feedbacking.currenciesSpinnerFeedback(monSet.getAmountUnit(), amountCurrency);
         }
 
         @Override

@@ -117,9 +117,12 @@ public final class Feedbacking {
             if (adapter instanceof NullableAdapter) {
                 ((NullableAdapter) adapter).setNullSelection(spinner);
             }
-        } else if (!spinner.getSelectedItem().toString().equals(unit.getCode())) {
-            spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
-            spinner.invalidate();
+        } else {
+            final Object selectedItem = spinner.getSelectedItem();
+            if (selectedItem == null || !selectedItem.toString().equals(unit.getCode())) {
+                spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
+                spinner.invalidate();
+            }
         }
     }
 

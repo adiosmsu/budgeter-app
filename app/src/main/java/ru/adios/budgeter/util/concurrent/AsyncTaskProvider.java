@@ -25,12 +25,15 @@ import android.os.AsyncTask;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import java8.util.function.Supplier;
 
 /**
  * Created by Michail Kulikov
  * 12/1/15
  */
+@ThreadSafe
 public class AsyncTaskProvider implements AsynchronyProvider {
 
     @Override

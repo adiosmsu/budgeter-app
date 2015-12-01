@@ -229,7 +229,7 @@ public final class CoreNotifier {
                 }
             }
         } else if (linker instanceof ArbitraryLinker) {
-            ((ArbitraryLinker) linker).link(o);
+            fieldChanged = ((ArbitraryLinker) linker).link(o);
         }
 
         if (fieldChanged) {

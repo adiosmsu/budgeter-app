@@ -149,9 +149,14 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
     }
 
     @Override
-    public T translatePosition(int position) {
+    public T getItemTranslating(int position) {
         checkArgument(position != 0, "Cannot translate to delegate, null value is unique to this wrapper");
         return getItem(position);
+    }
+
+    @Override
+    public int decoratedPositionToDecorators(int position) {
+        return position + 1;
     }
 
     @Override

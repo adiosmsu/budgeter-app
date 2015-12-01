@@ -34,6 +34,8 @@ public interface DecoratingAdapter<T> extends Adapter {
 
     boolean isPositionTranslatable(int position);
 
-    T translatePosition(int position);
+    T getItemTranslating(int position);
+
+    int decoratedPositionToDecorators(int position);
 
 }

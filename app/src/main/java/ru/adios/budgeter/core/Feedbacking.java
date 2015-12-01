@@ -39,6 +39,7 @@ import javax.annotation.concurrent.Immutable;
 
 import ru.adios.budgeter.Constants;
 import ru.adios.budgeter.DateTimeUtils;
+import ru.adios.budgeter.adapters.DecoratingAdapter;
 import ru.adios.budgeter.adapters.NullableAdapter;
 import ru.adios.budgeter.api.UtcDay;
 import ru.adios.budgeter.widgets.DateEditView;
@@ -112,15 +113,16 @@ public final class Feedbacking {
     }
 
     public static void currenciesSpinnerFeedback(CurrencyUnit unit, Spinner spinner) {
+        final SpinnerAdapter adapter = spinner.getAdapter();
         if (unit == null) {
-            final SpinnerAdapter adapter = spinner.getAdapter();
             if (adapter instanceof NullableAdapter) {
                 ((NullableAdapter) adapter).setNullSelection(spinner);
             }
         } else {
             final Object selectedItem = spinner.getSelectedItem();
             if (selectedItem == null || !selectedItem.toString().equals(unit.getCode())) {
-                spinner.setSelection(Constants.getCurrencyDropdownPosition(unit), true);
+                int pos = Constants.getCurrencyDropdownPosition(unit);
+                spinner.setSelection((adapter instanceof DecoratingAdapter) ? ((DecoratingAdapter) adapter).decoratedPositionToDecorators(pos) : pos, true);
                 spinner.invalidate();
             }
         }

@@ -115,7 +115,7 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
             }
             if (decorator != null) {
                 if (decorator.isPositionTranslatable(which)) {
-                    refreshingAdapter.refresh(decorator.translatePosition(which));
+                    refreshingAdapter.refresh(decorator.getItemTranslating(which));
                 }
             } else {
                 refreshingAdapter.refresh(refreshingAdapter.getItem(which));

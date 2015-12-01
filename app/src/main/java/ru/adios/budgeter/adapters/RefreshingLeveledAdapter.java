@@ -140,14 +140,24 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     private void refreshUsingParentOf(final IdType id) {
-        refreshInnerGeneral(id, new ParentFunction());
+        refreshInnerGeneral(id, new Function<IdType, IdentifiedData<DataType, IdType>>() {
+            @Override
+            public IdentifiedData<DataType, IdType> apply(IdType i) {
+                return dataExtractor.extractParent(i);
+            }
+        });
     }
 
     private void refreshUsingData(IdType id, @Nullable DataType data) {
         if (data != null) {
             handleNewUpLevel(id, data, true);
         } else {
-            refreshInnerGeneral(id, new DataFunction());
+            refreshInnerGeneral(id, new Function<IdType, IdentifiedData<DataType, IdType>>() {
+                @Override
+                public IdentifiedData<DataType, IdType> apply(IdType i) {
+                    return new IdentifiedData<>(dataExtractor.extractData(i), i);
+                }
+            });
         }
     }
 
@@ -248,21 +258,6 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         @Override
         public final void onFailure(@NonNull Throwable t) {
             logger.error("Error extracting data for RefreshingLeveledAdapter", t);
-        }
-    }
-
-    private final class ParentFunction implements Function<IdType, IdentifiedData<DataType, IdType>> {
-        @Override
-        @Nullable
-        public IdentifiedData<DataType, IdType> apply(IdType i) {
-            return dataExtractor.extractParent(i);
-        }
-    }
-
-    private final class DataFunction implements Function<IdType, IdentifiedData<DataType, IdType>> {
-        @Override
-        public IdentifiedData<DataType, IdType> apply(IdType i) {
-            return new IdentifiedData<>(dataExtractor.extractData(i), i);
         }
     }
 

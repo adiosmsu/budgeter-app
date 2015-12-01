@@ -53,16 +53,24 @@ public interface AsynchronyProvider {
 
                             @Override
                             public void onFailure(@NonNull Throwable t) {
-                                if (onFail != null) {
-                                    onFail.accept(t);
-                                } else {
-                                    t.printStackTrace();
-                                }
+                                processEx(onFail, t);
                             }
                         }
                 );
             } else {
-                onSuccess.accept(supplier.get());
+                try {
+                    onSuccess.accept(supplier.get());
+                } catch (Throwable t) {
+                    processEx(onFail, t);
+                }
+            }
+        }
+
+        private static void processEx(@Nullable Consumer<Throwable> onFail, Throwable t) {
+            if (onFail != null) {
+                onFail.accept(t);
+            } else {
+                t.printStackTrace();
             }
         }
 

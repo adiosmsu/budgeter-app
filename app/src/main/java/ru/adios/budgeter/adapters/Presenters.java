@@ -70,6 +70,7 @@ public final class Presenters {
     public static final class SubjectParentLoadingPresenter implements StringPresenter<FundsMutationSubject> {
 
         private static final String PENDING_MARKER = "<{@PENDING_MARKER@}>";
+        private static final String NULL_MARKER = "<{@NULL_MARKER@}>";
         private static final LinkedHashMap<Integer, String> parentsCache = new LinkedHashMap<Integer, String>(1000, 1f, true) {
             @Override
             protected boolean removeEldestEntry(Entry<Integer, String> eldest) {
@@ -90,7 +91,9 @@ public final class Presenters {
             final String parentInfo = parentsCache.get(subHash);
             if (!PENDING_MARKER.equals(parentInfo)) {
                 if (parentInfo != null) {
-                    builder.append(", parent: ").append(parentInfo);
+                    if (!NULL_MARKER.equals(parentInfo)) {
+                        builder.append(", parent: ").append(parentInfo);
+                    }
                 } else {
                     new AsyncTask<FundsMutationSubject, Void, String>() {
                         @Override
@@ -108,6 +111,8 @@ public final class Presenters {
                                 if (adapter != null) {
                                     adapter.notifyDataSetChanged();
                                 }
+                            } else {
+                                parentsCache.put(subHash, NULL_MARKER);
                             }
                         }
                     }.execute(subject);

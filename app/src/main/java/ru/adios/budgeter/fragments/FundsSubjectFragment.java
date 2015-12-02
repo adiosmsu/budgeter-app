@@ -51,7 +51,7 @@ import java8.util.function.Supplier;
 import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.SubjectAdditionElementCore;
-import ru.adios.budgeter.adapters.AsyncDataExtractor;
+import ru.adios.budgeter.adapters.AsyncParentingDataExtractor;
 import ru.adios.budgeter.adapters.AsyncRefresher;
 import ru.adios.budgeter.adapters.ModedRequestingAutoCompleteAdapter;
 import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
@@ -228,7 +228,7 @@ public class FundsSubjectFragment extends CoreFragment {
                                 .collect(Immutables.<FundsMutationSubject>getListCollector());
                     }
                 },
-                new AsyncDataExtractor<FundsMutationSubject, Long>() {
+                new AsyncParentingDataExtractor<FundsMutationSubject, Long>() {
                     @Override
                     public FundsMutationSubject extractData(Long id) {
                         return BundleProvider.getBundle()
@@ -262,7 +262,9 @@ public class FundsSubjectFragment extends CoreFragment {
                 },
                 android.R.layout.simple_spinner_item
         );
-        leveledAdapter.init();
+        if (selectedSubject < 0) {
+            leveledAdapter.initDoNotCallIfActivityRestored();
+        }
         leveledAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         final NullableDecoratingAdapter<RefreshingLeveledAdapter<FundsMutationSubject, Long>, FundsMutationSubject> wrapperAdapter = new NullableDecoratingAdapter<>(
                 getContext(),

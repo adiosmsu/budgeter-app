@@ -20,27 +20,21 @@
 
 package ru.adios.budgeter.adapters;
 
-import android.support.annotation.WorkerThread;
+import android.support.annotation.UiThread;
 
 import java.io.Serializable;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import ru.adios.budgeter.util.concurrent.AsyncTaskProvider;
+import ru.adios.budgeter.util.concurrent.AsynchronyProvider;
 
 /**
  * Created by Michail Kulikov
  * 12/2/15
  */
-@ThreadSafe
-public abstract class AsyncDataExtractor<T, I extends Serializable> extends AsyncTaskProvider implements DataExtractor<T, I> {
+public interface DataExtractor<T, I extends Serializable> extends AsynchronyProvider {
 
-    @WorkerThread
-    @Override
-    public abstract T extractData(I id);
+    T extractData(I id);
 
-    @WorkerThread
-    @Override
-    public abstract I extractId(T data);
+    @UiThread
+    I extractId(T data);
 
 }

@@ -34,6 +34,8 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import java8.util.function.Consumer;
@@ -45,7 +47,7 @@ import ru.adios.budgeter.util.concurrent.AsynchronyProvider;
  * 11/27/15
  */
 @UiThread
-public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Type> implements PersistingStateful {
+public class RefreshingAdapter<Type, Param, I extends Serializable> extends ViewProvidingBaseAdapter<Type> implements PersistingStateful {
 
     static final Logger logger = LoggerFactory.getLogger(RefreshingAdapter.class);
 
@@ -66,31 +68,91 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
     }
 
     protected final Refresher<Type, Param> refresher;
+    private final DataExtractor<Param, I> dataExtractor;
     private OnRefreshListener onRefreshListener;
     private ImmutableList<Type> items = ImmutableList.of();
     private Param currentParam;
     private boolean refreshCommencing = false;
+    private Consumer<Throwable> onFailConsumer = new Consumer<Throwable>() {
+        @Override
+        public void accept(Throwable throwable) {
+            logRefreshThrowable(throwable);
+        }
+    };
 
-    public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource) {
+    public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, DataExtractor<Param, I> de, @LayoutRes int resource) {
         super(context, resource);
         this.refresher = refresher;
+        this.dataExtractor = de;
     }
 
-    public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource, @IdRes int fieldId) {
+    public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, DataExtractor<Param, I> de, @LayoutRes int resource, @IdRes int fieldId) {
         super(context, resource, fieldId);
         this.refresher = refresher;
+        this.dataExtractor = de;
     }
 
     @Override
-    public Parcelable getSavedState() {
-        return RefreshingState.EMPTY_STATE;
+    public RefreshingState getSavedState() {
+        return new RefreshingState(RefreshingState.EMPTY_STATE, currentParam != null ? dataExtractor.extractId(currentParam) : null);
     }
 
     @Override
     public void restoreSavedState(Parcelable state) {
-        if (state != null && !(state instanceof AbsSavedState)) {
+        if (!(state instanceof RefreshingState)) {
             throw new IllegalArgumentException("Wrong state class, expecting RefreshingState but "
                     + "received " + state.getClass().toString() + " instead.");
+        }
+
+        final Serializable currentId = ((RefreshingState) state).currentId;
+        if (currentId != null) {
+            if (dataExtractor.isAsync()) {
+                refreshCommencing = true;
+
+                if (refresher.isAsync()) {
+                    AsynchronyProvider.Static.workWithProvider(
+                            dataExtractor,
+                            new Consumer<AsyncRestoreResult<Type, Param>>() {
+                                @Override
+                                public void accept(AsyncRestoreResult<Type, Param> result) {
+                                    processRefreshResult(result.list, result.param);
+                                }
+                            },
+                            onFailConsumer,
+                            new Supplier<AsyncRestoreResult<Type, Param>>() {
+                                @Override
+                                public AsyncRestoreResult<Type, Param> get() {
+                                    //noinspection unchecked
+                                    final Param param = dataExtractor.extractData((I) currentId);
+                                    return new AsyncRestoreResult<>(refresher.gatherData(param), param);
+                                }
+                            }
+                    );
+                } else {
+                    AsynchronyProvider.Static.workWithProvider(
+                            dataExtractor,
+                            new Consumer<Param>() {
+                                @Override
+                                public void accept(Param param) {
+                                    processRefreshResult(refresher.gatherData(param), param);
+                                }
+                            },
+                            onFailConsumer,
+                            new Supplier<Param>() {
+                                @Override
+                                public Param get() {
+                                    //noinspection unchecked
+                                    return dataExtractor.extractData((I) currentId);
+                                }
+                            }
+                    );
+                }
+            } else {
+                //noinspection unchecked
+                refreshInner(dataExtractor.extractData((I) currentId));
+            }
+        } else {
+            refreshInner(null);
         }
     }
 
@@ -121,19 +183,10 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
                     new Consumer<ImmutableList<Type>>() {
                         @Override
                         public void accept(ImmutableList<Type> data) {
-                            refreshCommencing = false;
-                            if (data != null && data.size() > 0) {
-                                currentParam = param;
-                            }
-                            setItems(data);
+                            processRefreshResult(data, param);
                         }
                     },
-                    new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) {
-                            logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
-                        }
-                    },
+                    onFailConsumer,
                     new Supplier<ImmutableList<Type>>() {
                         @Override
                         public ImmutableList<Type> get() {
@@ -146,6 +199,18 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         }
 
         return false;
+    }
+
+    void processRefreshResult(ImmutableList<Type> data, @Nullable Param param) {
+        refreshCommencing = false;
+        if (data != null && data.size() > 0) {
+            currentParam = param;
+        }
+        setItems(data);
+    }
+
+    void logRefreshThrowable(Throwable throwable) {
+        logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
     }
 
     public boolean refreshCurrent() {
@@ -171,7 +236,7 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         return items;
     }
 
-    void setItems(@Nullable ImmutableList<Type> items) {
+    private void setItems(@Nullable ImmutableList<Type> items) {
         if (items != null && items.size() > 0) {
             this.items = items;
             if (onRefreshListener != null) {
@@ -185,13 +250,39 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         }
     }
 
+    private static final class AsyncRestoreResult<T, P> {
+        final P param;
+        final ImmutableList<T> list;
+
+        AsyncRestoreResult(ImmutableList<T> list, P param) {
+            this.list = list;
+            this.param = param;
+        }
+    }
+
     public static class RefreshingState extends AbsSavedState {
+
+        final Serializable currentId;
+
         RefreshingState(Parcel source) {
             super(source);
+            currentId = source.readSerializable();
         }
 
-        RefreshingState(Parcelable superState) {
+        RefreshingState(Parcelable superState, Serializable currentId) {
             super(superState);
+            this.currentId = currentId;
+        }
+
+        RefreshingState(RefreshingState superState) {
+            super(superState);
+            currentId = superState.currentId;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeSerializable(currentId);
         }
 
         public static final Parcelable.Creator<RefreshingState> CREATOR =

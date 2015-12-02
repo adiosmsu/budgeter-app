@@ -20,27 +20,23 @@
 
 package ru.adios.budgeter.adapters;
 
+import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import java.io.Serializable;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import ru.adios.budgeter.util.concurrent.AsyncTaskProvider;
-
 /**
  * Created by Michail Kulikov
- * 12/2/15
+ * 12/1/15
  */
 @ThreadSafe
-public abstract class AsyncDataExtractor<T, I extends Serializable> extends AsyncTaskProvider implements DataExtractor<T, I> {
+public abstract class AsyncParentingDataExtractor<T, I extends Serializable> extends AsyncDataExtractor<T, I> implements ParentingDataExtractor<T, I> {
 
     @WorkerThread
+    @Nullable
     @Override
-    public abstract T extractData(I id);
-
-    @WorkerThread
-    @Override
-    public abstract I extractId(T data);
+    public abstract RefreshingLeveledAdapter.IdentifiedData<T, I> extractParent(I id);
 
 }

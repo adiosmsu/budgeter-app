@@ -40,34 +40,19 @@ import java.io.Serializable;
 import java.util.LinkedList;
 
 import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
 
 import java8.util.function.Function;
 import java8.util.function.Supplier;
 import ru.adios.budgeter.R;
-import ru.adios.budgeter.util.concurrent.AsynchronyProvider;
 
 /**
  * Created by Michail Kulikov
  * 11/27/15
  */
 @UiThread
-public final class RefreshingLeveledAdapter<DataType, IdType extends Serializable> extends RefreshingAdapter<DataType, DataType> {
+public final class RefreshingLeveledAdapter<DataType, IdType extends Serializable> extends RefreshingAdapter<DataType, DataType, IdType> {
 
     private static final Logger logger = LoggerFactory.getLogger(RefreshingLeveledAdapter.class);
-
-    @ThreadSafe
-    public interface DataExtractor<T, I extends Serializable> extends AsynchronyProvider {
-
-        @Nullable
-        IdentifiedData<T, I> extractParent(I id);
-
-        T extractData(I id);
-
-        @UiThread
-        I extractId(T data);
-
-    }
 
     @Immutable
     public static final class IdentifiedData<T, I extends Serializable> {
@@ -81,29 +66,34 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
 
-    private final DataExtractor<DataType, IdType> dataExtractor;
-    private final LinkedList<Integer> upLevelPositionsStack = new LinkedList<>();
-    private IdType upLevelId;
-    private DataType upLevelData;
+    private final ParentingDataExtractor<DataType, IdType> parentingDataExtractor;
+
     private IdType potentialUpLevelId;
     private DataType potentialUpLevelData;
     private boolean potentialUpNulling = false;
     private int potentialUpLevelPosition = -1;
     private boolean upPressed = false;
-    private Integer defaultPosition = null;
     private boolean refreshCommencing = false;
+
     private StringPresenter<DataType> innerPresenter;
     private OnRefreshListener innerRefListener;
 
-    public RefreshingLeveledAdapter(Context context, Refresher<DataType, DataType> refresher, DataExtractor<DataType, IdType> pe, @LayoutRes int resource) {
-        super(context, refresher, resource);
-        this.dataExtractor = pe;
+    // begin transient state
+    private final LinkedList<Integer> upLevelPositionsStack = new LinkedList<>();
+    private IdType upLevelId;
+    private DataType upLevelData;
+    private Integer defaultPosition = null;
+    // end transient state
+
+    public RefreshingLeveledAdapter(Context context, Refresher<DataType, DataType> refresher, ParentingDataExtractor<DataType, IdType> pe, @LayoutRes int resource) {
+        super(context, refresher, pe, resource);
+        this.parentingDataExtractor = pe;
         innerInit();
     }
 
-    public RefreshingLeveledAdapter(Context context, Refresher<DataType, DataType> refresher, DataExtractor<DataType, IdType> pe, @LayoutRes int resource, @IdRes int fieldId) {
-        super(context, refresher, resource, fieldId);
-        this.dataExtractor = pe;
+    public RefreshingLeveledAdapter(Context context, Refresher<DataType, DataType> refresher, ParentingDataExtractor<DataType, IdType> pe, @LayoutRes int resource, @IdRes int fieldId) {
+        super(context, refresher, pe, resource, fieldId);
+        this.parentingDataExtractor = pe;
         innerInit();
     }
 
@@ -112,7 +102,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         super.setOnRefreshListener(new LeveledRefreshListener());
     }
 
-    public void init() {
+    public void initDoNotCallIfActivityRestored() {
         if (!refreshCommencing) {
             refreshCommencing = true;
             handleNewUpLevel(null, null, true);
@@ -137,17 +127,57 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     @Override
-    public Parcelable getSavedState() {
-        Parcelable superState = super.getSavedState();
-        return new SavedState(superState, upLevelId);
+    public SavedState getSavedState() {
+        RefreshingState superState = super.getSavedState();
+        return new SavedState(superState, upLevelId, upLevelPositionsStack, defaultPosition);
     }
 
     @Override
     public void restoreSavedState(Parcelable state) {
         final SavedState savedState = (SavedState) state;
         super.restoreSavedState(savedState.getSuperState());
-        //noinspection unchecked
-        refreshUsingData((IdType) savedState.upLevelId, null);
+
+        refreshCommencing = true;
+
+        if (savedState.upLevelId == null) {
+            upLevelId = null;
+            upLevelData = null;
+        } else {
+            //noinspection unchecked
+            final IdType id = (IdType) savedState.upLevelId;
+
+            if (parentingDataExtractor.isAsync()) {
+                Futures.addCallback(
+                        parentingDataExtractor.provideAsynchrony(new Supplier<IdentifiedData<DataType, IdType>>() {
+                            @Override
+                            public IdentifiedData<DataType, IdType> get() {
+                                return new IdentifiedData<>(parentingDataExtractor.extractData(id), id);
+                            }
+                        }),
+                        new AbsFutureCallback<IdentifiedData<DataType, IdType>>() {
+                            @Override
+                            public void onSuccess(IdentifiedData<DataType, IdType> result) {
+                                upLevelId = result.id;
+                                upLevelData = result.data;
+                                refreshCommencing = false;
+                            }
+                        }
+                );
+            } else {
+                upLevelId = id;
+                upLevelData = parentingDataExtractor.extractData(id);
+            }
+        }
+
+        upLevelPositionsStack.clear();
+        for (final Object o : savedState.stackContents) {
+            upLevelPositionsStack.add((Integer) o);
+        }
+        defaultPosition = savedState.defaultPosition >= 0 ? savedState.defaultPosition : null;
+
+        if (!parentingDataExtractor.isAsync() && refreshCommencing) {
+            refreshCommencing = false;
+        }
     }
 
     @Override
@@ -155,7 +185,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         if (!refreshCommencing) {
             refreshCommencing = true;
 
-            final IdType id = dataExtractor.extractId(data);
+            final IdType id = parentingDataExtractor.extractId(data);
 
             if (upLevelId != null && upLevelId.equals(id)) {
                 upPressed = true;
@@ -182,7 +212,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         refreshInnerGeneral(id, new Function<IdType, IdentifiedData<DataType, IdType>>() {
             @Override
             public IdentifiedData<DataType, IdType> apply(IdType i) {
-                return dataExtractor.extractParent(i);
+                return parentingDataExtractor.extractParent(i);
             }
         });
     }
@@ -194,17 +224,17 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
             refreshInnerGeneral(id, new Function<IdType, IdentifiedData<DataType, IdType>>() {
                 @Override
                 public IdentifiedData<DataType, IdType> apply(IdType i) {
-                    return new IdentifiedData<>(dataExtractor.extractData(i), i);
+                    return new IdentifiedData<>(parentingDataExtractor.extractData(i), i);
                 }
             });
         }
     }
 
     private void refreshInnerGeneral(final IdType id, final Function<IdType, IdentifiedData<DataType, IdType>> f) {
-        if (dataExtractor.isAsync()) {
+        if (parentingDataExtractor.isAsync()) {
             if (refresher.isAsync()) {
                 Futures.addCallback(
-                        dataExtractor.provideAsynchrony(new Supplier<AsyncResult<DataType, IdType>>() {
+                        parentingDataExtractor.provideAsynchrony(new Supplier<AsyncResult<DataType, IdType>>() {
                             @Override
                             public AsyncResult<DataType, IdType> get() {
                                 final IdentifiedData<DataType, IdType> data = f.apply(id);
@@ -215,13 +245,13 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                             @Override
                             public void onSuccess(AsyncResult<DataType, IdType> result) {
                                 handleNewUpLevel(result.identifiedData, false);
-                                setItems(result.refreshed);
+                                processRefreshResult(result.refreshed, result.identifiedData == null ? null : result.identifiedData.data);
                             }
                         }
                 );
             } else {
                 Futures.addCallback(
-                        dataExtractor.provideAsynchrony(new Supplier<IdentifiedData<DataType, IdType>>() {
+                        parentingDataExtractor.provideAsynchrony(new Supplier<IdentifiedData<DataType, IdType>>() {
                             @Override
                             public IdentifiedData<DataType, IdType> get() {
                                 return f.apply(id);
@@ -322,6 +352,8 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         @Override
         public void onNoDataLoaded() {
             refreshCommencing = false;
+
+            final DataType dataBackup = potentialUpLevelData;
             if (potentialUpLevelId != null && potentialUpLevelData != null) {
                 potentialUpLevelId = null;
                 potentialUpLevelData = null;
@@ -330,6 +362,18 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                 potentialUpNulling = false;
             }
             if (potentialUpLevelPosition >= 0) {
+                if (dataBackup != null) {
+                    int i = 0;
+                    for (final DataType innerItem : innerList()) {
+                        if (innerItem.equals(dataBackup)) {
+                            defaultPosition = upLevelId != null
+                                    ? i + 1
+                                    : i;
+                            break;
+                        }
+                        i++;
+                    }
+                }
                 potentialUpLevelPosition = -1;
             }
             if (upPressed) {
@@ -370,21 +414,29 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     public static class SavedState extends RefreshingState {
 
         final Serializable upLevelId;
+        final Object[] stackContents;
+        final int defaultPosition;
 
-        SavedState(Parcelable superState, Serializable upLevelId) {
+        SavedState(RefreshingState superState, Serializable upLevelId, LinkedList<Integer> stack, Integer defaultPosition) {
             super(superState);
             this.upLevelId = upLevelId;
+            this.stackContents = stack.toArray();
+            this.defaultPosition = defaultPosition != null ? defaultPosition : -1;
         }
 
         SavedState(Parcel in) {
             super(in);
             upLevelId = in.readSerializable();
+            stackContents = in.readArray(null);
+            defaultPosition = in.readInt();
         }
 
         @Override
         public void writeToParcel(Parcel destination, int flags) {
             super.writeToParcel(destination, flags);
             destination.writeSerializable(upLevelId);
+            destination.writeArray(stackContents);
+            destination.writeInt(defaultPosition);
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {

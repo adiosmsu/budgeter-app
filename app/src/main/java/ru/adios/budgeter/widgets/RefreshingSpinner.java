@@ -55,6 +55,7 @@ public class RefreshingSpinner extends AppCompatSpinner {
     private boolean restored = false;
     private boolean restoreCommencing = false;
     private boolean innerSelectionCommencing = false;
+    private boolean restoredSelectionCommencing = false;
     private Object refCurVal;
     private RefreshingAdapter.OnRefreshListener onRefreshListener = new RefreshingAdapter.OnRefreshListener() {
         @Override
@@ -62,6 +63,7 @@ public class RefreshingSpinner extends AppCompatSpinner {
             if (restoreCommencing) {
                 try {
                     if (restoredSelection >= 0) {
+                        restoredSelectionCommencing = true;
                         setSelection(restoredSelection);
                         restoredSelection = -1;
                     }
@@ -200,7 +202,7 @@ public class RefreshingSpinner extends AppCompatSpinner {
     @Override
     public Parcelable onSaveInstanceState() {
         final Parcelable superState = super.onSaveInstanceState();
-        final SpinnerAdapter adapter = getAdapter();
+        final SpinnerAdapter adapter = getActualAdapter();
         return new SavedState(superState, adapter instanceof PersistingStateful ? ((PersistingStateful) adapter).getSavedState() : null);
     }
 
@@ -209,12 +211,19 @@ public class RefreshingSpinner extends AppCompatSpinner {
         final SavedState savedState = (SavedState) state;
         super.onRestoreInstanceState(savedState.getSuperState());
 
-        final SpinnerAdapter adapter = getAdapter();
+        final SpinnerAdapter adapter = getActualAdapter();
         if (adapter instanceof PersistingStateful && savedState.adapterState != null) {
+            if (refreshingAdapter != null) {
+                restoreCommencing = true;
+            }
             ((PersistingStateful) adapter).restoreSavedState(savedState.adapterState);
         }
+    }
 
-        restoreCommencing = true;
+    private SpinnerAdapter getActualAdapter() {
+        return decorator != null
+                ? DecoratingAdapter.Static.getDecoratedAdapter(getAdapter(), SpinnerAdapter.class)
+                : getAdapter();
     }
 
     void makeFailToast() {
@@ -234,7 +243,7 @@ public class RefreshingSpinner extends AppCompatSpinner {
                 if (!requestedRefreshOnce) {
                     requestedRefreshOnce = true;
                 }
-                if (!innerSelectionCommencing) {
+                if (!innerSelectionCommencing && !restoredSelectionCommencing) {
                     if (decorator != null) {
                         if (decorator.isPositionTranslatable(position)) {
                             //noinspection unchecked
@@ -249,7 +258,11 @@ public class RefreshingSpinner extends AppCompatSpinner {
                         }
                     }
                 } else {
-                    innerSelectionCommencing = false;
+                    if (innerSelectionCommencing) {
+                        innerSelectionCommencing = false;
+                    } else {
+                        restoredSelectionCommencing = false;
+                    }
                 }
             }
 

@@ -215,7 +215,7 @@ public class FundsSubjectFragment extends CoreFragment {
                         if (param == null) {
                             parentId = 0;
                         } else {
-                            if (param.id.isPresent()) {
+                            if (param.id.isPresent() && param.childFlag) {
                                 parentId = param.id.getAsLong();
                             } else {
                                 return ImmutableList.of();

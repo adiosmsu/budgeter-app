@@ -85,8 +85,8 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
         adaptSpinner(spinner, adapter, presenter, nullPresentation);
     }
 
-    private static <Type> void adaptSpinner(
-            Spinner spinner, NullableDecoratingAdapter<CompatArrayAdapter<Type>, Type> adapter, Optional<StringPresenter<Type>> presenter, OptionalInt nullPresentation
+    public static <A extends BaseAdapter & ThemedSpinnerAdapter, Type> void adaptSpinner(
+            Spinner spinner, NullableDecoratingAdapter<A, Type> adapter, Optional<StringPresenter<Type>> presenter, OptionalInt nullPresentation
     ) {
         if (presenter.isPresent()) {
             adapter.setStringPresenter(presenter.get());

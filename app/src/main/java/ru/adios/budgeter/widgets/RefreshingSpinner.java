@@ -21,38 +21,77 @@
 package ru.adios.budgeter.widgets;
 
 import android.content.Context;
-import android.content.DialogInterface;
+import android.database.DataSetObserver;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.UiThread;
 import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.SpinnerAdapter;
 
 import ru.adios.budgeter.adapters.DecoratingAdapter;
 import ru.adios.budgeter.adapters.PersistingStateful;
 import ru.adios.budgeter.adapters.RefreshingAdapter;
+import ru.adios.budgeter.util.EmptyOnItemSelectedListener;
 
 /**
  * Created by Michail Kulikov
  * 11/27/15
  */
 @UiThread
-public class RefreshingSpinner<DataType> extends AppCompatSpinner {
+public class RefreshingSpinner extends AppCompatSpinner {
 
-    private RefreshingAdapter<DataType, DataType> refreshingAdapter;
-    private DecoratingAdapter<DataType> decorator;
+    private RefreshingAdapter refreshingAdapter;
+    private DecoratingAdapter decorator;
+    private OnItemSelectedListener selectionListener;
     private boolean requestedRefreshOnce = false;
     private int restoredSelection = -1;
     private boolean restored = false;
     private boolean restoreCommencing = false;
+    private boolean innerSelectionCommencing = false;
+    private RefreshingAdapter.OnRefreshListener onRefreshListener = new RefreshingAdapter.OnRefreshListener() {
+        @Override
+        public void onRefreshed() {
+            if (restoreCommencing) {
+                try {
+                    if (restoredSelection >= 0) {
+                        setSelection(restoredSelection);
+                        restoredSelection = -1;
+                    }
+                    restored = true;
+                } finally {
+                    restoreCommencing = false;
+                }
+            } else if (requestedRefreshOnce) {
+                performClick();
+            }
+        }
+
+        @Override
+        public void onNoDataLoaded() {
+        }
+    };
+    private DataSetObserver dataSetObserver = new DataSetObserver() {
+        @Override
+        public void onChanged() {
+            int defPos = refreshingAdapter.getDefaultPosition();
+            if (defPos >= 0) {
+                innerSelectionCommencing = true;
+                setSelection(decorator != null ? decorator.decoratedPositionToDecorators(defPos) : defPos);
+            }
+        }
+    };
 
     public RefreshingSpinner(Context context) {
         super(context);
+        super.setOnItemSelectedListener(new InnerSelectionListener());
     }
 
     public RefreshingSpinner(Context context, AttributeSet attrs) {
         super(context, attrs);
+        super.setOnItemSelectedListener(new InnerSelectionListener());
     }
 
     public void setRestoredSelection(int position) {
@@ -65,63 +104,52 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
 
     @Override
     public void setAdapter(final SpinnerAdapter a) {
-        SpinnerAdapter adapter = a;
-        if (adapter instanceof DecoratingAdapter) {
-            //noinspection unchecked
-            decorator = (DecoratingAdapter<DataType>) adapter;
+        SpinnerAdapter adapter = getDecoratedAdapter(getAdapter());
+        if (adapter instanceof RefreshingAdapter) {
+            final RefreshingAdapter ra = (RefreshingAdapter) adapter;
+            ra.removeOnRefreshListener(onRefreshListener);
+            ra.unregisterDataSetObserver(dataSetObserver);
+        }
 
-            while (adapter instanceof DecoratingAdapter) {
-                final DecoratingAdapter decAd = (DecoratingAdapter) adapter;
-                if (SpinnerAdapter.class.isAssignableFrom(decAd.getWrappedType())) {
-                    adapter = (SpinnerAdapter) decAd.getWrapped();
-                } else {
-                    break;
-                }
-            }
+        adapter = a;
+        if (adapter instanceof DecoratingAdapter) {
+            decorator = (DecoratingAdapter) adapter;
+            adapter = getDecoratedAdapter(adapter);
         }
         if (adapter instanceof RefreshingAdapter) {
-            //noinspection unchecked
-            refreshingAdapter = (RefreshingAdapter<DataType, DataType>) adapter;
-            refreshingAdapter.setOnRefreshListener(new RefreshingAdapter.OnRefreshListener() {
-                @Override
-                public void onRefreshed() {
-                    if (restoreCommencing) {
-                        try {
-                            if (restoredSelection >= 0) {
-                                setSelection(restoredSelection);
-                                restoredSelection = -1;
-                            }
-                            restored = true;
-                        } finally {
-                            restoreCommencing = false;
-                        }
-                    } else if (requestedRefreshOnce) {
-                        performClick();
-                    }
-                }
-                @Override
-                public void onNoDataLoaded() {}
-            });
+            refreshingAdapter = (RefreshingAdapter) adapter;
+            refreshingAdapter.setOnRefreshListener(onRefreshListener);
+            refreshingAdapter.registerDataSetObserver(dataSetObserver);
         }
 
         super.setAdapter(a);
     }
 
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        if (refreshingAdapter != null) {
-            if (!requestedRefreshOnce) {
-                requestedRefreshOnce = true;
-            }
-            if (decorator != null) {
-                if (decorator.isPositionTranslatable(which)) {
-                    refreshingAdapter.refresh(decorator.getItemTranslating(which));
-                }
+    private SpinnerAdapter getDecoratedAdapter(SpinnerAdapter adapter) {
+        while (adapter instanceof DecoratingAdapter) {
+            final DecoratingAdapter decAd = (DecoratingAdapter) adapter;
+            if (SpinnerAdapter.class.isAssignableFrom(decAd.getWrappedType())) {
+                adapter = (SpinnerAdapter) decAd.getWrapped();
             } else {
-                refreshingAdapter.refresh(refreshingAdapter.getItem(which));
+                break;
             }
         }
-        super.onClick(dialog, which);
+        return adapter;
+    }
+
+    @Override
+    public final void setOnItemSelectedListener(OnItemSelectedListener listener) {
+        throw new UnsupportedOperationException(
+                "This implementation doesn't support traditional OnItemSelectedListener method thanks to Google's brilliant design of AdapterView"
+        );
+    }
+
+    public void setSelectionListener(OnItemSelectedListener selectionListener) {
+        this.selectionListener = selectionListener;
+    }
+
+    public OnItemSelectedListener getSelectionListener() {
+        return selectionListener;
     }
 
     @Override
@@ -142,6 +170,34 @@ public class RefreshingSpinner<DataType> extends AppCompatSpinner {
         }
 
         restoreCommencing = true;
+    }
+
+    private final class InnerSelectionListener extends EmptyOnItemSelectedListener {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            if (refreshingAdapter != null) {
+                if (!requestedRefreshOnce) {
+                    requestedRefreshOnce = true;
+                }
+                if (!innerSelectionCommencing) {
+                    if (decorator != null) {
+                        if (decorator.isPositionTranslatable(position)) {
+                            //noinspection unchecked
+                            refreshingAdapter.refresh(decorator.getItemTranslating(position));
+                        }
+                    } else {
+                        //noinspection unchecked
+                        refreshingAdapter.refresh(refreshingAdapter.getItem(position));
+                    }
+                } else {
+                    innerSelectionCommencing = false;
+                }
+            }
+
+            if (selectionListener != null) {
+                selectionListener.onItemSelected(parent, view, position, id);
+            }
+        }
     }
 
     public static class SavedState extends BaseSavedState {

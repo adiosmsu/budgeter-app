@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context="ru.adios.budgeter.fragments.FundsSubjectFragment">
 
-    <ru.adios.budgeter.widgets.FlexibleNotifyingSpinner
+    <ru.adios.budgeter.widgets.RefreshingSpinner
         android:id="@+id/subjects_spinner"
         android:layout_width="0dp"
         app:layout_widthPercent="70%"

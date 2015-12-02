@@ -47,7 +47,7 @@ import ru.adios.budgeter.util.UiUtils;
  * 11/27/15
  */
 @UiThread
-public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements ThemedSpinnerAdapter, StringPresentingAdapter<T> {
+public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements TypedSpinnerAdapter<T>, ThemedSpinnerAdapter, StringPresentingAdapter<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewProvidingBaseAdapter.class);
 
@@ -81,9 +81,6 @@ public abstract class ViewProvidingBaseAdapter<T> extends BaseAdapter implements
         this.stringPresenter = stringPresenter;
         stringPresenter.registerAdapter(this);
     }
-
-    @Override
-    public abstract T getItem(int position);
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {

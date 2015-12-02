@@ -20,27 +20,15 @@
 
 package ru.adios.budgeter.adapters;
 
-import java.util.Collection;
+import android.widget.Adapter;
 
 /**
  * Created by Michail Kulikov
- * 11/28/15
+ * 12/1/15
  */
-public interface MutableAdapter<T> extends TypedAdapter<T> {
+public interface TypedAdapter<T> extends Adapter {
 
-    void add(T object);
-
-    void addAll(Collection<? extends T> collection);
-
-    @SuppressWarnings({"unchecked"})
-    void addAll(T... items);
-
-    void insert(T object, int index);
-
-    void remove(T object);
-
-    void clear();
-
-    boolean isMutable();
+    @Override
+    T getItem(int position);
 
 }

@@ -96,6 +96,16 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         this.onRefreshListener = onRefreshListener;
     }
 
+    public void removeOnRefreshListener(OnRefreshListener onRefreshListener) {
+        if (this.onRefreshListener != null && this.onRefreshListener.equals(onRefreshListener)) {
+            this.onRefreshListener = null;
+        }
+    }
+
+    public int getDefaultPosition() {
+        return 0;
+    }
+
     public void refresh(@Nullable final Param param) {
         AsynchronyProvider.Static.workWithProvider(
                 refresher,
@@ -135,8 +145,12 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         return position;
     }
 
+    protected final ImmutableList<Type> innerList() {
+        return items;
+    }
+
     void setItems(@Nullable ImmutableList<Type> items) {
-        if (items != null) {
+        if (items != null && items.size() > 0) {
             this.items = items;
             if (onRefreshListener != null) {
                 onRefreshListener.onRefreshed();

@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,9 +39,9 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.List;
+import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
+import java.util.List;
 
 import java8.util.Optional;
 import java8.util.OptionalInt;
@@ -49,8 +50,13 @@ import java8.util.function.Supplier;
 import ru.adios.budgeter.BundleProvider;
 import ru.adios.budgeter.R;
 import ru.adios.budgeter.SubjectAdditionElementCore;
+import ru.adios.budgeter.adapters.AsyncDataExtractor;
+import ru.adios.budgeter.adapters.AsyncRefresher;
 import ru.adios.budgeter.adapters.ModedRequestingAutoCompleteAdapter;
+import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
 import ru.adios.budgeter.adapters.Presenters;
+import ru.adios.budgeter.adapters.RefreshingLeveledAdapter;
+import ru.adios.budgeter.adapters.StringPresenter;
 import ru.adios.budgeter.adapters.UnchangingStringPresenter;
 import ru.adios.budgeter.api.data.FundsMutationSubject;
 import ru.adios.budgeter.core.AbstractCollectibleFeedbacker;
@@ -62,8 +68,10 @@ import ru.adios.budgeter.core.CoreFragment;
 import ru.adios.budgeter.core.CoreNotifier;
 import ru.adios.budgeter.core.Feedbacking;
 import ru.adios.budgeter.util.EmptyOnItemSelectedListener;
+import ru.adios.budgeter.util.Immutables;
 import ru.adios.budgeter.util.UiUtils;
 import ru.adios.budgeter.widgets.DelayingAutoCompleteTextView;
+import ru.adios.budgeter.widgets.RefreshingSpinner;
 
 
 /**
@@ -196,27 +204,89 @@ public class FundsSubjectFragment extends CoreFragment {
         final int id = getId();
 
         // main spinner init
-        final Spinner subjectsSpinner = (Spinner) inflated.findViewById(R.id.subjects_spinner);
-        UiUtils.prepareNullableSpinnerAsync(
-                subjectsSpinner,
-                activity,
-                id,
-                FIELD_SUBJECTS,
-                inflated,
-                R.id.subjects_spinner_info,
-                BundleProvider.getBundle().fundsMutationSubjects().streamAll(),
-                Presenters.getSubjectParentLoadingPresenter(),
-                R.string.subjects_spinner_null_val,
-                selectedSubject >= 0 ? OptionalInt.of(selectedSubject) : OptionalInt.empty(),
-                Optional.<AdapterView.OnItemSelectedListener>of(
-                        new EmptyOnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                selectedSubject = parent.getAdapter().getCount() > position ? position : -1;
+        final RefreshingSpinner subjectsSpinner = (RefreshingSpinner) inflated.findViewById(R.id.subjects_spinner);
+        final RefreshingLeveledAdapter<FundsMutationSubject, Long> leveledAdapter = new RefreshingLeveledAdapter<>(
+                getContext(),
+                new AsyncRefresher<FundsMutationSubject, FundsMutationSubject>() {
+                    @Override
+                    public ImmutableList<FundsMutationSubject> gatherData(@Nullable FundsMutationSubject param) {
+                        long parentId;
+                        if (param == null) {
+                            parentId = 0;
+                        } else {
+                            if (param.id.isPresent()) {
+                                parentId = param.id.getAsLong();
+                            } else {
+                                return ImmutableList.of();
                             }
                         }
-                )
+
+                        return BundleProvider.getBundle()
+                                .fundsMutationSubjects()
+                                .findByParent(parentId)
+                                .collect(Immutables.<FundsMutationSubject>getListCollector());
+                    }
+                },
+                new AsyncDataExtractor<FundsMutationSubject, Long>() {
+                    @Override
+                    public FundsMutationSubject extractData(Long id) {
+                        return BundleProvider.getBundle()
+                                .fundsMutationSubjects()
+                                .getById(id)
+                                .orElse(null);
+                    }
+
+                    @Override
+                    public Long extractId(FundsMutationSubject data) {
+                        return data.id.orElse(0);
+                    }
+
+                    @Nullable
+                    @Override
+                    public RefreshingLeveledAdapter.IdentifiedData<FundsMutationSubject, Long> extractParent(Long id) {
+                        //TODO: add method to API instead of this 2 queries
+                        final Optional<FundsMutationSubject> byId = BundleProvider.getBundle().fundsMutationSubjects().getById(id);
+                        if (byId.isPresent()) {
+                            final long pId = byId.get().parentId;
+                            if (pId > 0) {
+                                final Optional<FundsMutationSubject> parentOpt = BundleProvider.getBundle().fundsMutationSubjects().getById(pId);
+                                if (parentOpt.isPresent()) {
+                                    return new RefreshingLeveledAdapter.IdentifiedData<>(parentOpt.get(), pId);
+                                }
+                            }
+                        }
+
+                        return null;
+                    }
+                },
+                android.R.layout.simple_spinner_item
         );
+        leveledAdapter.init();
+        leveledAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        final NullableDecoratingAdapter<RefreshingLeveledAdapter<FundsMutationSubject, Long>, FundsMutationSubject> wrapperAdapter = new NullableDecoratingAdapter<>(
+                getContext(),
+                leveledAdapter,
+                subjectsSpinner.getPrompt().toString(),
+                android.R.layout.simple_spinner_item
+        );
+        NullableDecoratingAdapter.adaptSpinner(
+                subjectsSpinner,
+                wrapperAdapter,
+                Optional.<StringPresenter<FundsMutationSubject>>of(Presenters.getSubjectParentLoadingPresenter()),
+                OptionalInt.of(R.string.subjects_spinner_null_val)
+        );
+        subjectsSpinner.setRestoredSelection(selectedSubject); // -1 is safe to set
+        subjectsSpinner.setSelectionListener(new EmptyOnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedSubject = parent.getAdapter().getCount() > position ? position : -1;
+            }
+        });
+        final CoreNotifier.Linker linker =
+                activity.addFieldFragmentInfo(id, FIELD_SUBJECTS, subjectsSpinner, inflated.findViewById(R.id.subjects_spinner_info));
+        if (selectedSubject >= 0) {
+            CoreNotifier.linkViewValueWithCore(subjectsSpinner.getSelectedItem(), linker, activity);
+        }
 
         // hidden parts
         final EditText nameInput = (EditText) inflated.findViewById(R.id.subjects_name_input);

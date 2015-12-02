@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -81,10 +82,15 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
 
     private final DataExtractor<DataType, IdType> dataExtractor;
+    private final LinkedList<Integer> upLevelPositionsStack = new LinkedList<>();
     private IdType upLevelId;
     private DataType upLevelData;
     private IdType potentialUpLevelId;
     private DataType potentialUpLevelData;
+    private boolean potentialUpNulling = false;
+    private int potentialUpLevelPosition = -1;
+    private boolean upPressed = false;
+    private Integer defaultPosition = null;
     private StringPresenter<DataType> innerPresenter;
     private OnRefreshListener innerRefListener;
 
@@ -115,6 +121,18 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     @Override
+    public void removeOnRefreshListener(OnRefreshListener onRefreshListener) {
+        if (this.innerRefListener != null && this.innerRefListener.equals(onRefreshListener)) {
+            this.innerRefListener = null;
+        }
+    }
+
+    @Override
+    public int getDefaultPosition() {
+        return defaultPosition != null ? defaultPosition : -1;
+    }
+
+    @Override
     public Parcelable getSavedState() {
         Parcelable superState = super.getSavedState();
         return new SavedState(superState, upLevelId);
@@ -133,8 +151,17 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         final IdType id = dataExtractor.extractId(data);
 
         if (upLevelId != null && upLevelId.equals(id)) {
+            upPressed = true;
             refreshUsingParentOf(upLevelId);
         } else {
+            int i = 0;
+            for (final DataType innerItem : innerList()) {
+                if (innerItem.equals(data)) {
+                    potentialUpLevelPosition = i;
+                    break;
+                }
+                i++;
+            }
             refreshUsingData(id, data);
         }
     }
@@ -169,7 +196,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                             @Override
                             public AsyncResult<DataType, IdType> get() {
                                 final IdentifiedData<DataType, IdType> data = f.apply(id);
-                                return new AsyncResult<>(data, refresher.gatherData(data.data));
+                                return new AsyncResult<>(data, data != null ? refresher.gatherData(data.data) : refresher.gatherData(null));
                             }
                         }),
                         new AbsFutureCallback<AsyncResult<DataType, IdType>>() {
@@ -204,6 +231,9 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     void handleNewUpLevel(@Nullable IdType newUpLevelId, @Nullable DataType newUpLevelData, boolean doRefresh) {
         potentialUpLevelId = newUpLevelId;
         potentialUpLevelData = newUpLevelData;
+        if (newUpLevelData == null && newUpLevelId == null) {
+            potentialUpNulling = true;
+        }
 
         if (doRefresh) {
             super.refresh(newUpLevelData);
@@ -264,15 +294,15 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     private final class WrappingPresenter extends UnchangingStringPresenter<DataType> {
         @Override
         public String getStringPresentation(DataType item) {
-            if (item == upLevelId) {
-                return context.getResources().getString(R.string.refreshing_leveled_adapter_up_str);
+            String presentation = (innerPresenter != null)
+                    ? innerPresenter.getStringPresentation(item)
+                    : item instanceof String ? (String) item : item.toString();
+
+            if (item.equals(upLevelData)) {
+                presentation = context.getResources().getString(R.string.refreshing_leveled_adapter_up_str) + " (" + presentation + ')';
             }
-            if (innerPresenter != null) {
-                return innerPresenter.getStringPresentation(item);
-            }
-            return item instanceof String
-                    ? (String) item
-                    : item.toString();
+
+            return presentation;
         }
     }
 
@@ -283,6 +313,15 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                 potentialUpLevelId = null;
                 potentialUpLevelData = null;
             }
+            if (potentialUpNulling) {
+                potentialUpNulling = false;
+            }
+            if (potentialUpLevelPosition >= 0) {
+                potentialUpLevelPosition = -1;
+            }
+            if (upPressed) {
+                upPressed = false;
+            }
 
             if (innerRefListener != null) {
                 innerRefListener.onNoDataLoaded();
@@ -291,11 +330,21 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
         @Override
         public void onRefreshed() {
-            if (potentialUpLevelId != null && potentialUpLevelData != null) {
+            if ((potentialUpLevelId != null && potentialUpLevelData != null) || potentialUpNulling) {
                 upLevelId = potentialUpLevelId;
                 upLevelData = potentialUpLevelData;
                 potentialUpLevelId = null;
                 potentialUpLevelData = null;
+                potentialUpNulling = false;
+            }
+            if (potentialUpLevelPosition >= 0) {
+                defaultPosition = 0;
+                upLevelPositionsStack.push(potentialUpLevelPosition);
+                potentialUpLevelPosition = -1;
+            }
+            if (upPressed) {
+                defaultPosition = upLevelPositionsStack.poll();
+                upPressed = false;
             }
 
             if (innerRefListener != null) {

@@ -37,6 +37,7 @@ import javax.annotation.concurrent.Immutable;
 
 import ru.adios.budgeter.util.EmptyTextWatcher;
 import ru.adios.budgeter.widgets.DateEditView;
+import ru.adios.budgeter.widgets.RefreshingSpinner;
 import ru.adios.budgeter.widgets.TimeEditView;
 
 /**
@@ -143,8 +144,9 @@ public final class CoreNotifier {
             });
         } else if (view instanceof AdapterView) {
             final AdapterView sp = (AdapterView) view;
-            final AdapterView.OnItemSelectedListener oldListener = sp.getOnItemSelectedListener();
-            sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            final boolean isRefSpinner = sp instanceof RefreshingSpinner;
+            final AdapterView.OnItemSelectedListener oldListener = isRefSpinner ? ((RefreshingSpinner) sp).getSelectionListener() : sp.getOnItemSelectedListener();
+            final AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (activity.isFeedbackCommencing())
@@ -164,7 +166,12 @@ public final class CoreNotifier {
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
                 }
-            });
+            };
+            if (isRefSpinner) {
+                ((RefreshingSpinner) sp).setSelectionListener(listener);
+            } else {
+                sp.setOnItemSelectedListener(listener);
+            }
         } else if (view instanceof RadioGroup) {
             final RadioGroup radioGroup = (RadioGroup) view;
             radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {

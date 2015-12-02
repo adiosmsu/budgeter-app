@@ -68,6 +68,8 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
     protected final Refresher<Type, Param> refresher;
     private OnRefreshListener onRefreshListener;
     private ImmutableList<Type> items = ImmutableList.of();
+    private Param currentParam;
+    private boolean refreshCommencing = false;
 
     public RefreshingAdapter(Context context, Refresher<Type, Param> refresher, @LayoutRes int resource) {
         super(context, resource);
@@ -106,28 +108,48 @@ public class RefreshingAdapter<Type, Param> extends ViewProvidingBaseAdapter<Typ
         return 0;
     }
 
-    public void refresh(@Nullable final Param param) {
-        AsynchronyProvider.Static.workWithProvider(
-                refresher,
-                new Consumer<ImmutableList<Type>>() {
-                    @Override
-                    public void accept(ImmutableList<Type> data) {
-                        setItems(data);
+    public boolean refresh(@Nullable final Param param) {
+        return refreshInner(param);
+    }
+
+    private boolean refreshInner(@Nullable final Param param) {
+        if (!refreshCommencing) {
+            refreshCommencing = true;
+
+            AsynchronyProvider.Static.workWithProvider(
+                    refresher,
+                    new Consumer<ImmutableList<Type>>() {
+                        @Override
+                        public void accept(ImmutableList<Type> data) {
+                            refreshCommencing = false;
+                            if (data != null && data.size() > 0) {
+                                currentParam = param;
+                            }
+                            setItems(data);
+                        }
+                    },
+                    new Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable throwable) {
+                            logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
+                        }
+                    },
+                    new Supplier<ImmutableList<Type>>() {
+                        @Override
+                        public ImmutableList<Type> get() {
+                            return refresher.gatherData(param);
+                        }
                     }
-                },
-                new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) {
-                        logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
-                    }
-                },
-                new Supplier<ImmutableList<Type>>() {
-                    @Override
-                    public ImmutableList<Type> get() {
-                        return refresher.gatherData(param);
-                    }
-                }
-        );
+            );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean refreshCurrent() {
+        return refreshInner(currentParam);
     }
 
     @Override

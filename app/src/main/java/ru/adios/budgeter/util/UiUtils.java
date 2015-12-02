@@ -229,7 +229,7 @@ public final class UiUtils {
         for (int i = 0; i < adapter.getCount(); i++) {
             final BalanceAccount item = adapter.getItem(i);
 
-            if (item.name.equals(account.name) && item.getUnit().equals(account.getUnit())) {
+            if (item != null && item.name.equals(account.name) && item.getUnit().equals(account.getUnit())) {
                 adapter.insert(account, i);
                 adapter.remove(item);
                 return;

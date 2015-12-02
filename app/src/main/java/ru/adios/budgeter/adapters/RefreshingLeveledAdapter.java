@@ -91,6 +91,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     private int potentialUpLevelPosition = -1;
     private boolean upPressed = false;
     private Integer defaultPosition = null;
+    private boolean refreshCommencing = false;
     private StringPresenter<DataType> innerPresenter;
     private OnRefreshListener innerRefListener;
 
@@ -112,7 +113,10 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     public void init() {
-        handleNewUpLevel(null, null, true);
+        if (!refreshCommencing) {
+            refreshCommencing = true;
+            handleNewUpLevel(null, null, true);
+        }
     }
 
     @Override
@@ -147,23 +151,31 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     @Override
-    public void refresh(DataType data) {
-        final IdType id = dataExtractor.extractId(data);
+    public boolean refresh(DataType data) {
+        if (!refreshCommencing) {
+            refreshCommencing = true;
 
-        if (upLevelId != null && upLevelId.equals(id)) {
-            upPressed = true;
-            refreshUsingParentOf(upLevelId);
-        } else {
-            int i = 0;
-            for (final DataType innerItem : innerList()) {
-                if (innerItem.equals(data)) {
-                    potentialUpLevelPosition = i;
-                    break;
+            final IdType id = dataExtractor.extractId(data);
+
+            if (upLevelId != null && upLevelId.equals(id)) {
+                upPressed = true;
+                refreshUsingParentOf(upLevelId);
+            } else {
+                int i = 0;
+                for (final DataType innerItem : innerList()) {
+                    if (innerItem.equals(data)) {
+                        potentialUpLevelPosition = i;
+                        break;
+                    }
+                    i++;
                 }
-                i++;
+                refreshUsingData(id, data);
             }
-            refreshUsingData(id, data);
+
+            return true;
         }
+
+        return false;
     }
 
     private void refreshUsingParentOf(final IdType id) {
@@ -309,6 +321,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     private final class LeveledRefreshListener implements OnRefreshListener {
         @Override
         public void onNoDataLoaded() {
+            refreshCommencing = false;
             if (potentialUpLevelId != null && potentialUpLevelData != null) {
                 potentialUpLevelId = null;
                 potentialUpLevelData = null;
@@ -330,6 +343,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
         @Override
         public void onRefreshed() {
+            refreshCommencing = false;
             if ((potentialUpLevelId != null && potentialUpLevelData != null) || potentialUpNulling) {
                 upLevelId = potentialUpLevelId;
                 upLevelData = potentialUpLevelData;

@@ -38,6 +38,7 @@ import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.collect.ImmutableList;
 
@@ -275,6 +276,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 Optional.<StringPresenter<FundsMutationSubject>>of(Presenters.getSubjectParentLoadingPresenter()),
                 OptionalInt.of(R.string.subjects_spinner_null_val)
         );
+        subjectsSpinner.setRefreshFailedToastResource(R.string.subjects_spinner_refresh_failed);
         subjectsSpinner.setRestoredSelection(selectedSubject); // -1 is safe to set
         subjectsSpinner.setSelectionListener(new EmptyOnItemSelectedListener() {
             @Override
@@ -358,7 +360,10 @@ public class FundsSubjectFragment extends CoreFragment {
                 editOpen = false;
                 hideEdit(nameInput, nameInputInfo, descInput,
                         descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton);
-                UiUtils.addToMutableSpinner(subject, subjectsSpinner);
+                if (!subjectsSpinner.refreshCurrentWithPossibleValue(subject)) {
+                    Toast.makeText(activity, R.string.subjects_spinner_refresh_failed, Toast.LENGTH_LONG)
+                            .show();
+                }
                 inflated.invalidate();
             }
         });

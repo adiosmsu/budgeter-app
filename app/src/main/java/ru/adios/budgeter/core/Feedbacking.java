@@ -152,7 +152,8 @@ public final class Feedbacking {
 
     private static int extractPosition(Adapter adapter, Object object) {
         for (int i = 0; i < adapter.getCount(); i++) {
-            if (adapter.getItem(i).equals(object)) {
+            Object item = adapter.getItem(i);
+            if ((item == null && object == null) || (item != null && item.equals(object))) {
                 return i;
             }
         }

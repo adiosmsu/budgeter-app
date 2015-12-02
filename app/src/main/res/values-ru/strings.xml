@@ -110,4 +110,5 @@
     <string name="button_restore_db">Восстановление DB</string>
     <string name="settings_db_restore_dialog_text">Вы потеряете все данные, новее бэкапа. Продолжить?</string>
     <string name="refreshing_leveled_adapter_up_str">Вверх</string>
+    <string name="subjects_spinner_refresh_failed">Обновление спиннера субъектов неудачно, спиннер еще занят предыдущим</string>
 </resources>

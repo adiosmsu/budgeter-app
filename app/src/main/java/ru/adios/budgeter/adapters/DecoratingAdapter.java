@@ -28,6 +28,25 @@ import android.widget.Adapter;
  */
 public interface DecoratingAdapter<T> extends Adapter {
 
+    final class Static {
+
+        public static <A extends Adapter> A getDecoratedAdapter(A adapter, Class<A> adapterClass) {
+            while (adapter instanceof DecoratingAdapter) {
+                final DecoratingAdapter decAd = (DecoratingAdapter) adapter;
+                if (adapterClass.isAssignableFrom(decAd.getWrappedType())) {
+                    adapter = adapterClass.cast(decAd.getWrapped());
+                } else {
+                    break;
+                }
+            }
+            return adapter;
+        }
+
+
+        private Static() {}
+
+    }
+
     Class<? extends Adapter> getWrappedType();
 
     Adapter getWrapped();

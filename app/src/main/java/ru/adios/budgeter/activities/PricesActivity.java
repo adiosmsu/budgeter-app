@@ -282,10 +282,15 @@ public class PricesActivity extends FundsAwareMenuActivity {
                 spinner.setOnItemSelectedListener(new EmptyOnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        final boolean actual = position < parent.getAdapter().getCount();
-                        selection.selection = actual ? position : -1;
-                        //noinspection unchecked
-                        selection.id = actual ? idExtractor.apply((T) parent.getSelectedItem()) : -1;
+                        final Object selectedItem = parent.getSelectedItem();
+                        if (selectedItem != null) {
+                            selection.selection = position;
+                            //noinspection unchecked
+                            selection.id = idExtractor.apply((T) selectedItem);
+                        } else {
+                            selection.selection = -1;
+                            selection.id = -1;
+                        }
                     }
                 });
                 spinner.invalidate();

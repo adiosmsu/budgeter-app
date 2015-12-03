@@ -68,8 +68,9 @@ public class RefreshingAdapter<Type, Param, I extends Serializable> extends View
     }
 
     protected final Refresher<Type, Param> refresher;
-    private final DataExtractor<Param, I> dataExtractor;
+    final DataExtractor<Param, I> dataExtractor;
     private OnRefreshListener onRefreshListener;
+    private OnRestoreListener onRestoreListener;
     private ImmutableList<Type> items = ImmutableList.of();
     private Param currentParam;
     private boolean refreshCommencing = false;
@@ -115,7 +116,7 @@ public class RefreshingAdapter<Type, Param, I extends Serializable> extends View
                             new Consumer<AsyncRestoreResult<Type, Param>>() {
                                 @Override
                                 public void accept(AsyncRestoreResult<Type, Param> result) {
-                                    processRefreshResult(result.list, result.param);
+                                    processRefreshResultInner(result.list, result.param, true);
                                 }
                             },
                             onFailConsumer,
@@ -134,7 +135,7 @@ public class RefreshingAdapter<Type, Param, I extends Serializable> extends View
                             new Consumer<Param>() {
                                 @Override
                                 public void accept(Param param) {
-                                    processRefreshResult(refresher.gatherData(param), param);
+                                    processRefreshResultInner(refresher.gatherData(param), param, true);
                                 }
                             },
                             onFailConsumer,
@@ -149,10 +150,10 @@ public class RefreshingAdapter<Type, Param, I extends Serializable> extends View
                 }
             } else {
                 //noinspection unchecked
-                refreshInner(dataExtractor.extractData((I) currentId));
+                refreshInner(dataExtractor.extractData((I) currentId), true);
             }
         } else {
-            refreshInner(null);
+            refreshInner(null, true);
         }
     }
 
@@ -166,55 +167,36 @@ public class RefreshingAdapter<Type, Param, I extends Serializable> extends View
         }
     }
 
+    @Override
+    public void setOnRestoreListener(OnRestoreListener onRestoreListener) {
+        this.onRestoreListener = onRestoreListener;
+    }
+
+    @Override
+    public void removeOnRestoreListener(OnRestoreListener onRestoreListener) {
+        if (this.onRestoreListener != null && this.onRestoreListener.equals(onRestoreListener)) {
+            this.onRestoreListener = null;
+        }
+    }
+
     public int getDefaultPosition() {
         return 0;
     }
 
     public boolean refresh(@Nullable final Param param) {
-        return refreshInner(param);
-    }
-
-    private boolean refreshInner(@Nullable final Param param) {
-        if (!refreshCommencing) {
-            refreshCommencing = true;
-
-            AsynchronyProvider.Static.workWithProvider(
-                    refresher,
-                    new Consumer<ImmutableList<Type>>() {
-                        @Override
-                        public void accept(ImmutableList<Type> data) {
-                            processRefreshResult(data, param);
-                        }
-                    },
-                    onFailConsumer,
-                    new Supplier<ImmutableList<Type>>() {
-                        @Override
-                        public ImmutableList<Type> get() {
-                            return refresher.gatherData(param);
-                        }
-                    }
-            );
-
-            return true;
-        }
-
-        return false;
+        return refreshInner(param, false);
     }
 
     void processRefreshResult(ImmutableList<Type> data, @Nullable Param param) {
-        refreshCommencing = false;
-        if (data != null && data.size() > 0) {
-            currentParam = param;
-        }
-        setItems(data);
+        processRefreshResultInner(data, param, false);
     }
 
-    void logRefreshThrowable(Throwable throwable) {
-        logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
+    protected final ImmutableList<Type> innerList() {
+        return items;
     }
 
     public boolean refreshCurrent() {
-        return refreshInner(currentParam);
+        return refreshInner(currentParam, false);
     }
 
     @Override
@@ -232,16 +214,57 @@ public class RefreshingAdapter<Type, Param, I extends Serializable> extends View
         return position;
     }
 
-    protected final ImmutableList<Type> innerList() {
-        return items;
+    void logRefreshThrowable(Throwable throwable) {
+        logger.error("Error gathering data for RefreshingAdapter through " + refresher, throwable);
     }
 
-    private void setItems(@Nullable ImmutableList<Type> items) {
-        if (items != null && items.size() > 0) {
-            this.items = items;
-            if (onRefreshListener != null) {
-                onRefreshListener.onRefreshed();
+    private boolean refreshInner(@Nullable final Param param, final boolean wasRestore) {
+        if (!refreshCommencing) {
+            refreshCommencing = true;
+
+            AsynchronyProvider.Static.workWithProvider(
+                    refresher,
+                    new Consumer<ImmutableList<Type>>() {
+                        @Override
+                        public void accept(ImmutableList<Type> data) {
+                            processRefreshResultInner(data, param, wasRestore);
+                        }
+                    },
+                    onFailConsumer,
+                    new Supplier<ImmutableList<Type>>() {
+                        @Override
+                        public ImmutableList<Type> get() {
+                            return refresher.gatherData(param);
+                        }
+                    }
+            );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void processRefreshResultInner(ImmutableList<Type> data, @Nullable Param param, boolean wasRestore) {
+        refreshCommencing = false;
+
+        if (data != null && data.size() > 0) {
+            currentParam = param;
+        }
+
+        if (data != null && data.size() > 0) {
+            this.items = data;
+
+            if (wasRestore) {
+                if (onRestoreListener != null) {
+                    onRestoreListener.onRestoredState();
+                }
+            } else {
+                if (onRefreshListener != null) {
+                    onRefreshListener.onRefreshed();
+                }
             }
+
             notifyDataSetChanged();
         } else {
             if (onRefreshListener != null) {

@@ -53,6 +53,7 @@ import ru.adios.budgeter.R;
 import ru.adios.budgeter.SubjectAdditionElementCore;
 import ru.adios.budgeter.adapters.AsyncParentingDataExtractor;
 import ru.adios.budgeter.adapters.AsyncRefresher;
+import ru.adios.budgeter.adapters.IdentifiedData;
 import ru.adios.budgeter.adapters.ModedRequestingAutoCompleteAdapter;
 import ru.adios.budgeter.adapters.NullableDecoratingAdapter;
 import ru.adios.budgeter.adapters.Presenters;
@@ -244,7 +245,7 @@ public class FundsSubjectFragment extends CoreFragment {
 
                     @Nullable
                     @Override
-                    public RefreshingLeveledAdapter.IdentifiedData<FundsMutationSubject, Long> extractParent(Long id) {
+                    public IdentifiedData<FundsMutationSubject, Long> extractParent(Long id) {
                         //TODO: add method to API instead of this 2 queries
                         final Optional<FundsMutationSubject> byId = BundleProvider.getBundle().fundsMutationSubjects().getById(id);
                         if (byId.isPresent()) {
@@ -252,7 +253,7 @@ public class FundsSubjectFragment extends CoreFragment {
                             if (pId > 0) {
                                 final Optional<FundsMutationSubject> parentOpt = BundleProvider.getBundle().fundsMutationSubjects().getById(pId);
                                 if (parentOpt.isPresent()) {
-                                    return new RefreshingLeveledAdapter.IdentifiedData<>(parentOpt.get(), pId);
+                                    return new IdentifiedData<>(parentOpt.get(), pId);
                                 }
                             }
                         }

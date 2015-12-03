@@ -28,8 +28,18 @@ import android.os.Parcelable;
  */
 public interface PersistingStateful {
 
+    interface OnRestoreListener {
+
+        void onRestoredState();
+
+    }
+
     Parcelable getSavedState();
 
     void restoreSavedState(Parcelable state);
+
+    void setOnRestoreListener(OnRestoreListener onRestoreListener);
+
+    void removeOnRestoreListener(OnRestoreListener onRestoreListener);
 
 }

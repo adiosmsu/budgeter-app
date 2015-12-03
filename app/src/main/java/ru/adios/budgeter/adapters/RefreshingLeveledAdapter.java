@@ -52,31 +52,21 @@ import ru.adios.budgeter.R;
 @UiThread
 public final class RefreshingLeveledAdapter<DataType, IdType extends Serializable> extends RefreshingAdapter<DataType, DataType, IdType> {
 
-    private static final Logger logger = LoggerFactory.getLogger(RefreshingLeveledAdapter.class);
+    static final Logger logger = LoggerFactory.getLogger(RefreshingLeveledAdapter.class);
 
-    @Immutable
-    public static final class IdentifiedData<T, I extends Serializable> {
-        final T data;
-        final I id;
-
-        public IdentifiedData(T data, I id) {
-            this.data = data;
-            this.id = id;
-        }
-    }
-
-
-    private final ParentingDataExtractor<DataType, IdType> parentingDataExtractor;
+    final ParentingDataExtractor<DataType, IdType> parentingDataExtractor;
 
     private IdType potentialUpLevelId;
     private DataType potentialUpLevelData;
     private boolean potentialUpNulling = false;
     private int potentialUpLevelPosition = -1;
     private boolean upPressed = false;
-    private boolean refreshCommencing = false;
 
-    private StringPresenter<DataType> innerPresenter;
-    private OnRefreshListener innerRefListener;
+    boolean refreshCommencing = false;
+
+    private final WrappingPresenter innerPresenter;
+    private final LeveledRefreshListener innerRefreshListener;
+    private final LeveledRestoreListener innerRestoreListener;
 
     // begin transient state
     private final LinkedList<Integer> upLevelPositionsStack = new LinkedList<>();
@@ -88,18 +78,25 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     public RefreshingLeveledAdapter(Context context, Refresher<DataType, DataType> refresher, ParentingDataExtractor<DataType, IdType> pe, @LayoutRes int resource) {
         super(context, refresher, pe, resource);
         this.parentingDataExtractor = pe;
+        innerPresenter = new WrappingPresenter();
+        innerRefreshListener = new LeveledRefreshListener();
+        innerRestoreListener = new LeveledRestoreListener();
         innerInit();
     }
 
     public RefreshingLeveledAdapter(Context context, Refresher<DataType, DataType> refresher, ParentingDataExtractor<DataType, IdType> pe, @LayoutRes int resource, @IdRes int fieldId) {
         super(context, refresher, pe, resource, fieldId);
         this.parentingDataExtractor = pe;
+        innerPresenter = new WrappingPresenter();
+        innerRefreshListener = new LeveledRefreshListener();
+        innerRestoreListener = new LeveledRestoreListener();
         innerInit();
     }
 
     private void innerInit() {
-        super.setStringPresenter(new WrappingPresenter());
-        super.setOnRefreshListener(new LeveledRefreshListener());
+        super.setStringPresenter(innerPresenter);
+        super.setOnRefreshListener(innerRefreshListener);
+        super.setOnRestoreListener(innerRestoreListener);
     }
 
     public void initDoNotCallIfActivityRestored() {
@@ -111,13 +108,25 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
     @Override
     public void setOnRefreshListener(OnRefreshListener onRefreshListener) {
-        this.innerRefListener = onRefreshListener;
+        innerRefreshListener.refListener = onRefreshListener;
     }
 
     @Override
     public void removeOnRefreshListener(OnRefreshListener onRefreshListener) {
-        if (this.innerRefListener != null && this.innerRefListener.equals(onRefreshListener)) {
-            this.innerRefListener = null;
+        if (innerRefreshListener.refListener != null && innerRefreshListener.refListener.equals(onRefreshListener)) {
+            innerRefreshListener.refListener = null;
+        }
+    }
+
+    @Override
+    public void setOnRestoreListener(OnRestoreListener onRestoreListener) {
+        innerRestoreListener.resListener = onRestoreListener;
+    }
+
+    @Override
+    public void removeOnRestoreListener(OnRestoreListener onRestoreListener) {
+        if (innerRestoreListener.resListener != null && innerRestoreListener.resListener.equals(onRestoreListener)) {
+            innerRestoreListener.resListener = null;
         }
     }
 
@@ -128,8 +137,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
     @Override
     public SavedState getSavedState() {
-        RefreshingState superState = super.getSavedState();
-        return new SavedState(superState, upLevelId, upLevelPositionsStack, defaultPosition);
+        return new SavedState(super.getSavedState(), upLevelId, upLevelPositionsStack, defaultPosition);
     }
 
     @Override
@@ -137,47 +145,44 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
         final SavedState savedState = (SavedState) state;
         super.restoreSavedState(savedState.getSuperState());
 
-        refreshCommencing = true;
+        //noinspection unchecked
+        upLevelId = (IdType) savedState.upLevelId;
 
-        if (savedState.upLevelId == null) {
-            upLevelId = null;
-            upLevelData = null;
+        if (upLevelId == null) {
+            finishRestore(savedState, null);
         } else {
-            //noinspection unchecked
-            final IdType id = (IdType) savedState.upLevelId;
-
             if (parentingDataExtractor.isAsync()) {
+                refreshCommencing = true;
+
                 Futures.addCallback(
-                        parentingDataExtractor.provideAsynchrony(new Supplier<IdentifiedData<DataType, IdType>>() {
+                        parentingDataExtractor.provideAsynchrony(new Supplier<DataType>() {
                             @Override
-                            public IdentifiedData<DataType, IdType> get() {
-                                return new IdentifiedData<>(parentingDataExtractor.extractData(id), id);
+                            public DataType get() {
+                                return parentingDataExtractor.extractData(upLevelId);
                             }
                         }),
-                        new AbsFutureCallback<IdentifiedData<DataType, IdType>>() {
+                        new AbsFutureCallback<DataType>() {
                             @Override
-                            public void onSuccess(IdentifiedData<DataType, IdType> result) {
-                                upLevelId = result.id;
-                                upLevelData = result.data;
+                            public void onSuccess(DataType result) {
+                                finishRestore(savedState, result);
                                 refreshCommencing = false;
                             }
                         }
                 );
             } else {
-                upLevelId = id;
-                upLevelData = parentingDataExtractor.extractData(id);
+                finishRestore(savedState, parentingDataExtractor.extractData(upLevelId));
             }
         }
+    }
 
+    void finishRestore(SavedState savedState, DataType ulData) {
+        upLevelData = ulData;
         upLevelPositionsStack.clear();
         for (final Object o : savedState.stackContents) {
             upLevelPositionsStack.add((Integer) o);
         }
         defaultPosition = savedState.defaultPosition >= 0 ? savedState.defaultPosition : null;
-
-        if (!parentingDataExtractor.isAsync() && refreshCommencing) {
-            refreshCommencing = false;
-        }
+        innerRestoreListener.onRestoredState();
     }
 
     @Override
@@ -292,7 +297,7 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
 
     @Override
     public void setStringPresenter(StringPresenter<DataType> stringPresenter) {
-        innerPresenter = stringPresenter;
+        innerPresenter.presenter = stringPresenter;
     }
 
     @Override
@@ -334,10 +339,13 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     private final class WrappingPresenter extends UnchangingStringPresenter<DataType> {
+
+        StringPresenter<DataType> presenter;
+
         @Override
         public String getStringPresentation(DataType item) {
-            String presentation = (innerPresenter != null)
-                    ? innerPresenter.getStringPresentation(item)
+            String presentation = (presenter != null)
+                    ? presenter.getStringPresentation(item)
                     : item instanceof String ? (String) item : item.toString();
 
             if (item.equals(upLevelData)) {
@@ -349,6 +357,9 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
     }
 
     private final class LeveledRefreshListener implements OnRefreshListener {
+
+        OnRefreshListener refListener;
+
         @Override
         public void onNoDataLoaded() {
             refreshCommencing = false;
@@ -380,14 +391,15 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                 upPressed = false;
             }
 
-            if (innerRefListener != null) {
-                innerRefListener.onNoDataLoaded();
+            if (refListener != null) {
+                refListener.onNoDataLoaded();
             }
         }
 
         @Override
         public void onRefreshed() {
             refreshCommencing = false;
+
             if ((potentialUpLevelId != null && potentialUpLevelData != null) || potentialUpNulling) {
                 upLevelId = potentialUpLevelId;
                 upLevelData = potentialUpLevelData;
@@ -405,8 +417,26 @@ public final class RefreshingLeveledAdapter<DataType, IdType extends Serializabl
                 upPressed = false;
             }
 
-            if (innerRefListener != null) {
-                innerRefListener.onRefreshed();
+            if (refListener != null) {
+                refListener.onRefreshed();
+            }
+        }
+
+    }
+
+    private static final class LeveledRestoreListener implements OnRestoreListener {
+
+        OnRestoreListener resListener;
+        private short restoreCounter = 0;
+
+        @Override
+        public void onRestoredState() {
+            restoreCounter++;
+            if (restoreCounter >= 2) {
+                if (resListener != null) {
+                    resListener.onRestoredState();
+                }
+                restoreCounter = 0;
             }
         }
     }

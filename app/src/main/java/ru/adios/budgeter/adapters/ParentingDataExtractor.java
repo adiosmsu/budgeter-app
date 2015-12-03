@@ -34,6 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface ParentingDataExtractor<T, I extends Serializable> extends DataExtractor<T, I> {
 
     @Nullable
-    RefreshingLeveledAdapter.IdentifiedData<T, I> extractParent(I id);
+    IdentifiedData<T, I> extractParent(I id);
 
 }

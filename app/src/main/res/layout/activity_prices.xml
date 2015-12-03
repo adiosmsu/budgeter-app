@@ -2,7 +2,6 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -12,7 +11,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <android.support.percent.PercentRelativeLayout
+        <RelativeLayout
             android:id="@+id/activity_prices"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,8 +23,7 @@
 
             <android.support.v7.widget.AppCompatSpinner
                 android:id="@+id/price_subjects_spinner"
-                android:layout_width="0dp"
-                app:layout_widthPercent="70%"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:prompt="@string/subjects_spinner_prompt"
                 android:layout_alignParentLeft="true"
@@ -33,13 +31,12 @@
                 android:spinnerMode="dialog"/>
             <android.support.v7.widget.AppCompatSpinner
                 android:id="@+id/price_agents_spinner"
-                android:layout_width="0dp"
-                app:layout_widthPercent="70%"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:prompt="@string/agents_spinner_prompt"
                 android:layout_below="@id/price_subjects_spinner"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
                 android:spinnerMode="dialog"/>
 
             <Button
@@ -51,8 +48,6 @@
                 android:layout_alignParentEnd="true"
                 android:text="@string/price_show_button"
                 android:onClick="show" />
-
-
-        </android.support.percent.PercentRelativeLayout>
+        </RelativeLayout>
     </ScrollView>
 </LinearLayout>

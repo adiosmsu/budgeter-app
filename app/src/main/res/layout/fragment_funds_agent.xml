@@ -9,8 +9,7 @@
 
     <android.support.v7.widget.AppCompatSpinner
         android:id="@+id/agents_spinner"
-        android:layout_width="0dp"
-        app:layout_widthPercent="50%"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:prompt="@string/agents_spinner_prompt"
         android:spinnerMode="dialog"/>

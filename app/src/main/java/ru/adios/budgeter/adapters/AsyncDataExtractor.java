@@ -20,6 +20,7 @@
 
 package ru.adios.budgeter.adapters;
 
+import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 
 import java.io.Serializable;
@@ -39,7 +40,7 @@ public abstract class AsyncDataExtractor<T, I extends Serializable> extends Asyn
     @Override
     public abstract T extractData(I id);
 
-    @WorkerThread
+    @UiThread
     @Override
     public abstract I extractId(T data);
 

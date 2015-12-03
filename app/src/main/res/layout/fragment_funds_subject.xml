@@ -62,7 +62,8 @@
 
     <FrameLayout
         android:id="@+id/subjects_parent_name_input_layout"
-        android:layout_width="match_parent"
+        android:layout_width="100dp"
+        app:layout_widthPercent="80%"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -91,6 +92,20 @@
             android:layout_marginEnd="16dp"
             android:visibility="gone"/>
     </FrameLayout>
+    <Button
+        android:id="@+id/subjects_clear_parent_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/subjects_parent_name_input_layout"
+        android:layout_toEndOf="@id/subjects_parent_name_input_layout"
+        android:layout_alignTop="@id/subjects_parent_name_input_layout"
+        android:layout_alignBottom="@id/subjects_parent_name_input_layout"
+        android:layout_below="@+id/subjects_name_input_info"
+        android:background="@drawable/round_button"
+        android:text="@string/remove_button_general"
+        android:textColor="#fff"
+        android:textSize="24sp"
+        android:visibility="gone"/>
     <TextView
         android:id="@+id/subjects_parent_name_input_info"
         android:layout_width="match_parent"

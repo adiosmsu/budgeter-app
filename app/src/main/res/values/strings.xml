@@ -20,6 +20,7 @@
     <string name="accounts_spinner_prompt">Balance accounts</string>
     <string name="accounts_spinner_null_val">No account</string>
     <string name="add_button_general" translatable="false">+</string>
+    <string name="remove_button_general" translatable="false">-</string>
     <string name="account_name_hint">Account name</string>
     <string name="account_starting_sum_hint">Starting sum</string>
     <string name="accounts_submit_button">Submit</string>

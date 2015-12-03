@@ -135,35 +135,39 @@ public class FundsSubjectFragment extends CoreFragment {
                 .addFieldInfo(FIELD_NEW_SUBJECT_PARENT_NAME, new CoreElementActivity.CoreElementFieldInfo(SubjectAdditionElementCore.FIELD_PARENT_NAME, new CoreNotifier.TextLinker() {
                     @Override
                     public boolean link(final String data) {
-                        final String prev = subjectsElement.getParentName();
-                        new AsyncTask<SubjectAdditionElementCore, Void, Optional<FundsMutationSubject>>() {
-                            @Override
-                            protected Optional<FundsMutationSubject> doInBackground(SubjectAdditionElementCore[] params) {
-                                final SubjectAdditionElementCore e = params[0];
-                                return e.setParentName(data, true);
-                            }
-
-                            @Override
-                            protected void onPostExecute(Optional<FundsMutationSubject> result) {
-                                final TextView infoView = (TextView) activity.findViewById(fragmentId).findViewById(R.id.subjects_parent_name_input_info);
-                                if (infoView == null) {
-                                    return;
+                        if (data == null || data.isEmpty()) {
+                            subjectsElement.setParentName(null);
+                        } else {
+                            new AsyncTask<SubjectAdditionElementCore, Void, Optional<FundsMutationSubject>>() {
+                                @Override
+                                protected Optional<FundsMutationSubject> doInBackground(SubjectAdditionElementCore[] params) {
+                                    final SubjectAdditionElementCore e = params[0];
+                                    return e.setParentName(data, true);
                                 }
 
-                                if (result.isPresent()) {
-                                    subjectsElement.setParentId(result.get().id.getAsLong());
-                                    if (infoView.getVisibility() == View.VISIBLE && NO_SUCH_PARENT_ERROR.equals(infoView.getText())) {
-                                        infoView.setText("");
-                                        infoView.setVisibility(View.INVISIBLE);
+                                @Override
+                                protected void onPostExecute(Optional<FundsMutationSubject> result) {
+                                    final TextView infoView = (TextView) activity.findViewById(fragmentId).findViewById(R.id.subjects_parent_name_input_info);
+                                    if (infoView == null) {
+                                        return;
+                                    }
+
+                                    final String prev = subjectsElement.getParentName();
+                                    if (result.isPresent()) {
+                                        subjectsElement.setParentId(result.get().id.getAsLong());
+                                        if (infoView.getVisibility() == View.VISIBLE && NO_SUCH_PARENT_ERROR.equals(infoView.getText())) {
+                                            infoView.setText("");
+                                            infoView.setVisibility(View.INVISIBLE);
+                                            infoView.invalidate();
+                                        }
+                                    } else if (prev != null && infoView.getVisibility() != View.VISIBLE) {
+                                        infoView.setVisibility(View.VISIBLE);
+                                        infoView.setText(NO_SUCH_PARENT_ERROR);
                                         infoView.invalidate();
                                     }
-                                } else if (prev != null && infoView.getVisibility() != View.VISIBLE) {
-                                    infoView.setVisibility(View.VISIBLE);
-                                    infoView.setText(NO_SUCH_PARENT_ERROR);
-                                    infoView.invalidate();
                                 }
-                            }
-                        }.execute(subjectsElement);
+                            }.execute(subjectsElement);
+                        }
                         return false;
                     }
                 }, subjectsErrorHighlighter))
@@ -333,12 +337,23 @@ public class FundsSubjectFragment extends CoreFragment {
             }
         });
         final TextView parentNameInputInfo = (TextView) inflated.findViewById(R.id.subjects_parent_name_input_info);
-        activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_PARENT_NAME, parentNameInput, parentNameInputInfo);
+        final CoreNotifier.Linker parentLinker = activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_PARENT_NAME, parentNameInput, parentNameInputInfo);
         final RadioGroup typeRadio = (RadioGroup) inflated.findViewById(R.id.subjects_type_radio);
         final TextView typeRadioInfo = (TextView) inflated.findViewById(R.id.subjects_type_radio_info);
         activity.addFieldFragmentInfo(id, FIELD_NEW_SUBJECT_TYPE, typeRadio, typeRadioInfo);
 
         final Button submitButton = (Button) inflated.findViewById(R.id.subjects_submit_button);
+
+        final Button clearParentsButton = (Button) inflated.findViewById(R.id.subjects_clear_parent_button);
+        UiUtils.makeButtonSquaredByHeight(clearParentsButton);
+        clearParentsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                parentNameInput.setText("");
+                ((CoreNotifier.TextLinker) parentLinker).link(null);
+            }
+        });
+        clearParentsButton.invalidate();
 
         // button roundness and listener to show hidden interface
         final Button addButton = (Button) inflated.findViewById(R.id.subjects_add_button);
@@ -349,7 +364,7 @@ public class FundsSubjectFragment extends CoreFragment {
                 if (v.getVisibility() == View.VISIBLE) {
                     editOpen = true;
                     showEdit(v, nameInput, nameInputInfo, descInput,
-                            descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton);
+                            descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, clearParentsButton);
                     inflated.invalidate();
                 }
             }
@@ -362,7 +377,7 @@ public class FundsSubjectFragment extends CoreFragment {
             public void accept(FundsMutationSubject subject) {
                 editOpen = false;
                 hideEdit(nameInput, nameInputInfo, descInput,
-                        descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton);
+                        descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton, clearParentsButton);
                 if (!subjectsSpinner.refreshCurrentWithPossibleValue(subject)) {
                     Toast.makeText(activity, R.string.subjects_spinner_refresh_failed, Toast.LENGTH_LONG)
                             .show();
@@ -373,10 +388,10 @@ public class FundsSubjectFragment extends CoreFragment {
 
         if (editOpen) {
             showEdit(addButton, nameInput, nameInputInfo, descInput,
-                    descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton);
+                    descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, clearParentsButton);
         } else {
             hideEdit(nameInput, nameInputInfo, descInput,
-                    descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton);
+                    descInputInfo, descInputOpt, parentNameLayout, parentNameInputInfo, typeRadio, typeRadioInfo, submitButton, addButton, clearParentsButton);
         }
 
         return inflated;
@@ -384,7 +399,7 @@ public class FundsSubjectFragment extends CoreFragment {
 
     private void hideEdit(EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
                           TextView descInputOpt, FrameLayout parentNameLayout, TextView parentNameInputInfo, RadioGroup typeRadio,
-                          TextView typeRadioInfo, Button submitButton, Button addButton) {
+                          TextView typeRadioInfo, Button submitButton, Button addButton, Button clearParentsButton) {
         nameInput.setVisibility(View.GONE);
         nameInputInfo.setVisibility(View.GONE);
         descInput.setVisibility(View.GONE);
@@ -395,12 +410,13 @@ public class FundsSubjectFragment extends CoreFragment {
         typeRadio.setVisibility(View.GONE);
         typeRadioInfo.setVisibility(View.GONE);
         submitButton.setVisibility(View.GONE);
+        clearParentsButton.setVisibility(View.GONE);
         addButton.setVisibility(View.VISIBLE);
     }
 
     private void showEdit(View v, EditText nameInput, TextView nameInputInfo, EditText descInput, TextView descInputInfo,
                           TextView descInputOpt, FrameLayout parentNameLayout, TextView parentNameInputInfo, RadioGroup typeRadio,
-                          TextView typeRadioInfo, Button submitButton) {
+                          TextView typeRadioInfo, Button submitButton, Button clearParentsButton) {
         nameInput.setVisibility(View.VISIBLE);
         nameInputInfo.setVisibility(View.INVISIBLE);
         descInput.setVisibility(View.VISIBLE);
@@ -411,6 +427,8 @@ public class FundsSubjectFragment extends CoreFragment {
         typeRadio.setVisibility(View.VISIBLE);
         typeRadioInfo.setVisibility(View.INVISIBLE);
         submitButton.setVisibility(View.VISIBLE);
+        clearParentsButton.setVisibility(View.VISIBLE);
+        UiUtils.makeButtonSquaredByHeight(clearParentsButton);
         v.setVisibility(View.INVISIBLE);
     }
 

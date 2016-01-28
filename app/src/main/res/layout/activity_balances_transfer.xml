@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar"/>
+
+    <android.support.percent.PercentRelativeLayout
+        android:id="@+id/activity_balances_transfer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context="ru.adios.budgeter.activities.AddFundsActivity">
+
+        <fragment android:name="ru.adios.budgeter.fragments.AccountStandardFragment"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/balances_transfer_sender_account_fragment"
+                  tools:layout="@layout/fragment_account_standard"/>
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/balances_transfer_receiver_account_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/balances_transfer_sender_account_fragment"
+            android:prompt="@string/balances_transfer_second_accounts_spinner_prompt"
+            android:visibility="gone"
+            android:spinnerMode="dropdown"/>
+        <TextView
+            android:id="@+id/balances_transfer_receiver_account_spinner_info"
+            android:layout_width="80dp"
+            app:layout_widthPercent="50%"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#af0b0b"
+            android:layout_below="@id/balances_transfer_receiver_account_spinner"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="gone" />
+
+        <fragment android:name="ru.adios.budgeter.fragments.EnterAmountFragment"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/balances_transfer_amount_fragment"
+                  android:layout_below="@id/balances_transfer_receiver_account_spinner_info"
+                  tools:layout="@layout/fragment_enter_amount" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text=""
+            android:textColor="#af0b0b"
+            android:id="@+id/balances_transfer_info"
+            android:layout_below="@id/balances_transfer_amount_fragment"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="invisible" />
+
+        <Button
+            android:layout_width="0dp"
+            app:layout_widthPercent="25%"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/balances_transfer_info"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:text="@string/balances_transfer_finish_button"
+            android:onClick="transfer" />
+
+    </android.support.percent.PercentRelativeLayout>
+</LinearLayout>
+

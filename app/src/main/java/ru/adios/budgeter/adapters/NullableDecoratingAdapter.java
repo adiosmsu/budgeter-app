@@ -243,14 +243,6 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
     }
 
     @Override
-    public int getItemViewType(int position) {
-        if (position == 0) {
-            return 0;
-        }
-        return delegate.getItemViewType(position - 1);
-    }
-
-    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (position == 0) {
             return nullViewProvider.getView(0, convertView, parent);
@@ -275,11 +267,6 @@ public class NullableDecoratingAdapter<AdapterType extends BaseAdapter & ThemedS
             }
             text.setText(stringPresenter.getStringPresentation(getItem(position)));
         }
-    }
-
-    @Override
-    public int getViewTypeCount() {
-        return delegate.getViewTypeCount() + 1;
     }
 
     @Override

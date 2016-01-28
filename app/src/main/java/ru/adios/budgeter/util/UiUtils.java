@@ -136,25 +136,51 @@ public final class UiUtils {
 
             @Override
             protected void onPostExecute(List<T> res) {
-                // fill spinner with data and schedule it for redrawing
-                NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res, OptionalInt.of(nullPresentation));
-                if (selection.isPresent()) {
-                    spinner.setSelection(selection.getAsInt()); // if fragment saved spinner state, apply it
-                }
-                if (listenerOptional.isPresent()) {
-                    spinner.setOnItemSelectedListener(listenerOptional.get()); // apply fragment's spinner state listener if it was supplied
-                }
-                final CoreNotifier.Linker linker =
-                        activity.addFieldFragmentInfo(fragmentId, fieldName, spinner, mainFragmentView.findViewById(spinnerInfoId)); // bind spinner with activity structure
-
-                // if state saved by fragment was applied, link it with core to prevent feedback nullifying it
-                if (selection.isPresent()) {
-                    CoreNotifier.linkViewValueWithCore(spinner.getSelectedItem(), linker, activity);
-                }
-
-                spinner.invalidate();
+                prepareNullableSpinner(spinner, activity, fragmentId, fieldName, mainFragmentView, spinnerInfoId, res, presenter, nullPresentation, selection, listenerOptional);
             }
         }.execute(stream);
+    }
+
+    public static <T> void prepareNullableSpinner(Spinner spinner,
+                                                  CoreElementActivity activity,
+                                                  @IdRes int fragmentId,
+                                                  String fieldName,
+                                                  View mainFragmentView,
+                                                  @IdRes int spinnerInfoId,
+                                                  List<T> res,
+                                                  StringPresenter<T> presenter,
+                                                  @StringRes int nullPresentation,
+                                                  OptionalInt selection,
+                                                  Optional<AdapterView.OnItemSelectedListener> listenerOptional) {
+        // fill spinner with data and schedule it for redrawing
+        NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(spinner, Optional.of(presenter), res, OptionalInt.of(nullPresentation));
+        if (selection.isPresent()) {
+            spinner.setSelection(selection.getAsInt()); // if fragment saved spinner state, apply it
+        }
+        if (listenerOptional.isPresent()) {
+            spinner.setOnItemSelectedListener(listenerOptional.get()); // apply fragment's spinner state listener if it was supplied
+        }
+        final CoreNotifier.Linker linker =
+                activity.addFieldFragmentInfo(fragmentId, fieldName, spinner, mainFragmentView.findViewById(spinnerInfoId)); // bind spinner with activity structure
+
+        // if state saved by fragment was applied, link it with core to prevent feedback nullifying it
+        if (selection.isPresent()) {
+            CoreNotifier.linkViewValueWithCore(spinner.getSelectedItem(), linker, activity);
+        }
+
+        spinner.invalidate();
+    }
+
+    public static <T> void prepareNullableSpinner(Spinner spinner,
+                                                  CoreElementActivity activity,
+                                                  String fieldName,
+                                                  View mainFragmentView,
+                                                  @IdRes int spinnerInfoId,
+                                                  List<T> res,
+                                                  StringPresenter<T> presenter,
+                                                  @StringRes int nullPresentation,
+                                                  OptionalInt selection,
+                                                  Optional<AdapterView.OnItemSelectedListener> listenerOptional) {
     }
 
     public static void refillLinearLayoutWithBalances(LinearLayout fundsLayout, List<Money> balances, Money totalBalance, Context context) {

@@ -64,10 +64,19 @@
                 android:text="@string/button_prices"
                 android:onClick="startPricesActivity" />
             <Button
-                android:id="@+id/ah_mutate_button"
+                android:id="@+id/ah_transfer_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/ah_add_funds_button"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:text="@string/button_balances_transfer"
+                android:onClick="startBalancesTransferActivity" />
+            <Button
+                android:id="@+id/ah_mutate_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/ah_transfer_button"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
                 android:text="@string/button_mutate_funds"

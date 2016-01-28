@@ -216,6 +216,11 @@ public class HomeActivity extends FundsAwareMenuActivity {
         startActivity(new Intent(this, AddPriceActivity.class));
     }
 
+    /** Called when user clicks on Transfer Funds button */
+    public void startBalancesTransferActivity(View view) {
+        startActivity(new Intent(this, BalancesTransferActivity.class));
+    }
+
     /** Called when user clicks on Mutate Funds button */
     public void startFundsMutationActivity(View view) {
         startActivity(new Intent(this, FundsMutationActivity.class));

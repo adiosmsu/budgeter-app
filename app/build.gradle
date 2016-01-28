@@ -44,12 +44,13 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:percent:23.1.1'
-    compile 'ru.adios.budgeter:core-java6:0.1-BETA'
     compile('ru.adios.budgeter:jdbcrepo-api-impl-java6:0.1-BETA') {
         exclude module: 'commons-logging'
     }
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:percent:23.1.1'
+    compile 'ru.adios.budgeter:core-java6:0.1-BETA'
     compile 'org.sqldroid:sqldroid-wared:1.0.4-SNAPSHOT'
     compile 'com.noveogroup.android:android-logger:1.3.5'
+    compile 'com.android.support:design:23.1.1'
 }

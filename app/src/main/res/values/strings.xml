@@ -116,5 +116,10 @@
     <string name="settings_db_restore_dialog_text">You will loose any data that is newer than backup. Proceed?</string>
     <string name="refreshing_leveled_adapter_up_str">Up</string>
     <string name="subjects_spinner_refresh_failed">Refreshing subjects spinner failed, already refreshing</string>
+    <string name="title_activity_balances_transfer">Transfer Funds</string>
+    <string name="balances_transfer_finish_button">Transfer</string>
+    <string name="balances_transfer_second_accounts_spinner_prompt">Receiver account</string>
+    <string name="balances_transfer_success">Balances transfer succeeded!</string>
+    <string name="button_balances_transfer">Transfer funds</string>
 
 </resources>

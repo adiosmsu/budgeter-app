@@ -111,4 +111,8 @@
     <string name="settings_db_restore_dialog_text">Вы потеряете все данные, новее бэкапа. Продолжить?</string>
     <string name="refreshing_leveled_adapter_up_str">Вверх</string>
     <string name="subjects_spinner_refresh_failed">Обновление спиннера субъектов неудачно, спиннер еще занят предыдущим</string>
+    <string name="title_activity_balances_transfer">Перевод средств</string>
+    <string name="balances_transfer_finish_button">Перевод</string>
+    <string name="balances_transfer_second_accounts_spinner_prompt">Аккаунт получатель</string>
+    <string name="balances_transfer_success">Перенос средств успешен!</string>
 </resources>

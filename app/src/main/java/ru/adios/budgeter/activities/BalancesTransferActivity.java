@@ -68,12 +68,12 @@ import ru.adios.budgeter.util.UiUtils;
 public class BalancesTransferActivity extends CoreElementActivity {
 
     public static final String KEY_HIGHLIGHTER = "balances_transfer_act_high";
-    public static final String KEY_RECEIVER_OPEN = "bt_rec_open_key";
     public static final String KEY_SELECTED_RECEIVER_ACCOUNT = "bt_select_rec_acc_key";
     public static final String KEY_SUGGESTED_RECEIVERS = "bt_sug_recs_key";
 
 
-    private final BalancesTransferCore transferElement = new BalancesTransferCore(BundleProvider.getBundle().treasury());
+    private final Treasury treasury = BundleProvider.getBundle().treasury();
+    private final BalancesTransferCore transferElement = new BalancesTransferCore(treasury);
     private final CoreErrorHighlighter transferErrorHighlighter = new CoreErrorHighlighter(KEY_HIGHLIGHTER);
 
     private final CollectibleFragmentInfoProvider<BalanceAccount, AccountStandardFragment.HybridAccountCore> senderAccountInfoProvider =
@@ -95,7 +95,6 @@ public class BalancesTransferActivity extends CoreElementActivity {
                                     @Override
                                     protected ImmutableList<BalanceAccount> doInBackground(BalancesTransferCore... params) {
                                         final BalancesTransferCore core = params[0];
-                                        final Treasury treasury = BundleProvider.getBundle().treasury();
                                         return ImmutableList.copyOf(core.getSuggestedAccountsStream().map(new Function<BalanceAccount, BalanceAccount>() {
                                             @Override
                                             public BalanceAccount apply(final BalanceAccount balanceAccount) {
@@ -106,12 +105,7 @@ public class BalancesTransferActivity extends CoreElementActivity {
 
                                     @Override
                                     protected void onPostExecute(ImmutableList<BalanceAccount> result) {
-                                        ImmutableList<Long> ids = ImmutableList.copyOf(Lists.transform(result, new com.google.common.base.Function<BalanceAccount, Long>() {
-                                            @Override
-                                            public Long apply(BalanceAccount input) {
-                                                return input.id.get();
-                                            }
-                                        }));
+                                        final ImmutableList<Long> ids = getIdsFromAccountsList(result);
                                         if (!suggestedReceivers.equals(ids)) {
                                             suggestedReceivers = ids;
                                             selectedReceiverAccount = 0;
@@ -120,12 +114,7 @@ public class BalancesTransferActivity extends CoreElementActivity {
                                                 collectEssentialViews();
                                             }
 
-                                            NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(
-                                                    receiverAccountSpinner,
-                                                    Optional.<StringPresenter<BalanceAccount>>of(Presenters.getBalanceAccountDefaultPresenter(getResources())),
-                                                    new ArrayList<>(result),
-                                                    OptionalInt.of(R.string.accounts_spinner_null_val)
-                                            );
+                                            fillReceiversSpinner(result);
                                             receiverAccountSpinner.setSelection(0);
                                             receiverAccountSpinner.setVisibility(View.VISIBLE);
                                             receiverAccountInfo.setVisibility(View.INVISIBLE);
@@ -152,7 +141,6 @@ public class BalancesTransferActivity extends CoreElementActivity {
 
 
     // transient state
-    private boolean receiverOpen = false;
     private int selectedReceiverAccount = -1;
     private ImmutableList<Long> suggestedReceivers = ImmutableList.of();
     // end of transient state
@@ -182,7 +170,6 @@ public class BalancesTransferActivity extends CoreElementActivity {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            receiverOpen = savedInstanceState.getBoolean(KEY_RECEIVER_OPEN, false);
             selectedReceiverAccount = savedInstanceState.getInt(KEY_SELECTED_RECEIVER_ACCOUNT, -1);
             final long[] ids = savedInstanceState.getLongArray(KEY_SUGGESTED_RECEIVERS);
             if (ids == null) {
@@ -194,6 +181,36 @@ public class BalancesTransferActivity extends CoreElementActivity {
                 }
                 suggestedReceivers = builder.build();
             }
+        }
+
+        if (selectedReceiverAccount >= 0) {
+            final ImmutableList<Long> receiversSnapshot = ImmutableList.copyOf(suggestedReceivers);
+            new AsyncTask<Long[], Void, ImmutableList<BalanceAccount>>() {
+                @Override
+                protected ImmutableList<BalanceAccount> doInBackground(Long[]... params) {
+                    final Long[] ids = params[0];
+                    final ImmutableList.Builder<BalanceAccount> builder = ImmutableList.builder();
+                    for (final Long i : ids) {
+                        final Optional<BalanceAccount> byId = treasury.getById(i);
+                        if (byId.isPresent()) {
+                            builder.add(byId.get());
+                        }
+                    }
+                    return builder.build();
+                }
+
+                @Override
+                protected void onPostExecute(ImmutableList<BalanceAccount> balanceAccounts) {
+                    if (receiversSnapshot.equals(suggestedReceivers)) {
+                        fillReceiversSpinner(balanceAccounts);
+                        if (receiverAccountSpinner != null) {
+                            receiverAccountSpinner.setSelection(selectedReceiverAccount);
+                            receiverAccountSpinner.setVisibility(View.VISIBLE);
+                            receiverAccountInfo.setVisibility(View.INVISIBLE);
+                        }
+                    }
+                }
+            }.execute(receiversSnapshot.toArray(new Long[receiversSnapshot.size()]));
         }
 
         collectEssentialViews();
@@ -226,7 +243,6 @@ public class BalancesTransferActivity extends CoreElementActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_RECEIVER_OPEN, receiverOpen);
         outState.putInt(KEY_SELECTED_RECEIVER_ACCOUNT, selectedReceiverAccount);
         outState.putLongArray(KEY_SUGGESTED_RECEIVERS, transformLongList(suggestedReceivers));
     }
@@ -259,7 +275,14 @@ public class BalancesTransferActivity extends CoreElementActivity {
 
     @Override
     protected final void activityInnerFeedback() {
-        Feedbacking.nullableArraySpinnerFeedback(transferElement.getReceiverAccount(), receiverAccountSpinner);
+        if (transferElement.getSenderAccount() == null && selectedReceiverAccount >= 0 && receiverAccountSpinner.getVisibility() != View.GONE) {
+            selectedReceiverAccount = -1;
+            suggestedReceivers = ImmutableList.of();
+            receiverAccountSpinner.setVisibility(View.GONE);
+            receiverAccountInfo.setVisibility(View.GONE);
+        } else {
+            Feedbacking.nullableArraySpinnerFeedback(transferElement.getReceiverAccount(), receiverAccountSpinner);
+        }
     }
 
     @Override
@@ -300,6 +323,26 @@ public class BalancesTransferActivity extends CoreElementActivity {
                 finishSubmit(core, R.id.activity_balances_transfer);
             }
         }.execute(transferElement);
+    }
+
+    void fillReceiversSpinner(ImmutableList<BalanceAccount> contents) {
+        if (receiverAccountSpinner != null) {
+            NullableDecoratingAdapter.adaptSpinnerWithArrayWrapper(
+                    receiverAccountSpinner,
+                    Optional.<StringPresenter<BalanceAccount>>of(Presenters.getBalanceAccountDefaultPresenter(getResources())),
+                    new ArrayList<>(contents),
+                    OptionalInt.of(R.string.accounts_spinner_null_val)
+            );
+        }
+    }
+
+    static ImmutableList<Long> getIdsFromAccountsList(ImmutableList<BalanceAccount> result) {
+        return ImmutableList.copyOf(Lists.transform(result, new com.google.common.base.Function<BalanceAccount, Long>() {
+            @Override
+            public Long apply(BalanceAccount input) {
+                return input.id.get();
+            }
+        }));
     }
 
 }

@@ -4,6 +4,12 @@ repositories {
     mavenLocal()
 }
 android {
+    android {
+        lintOptions {
+            disable 'InvalidPackage'
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/spring.handlers'
         exclude 'META-INF/spring.schemas'

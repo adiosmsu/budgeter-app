@@ -115,4 +115,5 @@
     <string name="balances_transfer_finish_button">Перевод</string>
     <string name="balances_transfer_second_accounts_spinner_prompt">Аккаунт получатель</string>
     <string name="balances_transfer_success">Перенос средств успешен!</string>
+    <string name="button_balances_transfer">Перенос средств</string>
 </resources>

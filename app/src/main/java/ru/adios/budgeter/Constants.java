@@ -51,7 +51,8 @@ public final class Constants {
             Units.RUB.getCode(),
             CurrencyUnit.USD.getCode(),
             CurrencyUnit.EUR.getCode(),
-            Units.BTC.getCode()
+            Units.BTC.getCode(),
+            CurrencyUnit.of("UAH").getCode()
     };
 
     public static String[] currenciesDropdownCopy() {
